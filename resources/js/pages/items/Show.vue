@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import TagBadge from '@/components/TagBadge.vue';
-import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, ItemSummary } from '@/types';
+import type { BreadcrumbItemType, ItemSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -14,19 +13,15 @@ const props = defineProps<{
     children: ItemSummary[];
 }>();
 
-const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-    const base: BreadcrumbItem[] = [{ title: 'Inventory', href: '/items' }];
-    for (const item of props.breadcrumb) {
-        base.push({ title: item.name, href: `/items/${item.id}` });
-    }
+const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
+    const base: BreadcrumbItemType[] = [{ title: 'Inventory', href: '/items' }];
+    for (const item of props.breadcrumb) base.push({ title: item.name, href: `/items/${item.id}` });
     base.push({ title: props.item.name, href: `/items/${props.item.id}` });
     return base;
 });
 
 function destroyItem() {
-    if (!confirm(`Delete "${props.item.name}"? Any items inside will become top-level.`)) {
-        return;
-    }
+    if (!confirm(`Delete "${props.item.name}"? Any items inside will become top-level.`)) return;
     router.delete(`/items/${props.item.id}`);
 }
 </script>
@@ -35,73 +30,89 @@ function destroyItem() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head :title="item.name" />
 
-        <div class="flex flex-col gap-6 p-4 md:p-6">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-                <div class="flex items-start gap-4">
-                    <div class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                        <ItemTypeIcon :type="item.type.value" class="size-6" />
+        <template #topbar-actions>
+            <Link :href="`/items/${item.id}/edit`" class="btn-pill">
+                <Pencil :size="14" />
+                Edit
+            </Link>
+            <button class="btn-pill btn-danger" type="button" @click="destroyItem">
+                <Trash2 :size="14" />
+                Delete
+            </button>
+            <Link :href="`/items/create?parent=${item.id}`" class="btn-primary">
+                <Plus :size="14" />
+                Add child
+            </Link>
+        </template>
+
+        <div class="page">
+            <div class="detail-grid">
+                <div class="gallery">
+                    <div class="main-img">
+                        <ItemTypeIcon :type="item.type.value" />
                     </div>
-                    <div class="min-w-0">
-                        <p class="text-xs uppercase tracking-wide text-muted-foreground">{{ item.type.label }}</p>
-                        <h1 class="text-2xl font-semibold tracking-tight">{{ item.name }}</h1>
-                        <p v-if="item.description" class="mt-2 max-w-prose text-sm text-muted-foreground">{{ item.description }}</p>
-                        <div v-if="item.tags?.length" class="mt-3 flex flex-wrap gap-1">
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <p class="section-label">{{ item.type.label }}</p>
+                        <h1 style="margin: 4px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">{{ item.name }}</h1>
+                        <p v-if="item.description" style="margin: 12px 0 0; color: var(--fg-muted); font-size: 14px">{{ item.description }}</p>
+                        <div v-if="item.tags?.length" class="flex flex-wrap gap-1 mt-3">
                             <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                         </div>
                     </div>
-                </div>
-                <div class="flex gap-2">
-                    <Link :href="`/items/${item.id}/edit`">
-                        <Button variant="outline" size="sm">
-                            <Pencil class="mr-1 size-4" />
-                            Edit
-                        </Button>
-                    </Link>
-                    <Button variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="destroyItem">
-                        <Trash2 class="mr-1 size-4" />
-                        Delete
-                    </Button>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <h3>Where</h3>
+                        </div>
+                        <div class="card-pad">
+                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">Top level — not inside anything.</div>
+                            <div v-else class="flex items-center flex-wrap gap-1.5" style="font-size: 13px">
+                                <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
+                                    <ChevronRight v-if="i > 0" :size="12" style="color: var(--fg-subtle)" />
+                                    <Link :href="`/items/${crumb.id}`" class="flex items-center gap-1.5">
+                                        <ItemTypeIcon :type="crumb.type.value" class="size-3.5" />
+                                        <span>{{ crumb.name }}</span>
+                                    </Link>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <section>
-                <div class="mb-3 flex items-center justify-between">
-                    <h2 class="text-sm font-medium uppercase tracking-wide text-muted-foreground">Contents</h2>
-                    <Link :href="`/items/create?parent=${item.id}`">
-                        <Button size="sm" variant="outline">
-                            <Plus class="mr-1 size-4" />
-                            Add child
-                        </Button>
+            <section class="mt-8">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="section-label" style="margin: 0">Contents</h3>
+                    <Link :href="`/items/create?parent=${item.id}`" class="btn-pill">
+                        <Plus :size="14" />
+                        Add child
                     </Link>
                 </div>
 
-                <div v-if="children.length === 0" class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
                     Nothing inside this {{ item.type.label.toLowerCase() }} yet.
                 </div>
 
-                <ul v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <li v-for="child in children" :key="child.id" class="group rounded-lg border bg-card shadow-sm transition hover:shadow">
-                        <Link :href="`/items/${child.id}`" class="flex items-start gap-3 p-4">
-                            <div class="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                                <ItemTypeIcon :type="child.type.value" class="size-5" />
+                <div v-else class="items-grid">
+                    <Link v-for="child in children" :key="child.id" :href="`/items/${child.id}`" class="item-card">
+                        <div class="thumb">
+                            <ItemTypeIcon :type="child.type.value" />
+                        </div>
+                        <div class="info">
+                            <div class="nm">{{ child.name }}</div>
+                            <div class="meta">
+                                <span>{{ child.type.label }}</span>
+                                <span v-if="(child.children_count ?? 0) > 0" class="mono">{{ child.children_count }} inside</span>
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <p class="truncate font-medium">{{ child.name }}</p>
-                                    <ChevronRight class="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5" />
-                                </div>
-                                <p class="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">
-                                    {{ child.type.label }}
-                                    <span v-if="(child.children_count ?? 0) > 0">· {{ child.children_count }} inside</span>
-                                </p>
-                                <p v-if="child.description" class="mt-1 line-clamp-2 text-sm text-muted-foreground">{{ child.description }}</p>
-                                <div v-if="child.tags?.length" class="mt-2 flex flex-wrap gap-1">
-                                    <TagBadge v-for="tag in child.tags" :key="tag.id" :tag="tag" />
-                                </div>
+                            <div v-if="child.tags?.length" class="flex flex-wrap gap-1 mt-2">
+                                <TagBadge v-for="tag in child.tags" :key="tag.id" :tag="tag" />
                             </div>
-                        </Link>
-                    </li>
-                </ul>
+                        </div>
+                    </Link>
+                </div>
             </section>
         </div>
     </AppLayout>

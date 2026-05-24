@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import InputError from '@/components/InputError.vue';
+import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import type { ItemSummary, ItemTypeDescriptor, ItemTypeValue, TagSummary } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
@@ -40,25 +37,26 @@ function toggleTag(id: number) {
 }
 
 function submit() {
-    if (props.mode === 'create') {
-        form.post('/items');
-    } else if (props.item) {
-        form.put(`/items/${props.item.id}`);
-    }
+    if (props.mode === 'create') form.post('/items');
+    else if (props.item) form.put(`/items/${props.item.id}`);
 }
 </script>
 
 <template>
-    <form class="flex flex-col gap-6" @submit.prevent="submit">
-        <div class="grid gap-2">
-            <Label>Type</Label>
+    <form class="form" @submit.prevent="submit">
+        <div class="form-row">
+            <label>Type</label>
             <div class="grid grid-cols-3 gap-2">
                 <button
                     v-for="type in types"
                     :key="type.value"
                     type="button"
-                    class="flex flex-col items-center gap-1.5 rounded-md border p-3 text-sm transition hover:bg-muted"
-                    :class="form.type === type.value ? 'border-primary bg-primary/5 text-primary' : 'border-border'"
+                    class="flex flex-col items-center gap-1.5 p-3 text-[13px] transition rounded-md border"
+                    :style="{
+                        borderColor: form.type === type.value ? 'var(--fg)' : 'var(--border)',
+                        background: form.type === type.value ? 'var(--bg-sunken)' : 'var(--bg-elev)',
+                        color: form.type === type.value ? 'var(--fg)' : 'var(--fg-muted)',
+                    }"
                     @click="form.type = type.value"
                 >
                     <ItemTypeIcon :type="type.value" class="size-5" />
@@ -68,31 +66,21 @@ function submit() {
             <InputError :message="form.errors.type" />
         </div>
 
-        <div class="grid gap-2">
-            <Label for="name">Name</Label>
-            <Input id="name" v-model="form.name" autofocus required placeholder="e.g. Toolbox" />
+        <div class="form-row">
+            <label for="name">Name</label>
+            <input id="name" v-model="form.name" autofocus required placeholder="e.g. Toolbox" class="field" />
             <InputError :message="form.errors.name" />
         </div>
 
-        <div class="grid gap-2">
-            <Label for="description">Description</Label>
-            <textarea
-                id="description"
-                v-model="form.description"
-                rows="3"
-                placeholder="Optional notes"
-                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
+        <div class="form-row">
+            <label for="description">Description</label>
+            <textarea id="description" v-model="form.description" rows="3" placeholder="Optional notes" class="field" />
             <InputError :message="form.errors.description" />
         </div>
 
-        <div v-if="mode === 'create'" class="grid gap-2">
-            <Label for="parent_id">Inside</Label>
-            <select
-                id="parent_id"
-                v-model="form.parent_id"
-                class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
+        <div v-if="mode === 'create'" class="form-row">
+            <label for="parent_id">Inside</label>
+            <select id="parent_id" v-model="form.parent_id" class="field">
                 <option :value="null">— Top level —</option>
                 <option v-for="candidate in eligibleParents" :key="candidate.id" :value="candidate.id">
                     {{ candidate.type.label }} · {{ candidate.name }}
@@ -101,9 +89,9 @@ function submit() {
             <InputError :message="form.errors.parent_id" />
         </div>
 
-        <div class="grid gap-2">
-            <Label>Tags</Label>
-            <div v-if="tags.length === 0" class="text-sm text-muted-foreground">
+        <div class="form-row">
+            <label>Tags</label>
+            <div v-if="tags.length === 0" style="color: var(--fg-muted); font-size: 13px">
                 No tags yet. Create one from the Tags page.
             </div>
             <div v-else class="flex flex-wrap gap-2">
@@ -111,11 +99,15 @@ function submit() {
                     v-for="tag in tags"
                     :key="tag.id"
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition"
-                    :class="form.tags.includes(tag.id) ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:bg-muted'"
+                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11.5px] transition"
+                    :style="
+                        form.tags.includes(tag.id)
+                            ? { background: 'var(--accent)', color: 'var(--accent-fg)', border: '1px solid var(--accent)' }
+                            : { background: 'var(--bg-elev)', color: 'var(--fg-muted)', border: '1px solid var(--border)' }
+                    "
                     @click="toggleTag(tag.id)"
                 >
-                    <Check v-if="form.tags.includes(tag.id)" class="size-3" />
+                    <Check v-if="form.tags.includes(tag.id)" :size="12" />
                     <span v-if="tag.color" class="size-2 rounded-full" :style="{ backgroundColor: tag.color }" />
                     {{ tag.name }}
                 </button>
@@ -124,9 +116,10 @@ function submit() {
         </div>
 
         <div class="flex justify-end gap-2">
-            <Button type="submit" :disabled="form.processing">
+            <button type="submit" :disabled="form.processing" class="btn-primary">
+                <Check :size="14" />
                 {{ submitLabel ?? (mode === 'create' ? 'Create' : 'Save') }}
-            </Button>
+            </button>
         </div>
     </form>
 </template>

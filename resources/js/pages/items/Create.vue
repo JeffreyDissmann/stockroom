@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import ItemForm from '@/components/ItemForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import type { BreadcrumbItemType, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
+import { Head, Link } from '@inertiajs/vue3';
+import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -12,25 +13,32 @@ const props = defineProps<{
     types: ItemTypeDescriptor[];
 }>();
 
-const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-    const base: BreadcrumbItem[] = [{ title: 'Inventory', href: '/items' }];
-    if (props.parent) {
-        base.push({ title: props.parent.name, href: `/items/${props.parent.id}` });
-    }
+const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
+    const base: BreadcrumbItemType[] = [{ title: 'Inventory', href: '/items' }];
+    if (props.parent) base.push({ title: props.parent.name, href: `/items/${props.parent.id}` });
     base.push({ title: 'New item', href: '/items/create' });
     return base;
 });
+
+const cancelHref = computed(() => (props.parent ? `/items/${props.parent.id}` : '/items'));
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Add item" />
 
-        <div class="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4 md:p-6">
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight">Add item</h1>
-                <p v-if="parent" class="mt-1 text-sm text-muted-foreground">
-                    Inside <span class="font-medium">{{ parent.name }}</span>
+        <template #topbar-actions>
+            <Link :href="cancelHref" class="btn-ghost">
+                <X :size="14" />
+                Cancel
+            </Link>
+        </template>
+
+        <div class="page">
+            <div class="mb-5">
+                <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">Add item</h2>
+                <p v-if="parent" style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">
+                    Inside <span style="color: var(--fg); font-weight: 500">{{ parent.name }}</span>
                 </p>
             </div>
 

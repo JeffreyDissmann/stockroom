@@ -9,10 +9,10 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_root_redirects_to_items()
+    public function test_root_redirects_to_dashboard()
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/items');
+        $response->assertRedirect('/dashboard');
     }
 }
