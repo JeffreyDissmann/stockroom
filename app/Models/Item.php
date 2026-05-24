@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class Item extends Model
@@ -29,6 +30,13 @@ class Item extends Model
         'type' => ItemType::class,
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Item $item): void {
+            $item->images->each(fn (ItemImage $image) => $image->delete());
+        });
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
@@ -42,6 +50,16 @@ class Item extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ItemImage::class)->orderBy('sort_order');
+    }
+
+    public function primaryImage(): HasOne
+    {
+        return $this->hasOne(ItemImage::class)->where('is_primary', true);
     }
 
     /**
