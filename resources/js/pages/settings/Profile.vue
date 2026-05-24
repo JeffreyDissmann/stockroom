@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { TransitionRoot } from '@headlessui/vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -11,14 +11,6 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
-
-interface Props {
-    mustVerifyEmail: boolean;
-    status?: string;
-    className?: string;
-}
-
-defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -69,24 +61,6 @@ const submit = () => {
                             placeholder="Email address"
                         />
                         <InputError class="mt-2" :message="form.errors.email" />
-                    </div>
-
-                    <div v-if="mustVerifyEmail && !user.email_verified_at">
-                        <p class="mt-2 text-sm text-neutral-800">
-                            Your email address is unverified.
-                            <Link
-                                :href="route('verification.send')"
-                                method="post"
-                                as="button"
-                                class="focus:outline-hidden rounded-md text-sm text-neutral-600 underline hover:text-neutral-900 focus:ring-2 focus:ring-offset-2"
-                            >
-                                Click here to re-send the verification email.
-                            </Link>
-                        </p>
-
-                        <div v-if="status === 'verification-link-sent'" class="mt-2 text-sm font-medium text-green-600">
-                            A new verification link has been sent to your email address.
-                        </div>
                     </div>
 
                     <div class="flex items-center gap-4">
