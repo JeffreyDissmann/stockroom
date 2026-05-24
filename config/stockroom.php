@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'admin' => [
         'name' => env('ADMIN_NAME', 'Admin'),

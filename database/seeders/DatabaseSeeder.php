@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Enums\ItemType;
@@ -79,7 +81,7 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * @param  array<int, \App\Models\Tag|null>  $tags
+     * @param  array<int, Tag|null>  $tags
      */
     private function makeItem(Item $parent, ItemType $type, string $name, ?string $description = null, array $tags = []): Item
     {

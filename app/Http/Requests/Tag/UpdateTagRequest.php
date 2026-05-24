@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Tag;
 
+use App\Models\Tag;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +17,7 @@ class UpdateTagRequest extends FormRequest
 
     public function rules(): array
     {
-        /** @var \App\Models\Tag $tag */
+        /** @var Tag $tag */
         $tag = $this->route('tag');
 
         return [
