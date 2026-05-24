@@ -56,13 +56,24 @@ export interface TagSummary {
     color: string | null;
 }
 
+export interface ItemImageSummary {
+    id: number;
+    thumb_url: string;
+    large_url: string;
+    original_url: string;
+    is_primary: boolean;
+    sort_order: number;
+}
+
 export interface ItemSummary {
     id: number;
     name: string;
     description: string | null;
     parent_id: number | null;
     type: ItemTypeDescriptor;
+    thumb_url?: string | null;
     children_count?: number;
     tags?: TagSummary[];
+    images?: ItemImageSummary[];
 }
 

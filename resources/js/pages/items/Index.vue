@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary } from '@/types';
@@ -106,7 +106,7 @@ watch(
                     >
                         <td>
                             <div class="row-name">
-                                <span class="row-thumb"><ItemTypeIcon :type="item.type.value" class="size-4" /></span>
+                                <span class="row-thumb"><ItemThumbnail :item="item" size="sm" /></span>
                                 <div>
                                     <div class="nm">{{ item.name }}</div>
                                     <div v-if="item.description" class="sub" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px">
@@ -129,7 +129,7 @@ watch(
             <div v-else class="items-grid">
                 <Link v-for="item in filtered" :key="item.id" :href="`/items/${item.id}`" class="item-card">
                     <div class="thumb">
-                        <ItemTypeIcon :type="item.type.value" />
+                        <ItemThumbnail :item="item" size="md" />
                     </div>
                     <div class="info">
                         <div class="nm">{{ item.name }}</div>

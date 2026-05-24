@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import type { ItemSummary, ItemTypeDescriptor, ItemTypeValue, TagSummary } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 type Mode = 'create' | 'edit';
 
@@ -24,7 +25,15 @@ const form = useForm({
     type: (props.item?.type.value ?? (props.parent ? 'item' : 'room')) as ItemTypeValue,
     parent_id: props.item?.parent_id ?? props.parent?.id ?? null,
     tags: (props.item?.tags ?? []).map((t) => t.id),
+    images: [] as File[],
 });
+
+const queuedFiles = ref<File[]>([]);
+
+function onFilesUpdate(files: File[]) {
+    queuedFiles.value = files;
+    form.images = files;
+}
 
 const eligibleParents = computed(() => props.items.filter((i) => !props.item || i.id !== props.item.id));
 
@@ -37,8 +46,11 @@ function toggleTag(id: number) {
 }
 
 function submit() {
-    if (props.mode === 'create') form.post('/items');
-    else if (props.item) form.put(`/items/${props.item.id}`);
+    if (props.mode === 'create') {
+        form.post('/items', { forceFormData: true });
+    } else if (props.item) {
+        form.put(`/items/${props.item.id}`);
+    }
 }
 </script>
 
@@ -88,6 +100,15 @@ function submit() {
             </select>
             <InputError :message="form.errors.parent_id" />
         </div>
+
+        <ItemImageManager
+            :mode="mode"
+            :item-id="item?.id ?? null"
+            :existing="item?.images ?? []"
+            :files="queuedFiles"
+            @update:files="onFilesUpdate"
+        />
+        <InputError :message="form.errors['images.0']" />
 
         <div class="form-row">
             <label>Tags</label>

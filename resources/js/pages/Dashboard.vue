@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { ChevronRight, Home, Plus } from 'lucide-vue-next';
+import { ChevronRight, Plus } from 'lucide-vue-next';
 
 interface RecentItem {
     id: number;
     name: string;
     created_at_human: string | null;
     type: ItemSummary['type'];
+    thumb_url: string | null;
     parent: { id: number; name: string; type: ItemSummary['type'] } | null;
 }
 
@@ -93,7 +95,7 @@ const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Dashboard', href: '/dashboa
                             <tr v-for="r in recent" :key="r.id" class="row-clickable" @click="$inertia.visit(`/items/${r.id}`)">
                                 <td>
                                     <div class="row-name">
-                                        <span class="row-thumb"><ItemTypeIcon :type="r.type.value" class="size-4" /></span>
+                                        <span class="row-thumb"><ItemThumbnail :item="{ name: r.name, type: r.type, thumb_url: r.thumb_url }" size="sm" /></span>
                                         <div>
                                             <div class="nm">{{ r.name }}</div>
                                             <div class="sub">{{ r.type.label }}</div>
@@ -127,7 +129,7 @@ const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Dashboard', href: '/dashboa
                         </div>
                         <div v-else>
                             <Link v-for="room in rooms" :key="room.id" :href="`/items/${room.id}`" class="act-row">
-                                <span class="row-thumb"><Home class="size-4" /></span>
+                                <span class="row-thumb"><ItemThumbnail :item="room" size="sm" /></span>
                                 <div class="body">
                                     <div class="t" style="font-weight: 500">{{ room.name }}</div>
                                     <div class="when mono">{{ room.children_count ?? 0 }} inside</div>

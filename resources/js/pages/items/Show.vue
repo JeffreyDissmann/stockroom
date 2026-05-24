@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItemType, ItemSummary } from '@/types';
+import type { BreadcrumbItemType, ItemImageSummary, ItemSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     item: ItemSummary;
@@ -18,6 +19,19 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
     for (const item of props.breadcrumb) base.push({ title: item.name, href: `/items/${item.id}` });
     base.push({ title: props.item.name, href: `/items/${props.item.id}` });
     return base;
+});
+
+const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
+const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
+const activeImageId = ref<number | null>(initialActive.value?.id ?? null);
+const activeImage = computed<ItemImageSummary | null>(
+    () => images.value.find((i) => i.id === activeImageId.value) ?? initialActive.value,
+);
+
+watch(initialActive, (img) => {
+    if (img && (activeImageId.value === null || !images.value.find((i) => i.id === activeImageId.value))) {
+        activeImageId.value = img.id;
+    }
 });
 
 function destroyItem() {
@@ -49,7 +63,20 @@ function destroyItem() {
             <div class="detail-grid">
                 <div class="gallery">
                     <div class="main-img">
-                        <ItemTypeIcon :type="item.type.value" />
+                        <img v-if="activeImage" :src="activeImage.large_url" :alt="item.name" class="gallery-img" />
+                        <ItemTypeIcon v-else :type="item.type.value" />
+                    </div>
+                    <div v-if="images.length > 1" class="gallery-row">
+                        <button
+                            v-for="img in images"
+                            :key="img.id"
+                            type="button"
+                            class="gallery-mini"
+                            :class="{ 'gallery-mini-active': img.id === activeImage?.id }"
+                            @click="activeImageId = img.id"
+                        >
+                            <img :src="img.thumb_url" :alt="''" />
+                        </button>
                     </div>
                 </div>
 
@@ -99,7 +126,7 @@ function destroyItem() {
                 <div v-else class="items-grid">
                     <Link v-for="child in children" :key="child.id" :href="`/items/${child.id}`" class="item-card">
                         <div class="thumb">
-                            <ItemTypeIcon :type="child.type.value" />
+                            <ItemThumbnail :item="child" size="md" />
                         </div>
                         <div class="info">
                             <div class="nm">{{ child.name }}</div>
@@ -117,3 +144,37 @@ function destroyItem() {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: var(--bg-sunken);
+}
+.gallery-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+.gallery-mini {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-sunken);
+    padding: 0;
+    cursor: pointer;
+}
+.gallery-mini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.gallery-mini-active {
+    outline: 2px solid var(--fg);
+    outline-offset: -2px;
+}
+</style>
