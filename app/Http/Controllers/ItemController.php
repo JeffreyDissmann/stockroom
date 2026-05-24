@@ -9,7 +9,9 @@ use App\Http\Requests\Item\MoveItemRequest;
 use App\Http\Requests\Item\StoreItemRequest;
 use App\Http\Requests\Item\UpdateItemRequest;
 use App\Models\Item;
+use App\Models\ItemImage;
 use App\Models\Tag;
+use App\Services\ItemImageProcessor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,6 +19,8 @@ use Inertia\Response;
 
 class ItemController extends Controller
 {
+    public function __construct(private readonly ItemImageProcessor $imageProcessor) {}
+
     public function index(Request $request): Response
     {
         $parentId = $request->integer('parent') ?: null;
@@ -25,12 +29,17 @@ class ItemController extends Controller
         $items = Item::query()
             ->where('parent_id', $parentId)
             ->withCount('children')
-            ->with('tags')
+            ->with(['tags', 'primaryImage'])
             ->orderBy('name')
             ->get();
 
+        $parentForView = $parent;
+        if ($parentForView) {
+            $parentForView->load('primaryImage');
+        }
+
         return Inertia::render('items/Index', [
-            'parent' => $parent ? $this->presentItem($parent) : null,
+            'parent' => $parentForView ? $this->presentItem($parentForView) : null,
             'breadcrumb' => $parent
                 ? $parent->ancestors()->push($parent)->map(fn (Item $i) => $this->presentItem($i))->values()
                 : [],
@@ -41,11 +50,11 @@ class ItemController extends Controller
     public function create(Request $request): Response
     {
         $parentId = $request->integer('parent') ?: null;
-        $parent = $parentId ? Item::findOrFail($parentId) : null;
+        $parent = $parentId ? Item::findOrFail($parentId)->load('primaryImage') : null;
 
         return Inertia::render('items/Create', [
             'parent' => $parent ? $this->presentItem($parent) : null,
-            'items' => Item::query()->orderBy('name')->get()->map(fn (Item $i) => $this->presentItem($i))->values(),
+            'items' => Item::query()->with('primaryImage')->orderBy('name')->get()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
         ]);
@@ -55,21 +64,26 @@ class ItemController extends Controller
     {
         $data = $request->validated();
         $tagIds = $data['tags'] ?? [];
-        unset($data['tags']);
+        $imageFiles = $request->file('images', []);
+        unset($data['tags'], $data['images']);
 
         $item = Item::create($data);
         $item->tags()->sync($tagIds);
+
+        foreach ($imageFiles as $file) {
+            $this->imageProcessor->store($item, $file);
+        }
 
         return to_route('items.show', $item);
     }
 
     public function show(Item $item): Response
     {
-        $item->load('tags');
-        $children = $item->children()->withCount('children')->with('tags')->get();
+        $item->load(['tags', 'images']);
+        $children = $item->children()->withCount('children')->with(['tags', 'primaryImage'])->get();
 
         return Inertia::render('items/Show', [
-            'item' => $this->presentItem($item, withTags: true),
+            'item' => $this->presentItem($item, withTags: true, withImages: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true))->values(),
         ]);
@@ -77,10 +91,10 @@ class ItemController extends Controller
 
     public function edit(Item $item): Response
     {
-        $item->load('tags');
+        $item->load(['tags', 'images']);
 
         return Inertia::render('items/Edit', [
-            'item' => $this->presentItem($item, withTags: true),
+            'item' => $this->presentItem($item, withTags: true, withImages: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
         ]);
@@ -126,7 +140,7 @@ class ItemController extends Controller
             ->all();
     }
 
-    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false): array
+    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false): array
     {
         $payload = [
             'id' => $item->id,
@@ -138,6 +152,9 @@ class ItemController extends Controller
                 'label' => $item->type->label(),
                 'icon' => $item->type->icon(),
             ],
+            'thumb_url' => $item->relationLoaded('primaryImage') && $item->primaryImage
+                ? $item->primaryImage->thumbUrl()
+                : null,
         ];
 
         if ($withChildrenCount) {
@@ -150,6 +167,17 @@ class ItemController extends Controller
                 'name' => $t->name,
                 'slug' => $t->slug,
                 'color' => $t->color,
+            ])->values();
+        }
+
+        if ($withImages) {
+            $payload['images'] = $item->images->map(fn (ItemImage $img) => [
+                'id' => $img->id,
+                'thumb_url' => $img->thumbUrl(),
+                'large_url' => $img->largeUrl(),
+                'original_url' => $img->originalUrl(),
+                'is_primary' => $img->is_primary,
+                'sort_order' => $img->sort_order,
             ])->values();
         }
 

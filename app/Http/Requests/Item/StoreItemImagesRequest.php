@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Item;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreItemImagesRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'images' => ['required', 'array', 'min:1', 'max:24'],
+            'images.*' => [
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp,heic',
+                'max:10240',
+                'dimensions:min_width=64,min_height=64',
+            ],
+        ];
+    }
+}

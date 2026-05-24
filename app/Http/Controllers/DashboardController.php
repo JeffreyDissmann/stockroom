@@ -20,7 +20,7 @@ class DashboardController extends Controller
             ->pluck('count', 'type');
 
         $recent = Item::query()
-            ->with('parent:id,name,type')
+            ->with(['parent:id,name,type', 'primaryImage'])
             ->orderByDesc('created_at')
             ->limit(6)
             ->get(['id', 'parent_id', 'type', 'name', 'created_at']);
@@ -28,12 +28,14 @@ class DashboardController extends Controller
         $rooms = Item::query()
             ->where('type', ItemType::Room)
             ->withCount('children')
+            ->with('primaryImage')
             ->orderBy('name')
             ->get(['id', 'type', 'name'])
             ->map(fn (Item $r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'children_count' => $r->children_count,
+                'thumb_url' => $r->primaryImage?->thumbUrl(),
                 'type' => [
                     'value' => $r->type->value,
                     'label' => $r->type->label(),
@@ -63,6 +65,7 @@ class DashboardController extends Controller
                     'label' => $i->type->label(),
                     'icon' => $i->type->icon(),
                 ],
+                'thumb_url' => $i->primaryImage?->thumbUrl(),
                 'parent' => $i->parent ? [
                     'id' => $i->parent->id,
                     'name' => $i->parent->name,

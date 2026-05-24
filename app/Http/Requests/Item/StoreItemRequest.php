@@ -25,6 +25,14 @@ class StoreItemRequest extends FormRequest
             'parent_id' => ['nullable', 'integer', Rule::exists('items', 'id')],
             'tags' => ['array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
+            'images' => ['array', 'max:24'],
+            'images.*' => [
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp,heic',
+                'max:10240',
+                'dimensions:min_width=64,min_height=64',
+            ],
         ];
     }
 }
