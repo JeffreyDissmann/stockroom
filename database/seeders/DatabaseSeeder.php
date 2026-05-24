@@ -33,9 +33,9 @@ class DatabaseSeeder extends Seeder
     private function seedTags(): void
     {
         $tags = [
-            ['name' => 'tools', 'color' => '#f59e0b'],
-            ['name' => 'electronics', 'color' => '#3b82f6'],
-            ['name' => 'kitchen', 'color' => '#10b981'],
+            ['name' => 'Tools', 'color' => '#f59e0b'],
+            ['name' => 'Electronics', 'color' => '#3b82f6'],
+            ['name' => 'Kitchen', 'color' => '#10b981'],
         ];
 
         foreach ($tags as $tag) {
@@ -49,44 +49,45 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $tools = Tag::where('name', 'tools')->first();
-        $electronics = Tag::where('name', 'electronics')->first();
-        $kitchen = Tag::where('name', 'kitchen')->first();
+        $tools = Tag::where('name', 'Tools')->first();
+        $electronics = Tag::where('name', 'Electronics')->first();
+        $kitchen = Tag::where('name', 'Kitchen')->first();
 
         $garage = Item::create([
             'type' => ItemType::Room,
             'name' => 'Garage',
-            'description' => 'Where the car lives.',
+            'description' => 'Detached one-car garage. Workbench under the window, shelving along the back wall.',
         ]);
-        $this->makeItem($garage, ItemType::Container, 'Toolbox', tags: [$tools]);
-        $this->makeItem($garage, ItemType::Item, 'Lawnmower', tags: [$tools]);
-        $this->makeItem($garage, ItemType::Item, 'Bicycle');
+        $this->makeItem($garage, ItemType::Container, 'Toolbox', 'Red metal toolbox on the workbench — sockets, screwdrivers, bits.', [$tools]);
+        $this->makeItem($garage, ItemType::Item, 'Lawnmower', 'Petrol push mower. Service the air filter every spring.', [$tools]);
+        $this->makeItem($garage, ItemType::Item, 'Bicycle', 'Hybrid commuter. Hung on the wall hook by the side door.');
 
         $kitchenRoom = Item::create([
             'type' => ItemType::Room,
             'name' => 'Kitchen',
-            'description' => 'Cooking and coffee.',
+            'description' => 'Open-plan kitchen with the island. Small appliances live on the counter, larger ones in the pantry.',
         ]);
-        $this->makeItem($kitchenRoom, ItemType::Item, 'Coffee maker', tags: [$kitchen, $electronics]);
-        $this->makeItem($kitchenRoom, ItemType::Item, 'Blender', tags: [$kitchen, $electronics]);
+        $this->makeItem($kitchenRoom, ItemType::Item, 'Coffee maker', 'Daily-driver espresso machine. Descale monthly.', [$kitchen, $electronics]);
+        $this->makeItem($kitchenRoom, ItemType::Item, 'Blender', 'High-power blender for smoothies and soups. The tamper lives in the cutlery drawer.', [$kitchen, $electronics]);
 
         $office = Item::create([
             'type' => ItemType::Room,
             'name' => 'Office',
-            'description' => 'Desk + chair + the laptop.',
+            'description' => 'Spare room turned home office. Desk by the window, bookcase opposite.',
         ]);
-        $this->makeItem($office, ItemType::Item, 'Laptop', tags: [$electronics]);
+        $this->makeItem($office, ItemType::Item, 'Laptop', '14-inch work laptop. Charger lives in the desk drawer.', [$electronics]);
     }
 
     /**
      * @param  array<int, \App\Models\Tag|null>  $tags
      */
-    private function makeItem(Item $parent, ItemType $type, string $name, array $tags = []): Item
+    private function makeItem(Item $parent, ItemType $type, string $name, ?string $description = null, array $tags = []): Item
     {
         $item = Item::create([
             'parent_id' => $parent->id,
             'type' => $type,
             'name' => $name,
+            'description' => $description,
         ]);
 
         $tagIds = collect($tags)->filter()->pluck('id')->all();
