@@ -40,3 +40,29 @@ export interface User {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+export type ItemTypeValue = 'room' | 'container' | 'item';
+
+export interface ItemTypeDescriptor {
+    value: ItemTypeValue;
+    label: string;
+    icon: string;
+}
+
+export interface TagSummary {
+    id: number;
+    name: string;
+    slug: string;
+    color: string | null;
+}
+
+export interface ItemSummary {
+    id: number;
+    name: string;
+    description: string | null;
+    parent_id: number | null;
+    type: ItemTypeDescriptor;
+    children_count?: number;
+    tags?: TagSummary[];
+}
+
