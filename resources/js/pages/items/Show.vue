@@ -235,11 +235,19 @@ function destroyItem() {
 </template>
 
 <style scoped>
+/* Box hugs the photo's real shape, capped so it can't dominate the screen. */
 .gallery-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+    display: block;
+    max-width: 100%;
+    max-height: 60vh;
+    width: auto;
+    height: auto;
     background: var(--bg-sunken);
+}
+@media (max-width: 880px) {
+    .gallery-img {
+        max-height: 40vh;
+    }
 }
 .gallery-row {
     display: grid;

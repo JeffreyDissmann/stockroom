@@ -472,7 +472,6 @@
 }
 .gallery .main-img {
     width: 100%;
-    aspect-ratio: 4 / 3;
     border-radius: var(--radius);
     overflow: hidden;
     background: var(--bg-sunken);
@@ -483,17 +482,18 @@
 }
 .gallery .main-img svg { width: 25%; height: 25%; opacity: 0.6; }
 /* No photo: a small placeholder tile rather than a big empty box. */
-.gallery .main-img.is-empty { aspect-ratio: auto; height: 180px; }
+.gallery .main-img.is-empty { height: 180px; }
 .gallery .main-img.is-empty svg { width: 56px; height: 56px; }
 .kv {
     display: grid;
-    grid-template-columns: 120px 1fr;
+    grid-template-columns: 120px minmax(0, 1fr);
     gap: 8px 16px;
     align-items: baseline;
     font-size: 13px;
 }
 .kv dt { color: var(--fg-muted); }
-.kv dd { margin: 0; }
+/* Long values (e.g. URLs) must wrap so they can't force the layout wider than the screen. */
+.kv dd { margin: 0; overflow-wrap: anywhere; }
 
 /* ── Form ─────────────────────────────────────────────────────────── */
 .form { display: flex; flex-direction: column; gap: 18px; max-width: 720px; }
@@ -569,8 +569,6 @@ textarea.field { height: auto; min-height: 80px; resize: vertical; padding: 8px 
     .bottom-tabs { display: flex; }
     .page { padding: 16px; }
     .topbar { padding: 12px 16px; flex-wrap: wrap; row-gap: 10px; }
-    /* Cap the detail image so it doesn't eat the whole phone screen. */
-    .gallery .main-img { max-height: 40vh; }
     .filterbar { padding: 0 16px 12px; }
     .stats-strip {
         grid-template-columns: repeat(2, 1fr);
