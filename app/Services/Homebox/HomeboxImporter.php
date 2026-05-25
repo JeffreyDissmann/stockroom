@@ -294,7 +294,19 @@ class HomeboxImporter
             }
         }
 
-        $photos = array_values(array_filter($attachments, fn (array $a): bool => ($a['type'] ?? '') === 'photo'));
+        // Homebox sometimes tags documents (e.g. PDF receipts) as "photo"; those
+        // aren't item images. Everything else is attempted (some real photos
+        // carry a generic application/octet-stream type) and skipped on failure.
+        $photos = array_values(array_filter($attachments, function (array $a): bool {
+            if (($a['type'] ?? '') !== 'photo') {
+                return false;
+            }
+
+            $mime = strtolower((string) ($a['mimeType'] ?? ''));
+            $title = strtolower((string) ($a['title'] ?? ''));
+
+            return $mime !== 'application/pdf' && ! str_ends_with($title, '.pdf');
+        }));
         $primary = null;
         $count = 0;
 

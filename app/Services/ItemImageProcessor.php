@@ -9,9 +9,11 @@ use App\Models\ItemImage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Imagick;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Interfaces\ImageInterface;
+use Throwable;
 
 class ItemImageProcessor
 {
@@ -33,7 +35,7 @@ class ItemImageProcessor
     public function store(Item $item, UploadedFile $file): ItemImage
     {
         $extension = $this->normaliseExtension($file);
-        $sourceImage = $this->manager->decode($file->getRealPath());
+        $sourceImage = $this->decodeSource($file->getRealPath());
 
         return DB::transaction(function () use ($item, $file, $extension, $sourceImage): ItemImage {
             $isFirst = ! $item->images()->exists();
@@ -63,7 +65,30 @@ class ItemImageProcessor
      */
     public function writeVariantsFromPath(ItemImage $record, string $sourcePath): void
     {
-        $this->writeVariants($record, $this->manager->decode($sourcePath));
+        $this->writeVariants($record, $this->decodeSource($sourcePath));
+    }
+
+    /**
+     * Decode a source image to a GD-backed image. Formats GD rejects (e.g. TIFF)
+     * fall back to Imagick, which converts them to JPEG first.
+     */
+    private function decodeSource(string $path): ImageInterface
+    {
+        try {
+            return $this->manager->decode($path);
+        } catch (Throwable $e) {
+            if (! extension_loaded('imagick')) {
+                throw $e;
+            }
+
+            $imagick = new Imagick($path);
+            $imagick->setIteratorIndex(0);
+            $imagick->setImageFormat('jpeg');
+            $jpeg = $imagick->getImageBlob();
+            $imagick->clear();
+
+            return $this->manager->decode($jpeg);
+        }
     }
 
     private function writeVariants(ItemImage $record, ImageInterface $sourceImage): void

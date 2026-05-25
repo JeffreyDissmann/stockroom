@@ -38,7 +38,7 @@ class HomeboxImportTest extends TestCase
         $this->fakeHomebox();
         $result = $this->importer()->import();
 
-        $this->assertSame(['entities' => 2, 'images' => 1, 'imagesSkipped' => 0, 'created' => 2, 'updated' => 0], $result);
+        $this->assertSame(['entities' => 2, 'images' => 2, 'imagesSkipped' => 0, 'created' => 2, 'updated' => 0], $result);
 
         $garage = Item::where('name', 'Garage')->firstOrFail();
         $this->assertSame(ItemType::Room, $garage->type);
@@ -66,6 +66,7 @@ class HomeboxImportTest extends TestCase
 
         $this->assertTrue(CustomField::where('key', 'homebox_id')->value('is_system'));
 
+        $this->assertSame(2, $drill->images()->count()); // jpg + octet-stream kept; the PDF "photo" ignored
         $image = $drill->images()->firstOrFail();
         $this->assertTrue($image->is_primary);
         Storage::disk('public')->assertExists($image->thumbPath());
@@ -105,7 +106,7 @@ class HomeboxImportTest extends TestCase
         $result = $this->importer()->import();
 
         $this->assertSame(2, Item::count());
-        $this->assertSame(['entities' => 2, 'images' => 1, 'imagesSkipped' => 0, 'created' => 0, 'updated' => 2], $result);
+        $this->assertSame(['entities' => 2, 'images' => 2, 'imagesSkipped' => 0, 'created' => 0, 'updated' => 2], $result);
     }
 
     public function test_unreadable_images_are_skipped_without_aborting_the_import(): void
@@ -132,7 +133,7 @@ class HomeboxImportTest extends TestCase
 
         $this->assertSame(1, Item::count());
         $this->assertSame(0, $result['images']);
-        $this->assertSame(1, $result['imagesSkipped']);
+        $this->assertSame(2, $result['imagesSkipped']); // jpg + octet-stream both unreadable; pdf filtered out
         $this->assertSame(0, Item::where('name', 'Drill')->firstOrFail()->images()->count());
     }
 
@@ -221,6 +222,10 @@ class HomeboxImportTest extends TestCase
             ],
             'attachments' => [
                 ['id' => self::ATT, 'type' => 'photo', 'primary' => true, 'title' => 'p.jpg', 'mimeType' => 'image/jpeg'],
+                // A real photo with a generic mime type — must still be imported.
+                ['id' => '55555555-5555-5555-5555-555555555555', 'type' => 'photo', 'primary' => false, 'title' => 'scan', 'mimeType' => 'application/octet-stream'],
+                // A PDF Homebox mislabelled as a "photo" — must be ignored, not imported.
+                ['id' => '44444444-4444-4444-4444-444444444444', 'type' => 'photo', 'primary' => false, 'title' => 'receipt.pdf', 'mimeType' => 'application/pdf'],
             ],
         ];
     }

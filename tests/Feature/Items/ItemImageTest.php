@@ -7,9 +7,12 @@ namespace Tests\Feature\Items;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\User;
+use App\Services\ItemImageProcessor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Imagick;
+use ImagickPixel;
 use Tests\TestCase;
 
 class ItemImageTest extends TestCase
@@ -20,6 +23,30 @@ class ItemImageTest extends TestCase
     {
         parent::setUp();
         Storage::fake('public');
+    }
+
+    public function test_formats_gd_cannot_read_are_converted_via_imagick(): void
+    {
+        $item = Item::factory()->room()->create();
+
+        // TIFF content GD can't decode, with a .jpg name so the re-encode works:
+        // exercises the Imagick fallback in decodeSource().
+        $imagick = new Imagick;
+        $imagick->newImage(120, 90, new ImagickPixel('#3366cc'));
+        $imagick->setImageFormat('tiff');
+        $path = tempnam(sys_get_temp_dir(), 'src').'.jpg';
+        file_put_contents($path, $imagick->getImageBlob());
+        $imagick->clear();
+
+        $image = ItemImageProcessor::default()->store(
+            $item,
+            new UploadedFile($path, 'photo.jpg', 'image/jpeg', null, true),
+        );
+        @unlink($path);
+
+        $this->assertSame('jpg', $image->extension);
+        Storage::disk('public')->assertExists($image->originalPath());
+        Storage::disk('public')->assertExists($image->thumbPath());
     }
 
     public function test_first_uploaded_image_becomes_primary(): void
