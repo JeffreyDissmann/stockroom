@@ -63,7 +63,7 @@ class SearchTest extends TestCase
 
     public function test_finds_items_by_custom_field_value(): void
     {
-        $field = CustomField::factory()->create(['name' => 'Voltage', 'type' => CustomFieldType::Text]);
+        $field = CustomField::factory()->searchable()->create(['name' => 'Voltage', 'type' => CustomFieldType::Text]);
         $saw = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Angle grinder']);
         $saw->customFieldValues()->create(['custom_field_id' => $field->id, 'value' => 'cordless18v']);
 
@@ -76,7 +76,7 @@ class SearchTest extends TestCase
 
     public function test_ignores_values_from_non_searchable_custom_fields(): void
     {
-        $field = CustomField::factory()->notSearchable()->create(['name' => 'Private notes', 'type' => CustomFieldType::Text]);
+        $field = CustomField::factory()->create(['name' => 'Private notes', 'type' => CustomFieldType::Text]);
         $item = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Toolbox']);
         $item->customFieldValues()->create(['custom_field_id' => $field->id, 'value' => 'secretphrase']);
 

@@ -20,13 +20,13 @@ const types: { value: CustomFieldTypeValue; label: string }[] = [
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Custom fields', href: '/household/custom-fields' }];
 
-const createForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: true });
+const createForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: false });
 function add() {
     createForm.post('/household/custom-fields', { preserveScroll: true, onSuccess: () => createForm.reset() });
 }
 
 const editingId = ref<number | null>(null);
-const editForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: true });
+const editForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: false });
 function startEdit(field: CustomFieldDefinition) {
     editingId.value = field.id;
     editForm.name = field.name;

@@ -32,7 +32,7 @@ class CustomFieldController extends Controller
         CustomField::create([
             'name' => $request->string('name')->trim()->value(),
             'type' => $request->string('type')->value(),
-            'is_searchable' => $request->boolean('searchable', true),
+            'is_searchable' => $request->boolean('searchable'),
             'sort_order' => (int) CustomField::max('sort_order') + 1,
         ]);
 
@@ -46,7 +46,7 @@ class CustomFieldController extends Controller
         $customField->update([
             'name' => $request->string('name')->trim()->value(),
             'type' => $request->string('type')->value(),
-            'is_searchable' => $request->boolean('searchable', true),
+            'is_searchable' => $request->boolean('searchable'),
         ]);
 
         // Toggling searchability changes what lands in the index for every item
