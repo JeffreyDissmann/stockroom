@@ -1,1 +1,3 @@
 resources/js/components/ui/*
+/node_modules.nosync
+/vendor.nosync
