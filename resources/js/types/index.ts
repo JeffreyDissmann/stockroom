@@ -56,6 +56,8 @@ export type BreadcrumbItemType = BreadcrumbItem;
 
 export type ItemTypeValue = 'room' | 'container' | 'item';
 
+export type ItemViewMode = 'list' | 'grid';
+
 export interface ItemTypeDescriptor {
     value: ItemTypeValue;
     label: string;

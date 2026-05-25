@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import ItemThumbnail from '@/components/ItemThumbnail.vue';
+import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItemType, ItemImageSummary, ItemSummary } from '@/types';
+import type { BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -77,6 +78,8 @@ const soldRows = computed<[string, string][]>(() => {
     if (i.sold_date) rows.push(['Sold on', i.sold_date]);
     return rows;
 });
+
+const contentsView = ref<ItemViewMode>('grid');
 
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
@@ -210,35 +213,22 @@ function destroyItem() {
             </div>
 
             <section class="mt-8">
-                <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center justify-between mb-3 gap-3">
                     <h3 class="section-label" style="margin: 0">Contents</h3>
-                    <Link :href="`/items/create?parent=${item.id}`" class="btn-pill">
-                        <Plus :size="14" />
-                        Add child
-                    </Link>
+                    <div class="flex items-center gap-2">
+                        <ItemViewToggle v-if="children.length" v-model="contentsView" />
+                        <Link :href="`/items/create?parent=${item.id}`" class="btn-pill">
+                            <Plus :size="14" />
+                            Add child
+                        </Link>
+                    </div>
                 </div>
 
                 <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
                     Nothing inside this {{ item.type.label.toLowerCase() }} yet.
                 </div>
 
-                <div v-else class="items-grid">
-                    <Link v-for="child in children" :key="child.id" :href="`/items/${child.id}`" class="item-card">
-                        <div class="thumb">
-                            <ItemThumbnail :item="child" size="md" />
-                        </div>
-                        <div class="info">
-                            <div class="nm">{{ child.name }}</div>
-                            <div class="meta">
-                                <span>{{ child.type.label }}</span>
-                                <span v-if="(child.children_count ?? 0) > 0" class="mono">{{ child.children_count }} inside</span>
-                            </div>
-                            <div v-if="child.tags?.length" class="flex flex-wrap gap-1 mt-2">
-                                <TagBadge v-for="tag in child.tags" :key="tag.id" :tag="tag" />
-                            </div>
-                        </div>
-                    </Link>
-                </div>
+                <ItemCollection v-else :items="children" :view="contentsView" />
             </section>
         </div>
     </AppLayout>
