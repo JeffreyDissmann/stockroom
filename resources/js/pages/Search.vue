@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
+import TagFilter from '@/components/TagFilter.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -17,7 +18,7 @@ interface Paginated<T> {
 
 const props = defineProps<{
     query: string;
-    filters: { type: ItemTypeValue | null; tag: number | null; sort: 'relevance' | 'name' };
+    filters: { type: ItemTypeValue | null; tags: number[]; sort: 'relevance' | 'name' };
     items: Paginated<ItemSummary>;
     tags: TagSummary[];
     types: { value: ItemTypeValue; label: string }[];
@@ -28,11 +29,15 @@ const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Search', href: '/search' }]
 const term = ref(props.query);
 const view = ref<ItemViewMode>('list');
 
-function apply(overrides: Record<string, string | number | null>) {
-    const params: Record<string, string | number> = {};
-    const merged = { q: term.value, type: props.filters.type, tag: props.filters.tag, sort: props.filters.sort, ...overrides };
+function apply(overrides: Record<string, string | number | number[] | null>) {
+    const params: Record<string, string | number | number[]> = {};
+    const merged = { q: term.value, type: props.filters.type, tags: props.filters.tags, sort: props.filters.sort, ...overrides };
     for (const [key, value] of Object.entries(merged)) {
-        if (value !== null && value !== '' && !(key === 'sort' && value === 'relevance')) params[key] = value as string | number;
+        if (Array.isArray(value)) {
+            if (value.length > 0) params[key] = value;
+        } else if (value !== null && value !== '' && !(key === 'sort' && value === 'relevance')) {
+            params[key] = value as string | number;
+        }
     }
     router.get('/search', params, { preserveState: true, preserveScroll: true, replace: true });
 }
@@ -64,10 +69,7 @@ function apply(overrides: Record<string, string | number | null>) {
                     </button>
                 </div>
 
-                <select class="field" style="max-width: 180px" :value="filters.tag ?? ''" @change="apply({ tag: ($event.target as HTMLSelectElement).value || null })">
-                    <option value="">All tags</option>
-                    <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
-                </select>
+                <TagFilter :tags="tags" :model-value="filters.tags" @update:model-value="(value) => apply({ tags: value })" />
 
                 <select class="field" style="max-width: 150px" :value="filters.sort" @change="apply({ sort: ($event.target as HTMLSelectElement).value })">
                     <option value="relevance">Relevance</option>
@@ -81,7 +83,7 @@ function apply(overrides: Record<string, string | number | null>) {
             </div>
 
             <div v-if="items.data.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                <p v-if="query === '' && filters.type === null && filters.tag === null" style="margin: 0">Type above to search every item.</p>
+                <p v-if="query === '' && filters.type === null && filters.tags.length === 0" style="margin: 0">Type above to search every item.</p>
                 <p v-else style="margin: 0">No items match.</p>
             </div>
 

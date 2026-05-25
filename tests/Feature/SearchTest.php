@@ -113,10 +113,24 @@ class SearchTest extends TestCase
         $hose->tags()->attach($tag);
 
         $this->actingAs(User::factory()->create())
-            ->get("/search?q=Garden&tag={$tag->id}")
+            ->get("/search?q=Garden&tags[]={$tag->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('items.data', 1)
                 ->where('items.data.0.name', 'Garden hose'));
+    }
+
+    public function test_search_page_filters_by_multiple_tags_matching_any(): void
+    {
+        $outdoor = Tag::factory()->create(['name' => 'Outdoor']);
+        $fragile = Tag::factory()->create(['name' => 'Fragile']);
+
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Garden hose'])->tags()->attach($outdoor);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Garden vase'])->tags()->attach($fragile);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Garden gnome']);
+
+        $this->actingAs(User::factory()->create())
+            ->get("/search?q=Garden&tags[]={$outdoor->id}&tags[]={$fragile->id}")
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 2));
     }
 
     public function test_search_page_browses_all_without_a_query(): void

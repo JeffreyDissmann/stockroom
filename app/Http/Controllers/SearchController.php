@@ -57,7 +57,12 @@ class SearchController extends Controller
         $type = in_array($request->query('type'), array_column(ItemType::cases(), 'value'), true)
             ? $request->query('type')
             : null;
-        $tagId = $request->integer('tag') ?: null;
+        $tagIds = collect((array) $request->input('tags', []))
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
         $sort = $request->query('sort') === 'name' ? 'name' : 'relevance';
 
         // Relevance-ordered matching ids from Meilisearch (null = browse everything).
@@ -68,7 +73,7 @@ class SearchController extends Controller
             ->withCount('children')
             ->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))
             ->when($type !== null, fn ($q) => $q->where('type', $type))
-            ->when($tagId !== null, fn ($q) => $q->whereHas('tags', fn ($t) => $t->whereKey($tagId)))
+            ->when($tagIds !== [], fn ($q) => $q->whereHas('tags', fn ($t) => $t->whereKey($tagIds)))
             ->when(
                 $ids !== null && $ids !== [] && $sort === 'relevance',
                 fn ($q) => $q->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']),
@@ -80,7 +85,7 @@ class SearchController extends Controller
 
         return Inertia::render('Search', [
             'query' => $query,
-            'filters' => ['type' => $type, 'tag' => $tagId, 'sort' => $sort],
+            'filters' => ['type' => $type, 'tags' => $tagIds, 'sort' => $sort],
             'items' => $items,
             'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
             'types' => collect(ItemType::cases())
