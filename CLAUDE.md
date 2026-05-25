@@ -19,7 +19,8 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/pail (PAIL) - v1
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
-- phpunit/phpunit (PHPUNIT) - v11
+- pestphp/pest (PEST) - v4
+- phpunit/phpunit (PHPUNIT) - v12
 - @inertiajs/vue3 (INERTIA_VUE) - v2
 - tailwindcss (TAILWINDCSS) - v3
 - vue (VUE) - v3
@@ -210,23 +211,14 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - If you have modified any PHP files, you must run `vendor/bin/sail bin pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/sail bin pint --test --format agent`, simply run `vendor/bin/sail bin pint --format agent` to fix any formatting issues.
 
-=== phpunit/core rules ===
+=== pest/core rules ===
 
-# PHPUnit
+## Pest
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `vendor/bin/sail artisan make:test --phpunit {name}` to create a new test.
-- If you see a test using "Pest", convert it to PHPUnit.
-- Every time a test has been updated, run that singular test.
-- When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
-- Tests should cover all happy paths, failure paths, and edge cases.
-- You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files; these are core to the application.
-
-## Running Tests
-
-- Run the minimal number of tests, using an appropriate filter, before finalizing.
-- To run all tests: `vendor/bin/sail artisan test --compact`.
-- To run all tests in a file: `vendor/bin/sail artisan test --compact tests/Feature/ExampleTest.php`.
-- To filter on a particular test name: `vendor/bin/sail artisan test --compact --filter=testName` (recommended after making a change to a related file).
+- This project uses Pest for testing. Create tests: `vendor/bin/sail artisan make:test --pest {name}`.
+- The `{name}` argument should not include the test suite directory. Use `vendor/bin/sail artisan make:test --pest SomeFeatureTest` instead of `vendor/bin/sail artisan make:test --pest Feature/SomeFeatureTest`.
+- Run tests: `vendor/bin/sail artisan test --compact` or filter: `vendor/bin/sail artisan test --compact --filter=testName`.
+- Do NOT delete tests without approval.
 
 === inertia-vue/core rules ===
 
@@ -236,3 +228,29 @@ Vue components must have a single root element.
 - IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 </laravel-boost-guidelines>
+
+<project-testing-conventions>
+# Browser testing (extends the Pest rules above)
+
+The Boost "Pest" rules above cover unit/feature tests. This section adds the project's **browser testing** setup, which Boost does not describe.
+
+- Some legacy tests under `tests/Feature` are still written as class-based PHPUnit `TestCase` classes. Pest runs them natively — do NOT convert them. Match the neighbouring file's style when adding tests.
+- **Browser tests** live in `tests/Browser/`, use the Pest browser plugin (`pestphp/pest-plugin-browser`, Playwright-backed), and drive a real headless Chromium **inside the Sail container**. Write them as Pest functions using the global `visit()` helper.
+  - Playwright is pinned to the exact version the plugin requires (currently `1.59.1` in `package.json`); a mismatch makes the plugin abort with "Playwright is outdated".
+  - The chromium binary is installed to a **container-local path** (`/home/sail/pw-browsers`), NOT `node_modules`, because `node_modules` is bind-mounted from an iCloud-synced folder that evicts large files. Always run browser tests with that path exported:
+    ```
+    vendor/bin/sail bash -c "PLAYWRIGHT_BROWSERS_PATH=/home/sail/pw-browsers ./vendor/bin/pest tests/Browser"
+    ```
+    If the binary is missing (container rebuilt, or eviction): `vendor/bin/sail bash -c "PLAYWRIGHT_BROWSERS_PATH=/home/sail/pw-browsers npx playwright install chromium"`.
+  - Rebuild frontend assets before running browser tests or they exercise stale UI: `vendor/bin/sail npm run build`.
+  - Browser tests use `RefreshDatabase`, so the DB starts empty — create data with factories in each test; the demo seeder is NOT present.
+  - Use `fill('#selector', 'value')` (not `type()`) for Vue `v-model` inputs so the value syncs to Inertia's `useForm` before submit.
+  - Avoid asserting flows gated by native `confirm()` dialogs (item/image/tag delete) — headless Chromium auto-dismisses them; that logic is covered by the feature tests instead.
+  - Use `data-test="..."` attributes for stable selectors; target them with Pest's `@name` selector syntax.
+
+## Running tests
+
+- Non-browser suite: `vendor/bin/sail artisan test --compact` (or `vendor/bin/sail bin pest --compact`).
+- Browser suite: `vendor/bin/sail bash -c "PLAYWRIGHT_BROWSERS_PATH=/home/sail/pw-browsers ./vendor/bin/pest tests/Browser"`.
+- Run the minimal relevant tests while iterating; run the whole suite before declaring done.
+</project-testing-conventions>
