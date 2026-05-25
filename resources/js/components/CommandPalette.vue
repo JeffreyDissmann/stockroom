@@ -2,7 +2,7 @@
 import { useCommandPalette } from '@/composables/useCommandPalette';
 import { router } from '@inertiajs/vue3';
 import { Search } from 'lucide-vue-next';
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Result {
     id: number;
@@ -18,6 +18,7 @@ const results = ref<Result[]>([]);
 const active = ref(0);
 const loading = ref(false);
 const inputEl = ref<HTMLInputElement>();
+const hasQuery = computed(() => query.value.trim().length > 0);
 let debounce: number | undefined;
 let seq = 0;
 
@@ -94,9 +95,9 @@ defineExpose({ open });
                 <Search :size="16" />
                 <input ref="inputEl" v-model="query" type="text" placeholder="Search all items…" data-test="command-input" />
             </div>
-            <div class="cmdk-results">
+            <div v-if="hasQuery" class="cmdk-results">
                 <div v-if="loading && !results.length" class="cmdk-empty">Searching…</div>
-                <div v-else-if="query && !loading && !results.length" class="cmdk-empty">No matches.</div>
+                <div v-else-if="!loading && !results.length" class="cmdk-empty">No matches.</div>
                 <button
                     v-for="(result, i) in results"
                     :key="result.id"
@@ -145,7 +146,6 @@ defineExpose({ open });
     align-items: center;
     gap: 10px;
     padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
     color: var(--fg-muted);
 }
 .cmdk-input input {
@@ -157,6 +157,7 @@ defineExpose({ open });
     color: var(--fg);
 }
 .cmdk-results {
+    border-top: 1px solid var(--border);
     max-height: 50vh;
     overflow-y: auto;
     padding: 6px;
