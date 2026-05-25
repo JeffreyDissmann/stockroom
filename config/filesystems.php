@@ -43,7 +43,10 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            // Root-relative so image URLs resolve against whatever host served the
+            // page (localhost on the dev machine, the LAN IP from a phone, etc.)
+            // rather than baking in APP_URL's "localhost".
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
