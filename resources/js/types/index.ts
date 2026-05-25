@@ -71,6 +71,24 @@ export interface TagSummary {
     color: string | null;
 }
 
+export type CustomFieldTypeValue = 'text' | 'number' | 'date' | 'boolean' | 'url';
+
+export interface CustomFieldDefinition {
+    id: number;
+    key: string;
+    name: string;
+    type: CustomFieldTypeValue;
+    is_system?: boolean;
+}
+
+export interface ItemCustomFieldValue {
+    custom_field_id: number;
+    key: string;
+    name: string;
+    type: CustomFieldTypeValue;
+    value: string | number | boolean | null;
+}
+
 export interface ItemImageSummary {
     id: number;
     thumb_url: string;
@@ -105,5 +123,7 @@ export interface ItemSummary {
     sold_price?: string | null;
     sold_date?: string | null;
     sold_notes?: string | null;
+    // Filled custom field values (present on show/edit payloads).
+    custom_fields?: ItemCustomFieldValue[];
 }
 

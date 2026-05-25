@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\CustomFieldController;
 use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -22,6 +23,11 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
+
+    Route::get('settings/custom-fields', [CustomFieldController::class, 'index'])->name('custom-fields.index');
+    Route::post('settings/custom-fields', [CustomFieldController::class, 'store'])->name('custom-fields.store');
+    Route::put('settings/custom-fields/{customField}', [CustomFieldController::class, 'update'])->name('custom-fields.update');
+    Route::delete('settings/custom-fields/{customField}', [CustomFieldController::class, 'destroy'])->name('custom-fields.destroy');
 
     Route::get('settings/system', [SystemController::class, 'index'])->name('system.index');
     Route::get('settings/system/export', [BackupController::class, 'export'])->name('system.backup.export');

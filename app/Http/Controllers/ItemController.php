@@ -8,6 +8,8 @@ use App\Enums\ItemType;
 use App\Http\Requests\Item\MoveItemRequest;
 use App\Http\Requests\Item\StoreItemRequest;
 use App\Http\Requests\Item\UpdateItemRequest;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\Tag;
@@ -57,6 +59,7 @@ class ItemController extends Controller
             'items' => Item::query()->with('primaryImage')->orderBy('name')->get()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
+            'customFields' => $this->customFieldDefinitions(),
         ]);
     }
 
@@ -64,12 +67,14 @@ class ItemController extends Controller
     {
         $data = $request->validated();
         $tagIds = $data['tags'] ?? [];
+        $customFields = $data['custom_fields'] ?? [];
         $imageFiles = $request->file('images', []);
-        unset($data['tags'], $data['images']);
+        unset($data['tags'], $data['images'], $data['custom_fields']);
         $data = $this->normaliseDetailFields($data);
 
         $item = Item::create($data);
         $item->tags()->sync($tagIds);
+        $this->syncCustomFields($item, $customFields);
 
         foreach ($imageFiles as $file) {
             $this->imageProcessor->store($item, $file);
@@ -80,7 +85,7 @@ class ItemController extends Controller
 
     public function show(Item $item): Response
     {
-        $item->load(['tags', 'images']);
+        $item->load(['tags', 'images', 'customFieldValues.field']);
         $children = $item->children()->withCount('children')->with(['tags', 'primaryImage'])->get();
 
         return Inertia::render('items/Show', [
@@ -139,12 +144,13 @@ class ItemController extends Controller
 
     public function edit(Item $item): Response
     {
-        $item->load(['tags', 'images']);
+        $item->load(['tags', 'images', 'customFieldValues.field']);
 
         return Inertia::render('items/Edit', [
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
+            'customFields' => $this->customFieldDefinitions(),
         ]);
     }
 
@@ -152,11 +158,13 @@ class ItemController extends Controller
     {
         $data = $request->validated();
         $tagIds = $data['tags'] ?? [];
-        unset($data['tags']);
+        $customFields = $data['custom_fields'] ?? [];
+        unset($data['tags'], $data['custom_fields']);
         $data = $this->normaliseDetailFields($data);
 
         $item->update($data);
         $item->tags()->sync($tagIds);
+        $this->syncCustomFields($item, $customFields);
 
         return to_route('items.show', $item);
     }
@@ -221,6 +229,53 @@ class ItemController extends Controller
         return $data;
     }
 
+    /**
+     * The user-editable custom field definitions shown on the item form
+     * (system fields are import-managed and never edited by hand).
+     *
+     * @return array<int, array{id: int, key: string, name: string, type: string}>
+     */
+    private function customFieldDefinitions(): array
+    {
+        return CustomField::query()
+            ->where('is_system', false)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (CustomField $field): array => [
+                'id' => $field->id,
+                'key' => $field->key,
+                'name' => $field->name,
+                'type' => $field->type->value,
+            ])
+            ->all();
+    }
+
+    /**
+     * Upsert the submitted custom field values (keyed by definition id),
+     * removing any that were cleared. Only user-editable definitions are
+     * touched so import-managed system values are preserved.
+     *
+     * @param  array<int|string, mixed>  $values
+     */
+    private function syncCustomFields(Item $item, array $values): void
+    {
+        foreach (CustomField::query()->where('is_system', false)->get() as $field) {
+            $stored = $field->type->serialize($values[$field->id] ?? null);
+
+            if ($stored === null) {
+                $item->customFieldValues()->where('custom_field_id', $field->id)->delete();
+
+                continue;
+            }
+
+            $item->customFieldValues()->updateOrCreate(
+                ['custom_field_id' => $field->id],
+                ['value' => $stored],
+            );
+        }
+    }
+
     private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false, bool $withDetails = false): array
     {
         $payload = [
@@ -278,6 +333,19 @@ class ItemController extends Controller
                 'is_primary' => $img->is_primary,
                 'sort_order' => $img->sort_order,
             ])->values();
+        }
+
+        if ($withDetails && $item->relationLoaded('customFieldValues')) {
+            $payload['custom_fields'] = $item->customFieldValues
+                ->filter(fn (CustomFieldValue $v) => $v->field !== null && ! $v->field->is_system)
+                ->map(fn (CustomFieldValue $v) => [
+                    'custom_field_id' => $v->custom_field_id,
+                    'key' => $v->field->key,
+                    'name' => $v->field->name,
+                    'type' => $v->field->type->value,
+                    'value' => $v->field->type->cast($v->value),
+                ])
+                ->values();
         }
 
         return $payload;

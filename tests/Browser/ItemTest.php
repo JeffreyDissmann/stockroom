@@ -97,7 +97,7 @@ it('captures detail fields when creating an item', function () {
         ->assertSee('Espresso machine')
         ->assertSee('Breville')
         ->assertSee('SN-123456')
-        ->assertSee('899.50')
+        ->assertSee('899,50') // de-DE / EUR formatting of the purchase price
         ->assertNoJavaScriptErrors();
 
     $item = Item::where('name', 'Espresso machine')->firstOrFail();

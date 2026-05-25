@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ItemForm from '@/components/ItemForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItemType, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
+import type { BreadcrumbItemType, CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -10,6 +10,7 @@ const props = defineProps<{
     item: ItemSummary;
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
+    customFields: CustomFieldDefinition[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
@@ -33,7 +34,7 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
         <div class="page">
             <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">Edit {{ item.name }}</h2>
 
-            <ItemForm mode="edit" :item="item" :items="[]" :tags="tags" :types="types" />
+            <ItemForm mode="edit" :item="item" :items="[]" :tags="tags" :types="types" :custom-fields="customFields" />
         </div>
     </AppLayout>
 </template>

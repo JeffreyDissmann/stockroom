@@ -78,6 +78,8 @@ const soldRows = computed<[string, string][]>(() => {
     return rows;
 });
 
+const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
+
 function destroyItem() {
     if (!confirm(`Delete "${props.item.name}"? Any items inside will become top-level.`)) return;
     router.delete(`/items/${props.item.id}`);
@@ -167,6 +169,24 @@ function destroyItem() {
                             <p v-if="item.warranty_details" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
                                 {{ item.warranty_details }}
                             </p>
+                        </div>
+                    </div>
+
+                    <div v-if="customFields.length" class="card">
+                        <div class="card-head">
+                            <h3>Custom fields</h3>
+                        </div>
+                        <div class="card-pad">
+                            <dl class="kv">
+                                <template v-for="field in customFields" :key="field.custom_field_id">
+                                    <dt>{{ field.name }}</dt>
+                                    <dd v-if="field.type === 'boolean'">{{ field.value ? 'Yes' : 'No' }}</dd>
+                                    <dd v-else-if="field.type === 'url'">
+                                        <a :href="String(field.value)" target="_blank" rel="noopener noreferrer" style="color: var(--accent)">{{ field.value }}</a>
+                                    </dd>
+                                    <dd v-else>{{ field.value }}</dd>
+                                </template>
+                            </dl>
                         </div>
                     </div>
 

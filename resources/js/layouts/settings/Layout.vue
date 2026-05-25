@@ -19,6 +19,10 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/appearance',
     },
     {
+        title: 'Custom fields',
+        href: '/settings/custom-fields',
+    },
+    {
         title: 'System',
         href: '/settings/system',
     },

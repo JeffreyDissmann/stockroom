@@ -78,6 +78,11 @@ class Item extends Model
         return $this->hasMany(ItemImage::class)->orderBy('sort_order');
     }
 
+    public function customFieldValues(): HasMany
+    {
+        return $this->hasMany(CustomFieldValue::class);
+    }
+
     public function primaryImage(): HasOne
     {
         return $this->hasOne(ItemImage::class)->where('is_primary', true);

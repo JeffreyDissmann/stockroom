@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import CustomFieldsInput from '@/components/CustomFieldsInput.vue';
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
-import type { ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
+import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -18,6 +19,7 @@ const props = defineProps<{
     items: ItemSummary[];
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
+    customFields: CustomFieldDefinition[];
     submitLabel?: string;
 }>();
 
@@ -42,6 +44,9 @@ const form = useForm({
     sold_price: props.item?.sold_price ?? '',
     sold_date: props.item?.sold_date ?? '',
     sold_notes: props.item?.sold_notes ?? '',
+    custom_fields: Object.fromEntries(
+        (props.item?.custom_fields ?? []).map((f) => [f.custom_field_id, f.value]),
+    ) as Record<number, string | number | boolean | null>,
 });
 
 const queuedFiles = ref<File[]>([]);
@@ -201,6 +206,12 @@ function submit() {
                 <InputError :message="form.errors.purchase_price" />
             </div>
         </div>
+
+        <template v-if="customFields.length">
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+            <p class="section-label">Custom fields</p>
+            <CustomFieldsInput v-model="form.custom_fields" :fields="customFields" :errors="form.errors" />
+        </template>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
         <p class="section-label">Warranty</p>
