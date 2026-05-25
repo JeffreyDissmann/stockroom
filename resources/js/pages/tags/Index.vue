@@ -2,7 +2,7 @@
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
@@ -126,12 +126,16 @@ function destroyTag(tag: TagRow) {
                             class="size-3 shrink-0 rounded-full"
                             :style="{ background: tag.color ?? 'transparent', border: tag.color ? 'none' : '1px solid var(--border)' }"
                         />
-                        <div class="min-w-0 flex-1">
-                            <div class="font-medium" style="font-size: 13px">{{ tag.name }}</div>
+                        <Link
+                            :href="`/search?tags[]=${tag.id}`"
+                            class="group min-w-0 flex-1"
+                            :title="`Show items tagged “${tag.name}”`"
+                        >
+                            <div class="font-medium group-hover:underline" style="font-size: 13px">{{ tag.name }}</div>
                             <div class="mono" style="font-size: 11.5px; color: var(--fg-subtle)">
                                 {{ tag.items_count }} item{{ tag.items_count === 1 ? '' : 's' }}
                             </div>
-                        </div>
+                        </Link>
                         <div class="flex gap-1">
                             <button class="btn-ghost" type="button" @click="startEdit(tag)">
                                 <Pencil :size="14" />
