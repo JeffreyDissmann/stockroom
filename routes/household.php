@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Household\BackupController;
 use App\Http\Controllers\Household\CustomFieldController;
+use App\Http\Controllers\Household\ImportController;
 use App\Http\Controllers\Household\ResetController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::post('household/backup/import', [BackupController::class, 'import'])->name('household.backup.import');
 
     Route::post('household/reset', [ResetController::class, 'wipe'])->name('household.reset');
+
+    Route::get('household/import', [ImportController::class, 'index'])->name('household.import.index');
+    Route::post('household/import', [ImportController::class, 'start'])->name('household.import.start');
 });

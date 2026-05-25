@@ -14,6 +14,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Backup & restore',
         href: '/household/backup',
     },
+    {
+        title: 'Import from Homebox',
+        href: '/household/import',
+    },
 ];
 
 const currentPath = window.location.pathname;
