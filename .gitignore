@@ -3,12 +3,14 @@
 /tests/Browser/Screenshots
 /tests/Browser/Console
 /node_modules
+/node_modules.nosync
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
 /vendor
+/vendor.nosync
 .env
 .env.backup
 .env.production
