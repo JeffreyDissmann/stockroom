@@ -167,6 +167,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
                 multiple
                 accept="image/jpeg,image/png,image/webp,image/heic"
                 class="hidden"
+                data-test="image-input"
                 @change="handlePick"
             />
         </div>
