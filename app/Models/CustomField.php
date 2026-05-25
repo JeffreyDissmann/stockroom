@@ -20,6 +20,7 @@ class CustomField extends Model
         'name',
         'key',
         'type',
+        'is_searchable',
         'sort_order',
         'is_system',
     ];
@@ -28,6 +29,7 @@ class CustomField extends Model
     {
         return [
             'type' => CustomFieldType::class,
+            'is_searchable' => 'bool',
             'sort_order' => 'int',
             'is_system' => 'bool',
         ];

@@ -74,6 +74,18 @@ class SearchTest extends TestCase
             ->assertJsonPath('results.0.name', 'Angle grinder');
     }
 
+    public function test_ignores_values_from_non_searchable_custom_fields(): void
+    {
+        $field = CustomField::factory()->notSearchable()->create(['name' => 'Private notes', 'type' => CustomFieldType::Text]);
+        $item = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Toolbox']);
+        $item->customFieldValues()->create(['custom_field_id' => $field->id, 'value' => 'secretphrase']);
+
+        $this->actingAs(User::factory()->create())
+            ->getJson('/search?q=secretphrase')
+            ->assertOk()
+            ->assertExactJson(['results' => []]);
+    }
+
     public function test_search_page_renders_matching_items(): void
     {
         $room = Item::factory()->room()->create(['name' => 'Garage']);

@@ -32,6 +32,34 @@ class CustomFieldTest extends TestCase
         $this->assertFalse($field->is_system);
     }
 
+    public function test_create_defaults_to_searchable(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->post('/household/custom-fields', ['name' => 'Color', 'type' => 'text']);
+
+        $this->assertTrue(CustomField::firstOrFail()->is_searchable);
+    }
+
+    public function test_admin_can_create_a_non_searchable_field(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->post('/household/custom-fields', ['name' => 'Notes', 'type' => 'text', 'searchable' => false]);
+
+        $this->assertFalse(CustomField::firstOrFail()->is_searchable);
+    }
+
+    public function test_admin_can_toggle_searchable_on_update(): void
+    {
+        $field = CustomField::factory()->create(['name' => 'Notes']);
+        $this->assertTrue($field->is_searchable);
+
+        $this->actingAs(User::factory()->create())
+            ->put("/household/custom-fields/{$field->id}", ['name' => 'Notes', 'type' => 'text', 'searchable' => false])
+            ->assertRedirect();
+
+        $this->assertFalse($field->fresh()->is_searchable);
+    }
+
     public function test_create_assigns_unique_keys(): void
     {
         $user = User::factory()->create();

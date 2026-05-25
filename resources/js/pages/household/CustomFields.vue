@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import type { BreadcrumbItem, CustomFieldDefinition, CustomFieldTypeValue } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Check, Lock, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { Check, Lock, Pencil, Plus, Search, SearchX, Trash2, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{ fields: CustomFieldDefinition[] }>();
@@ -20,17 +20,18 @@ const types: { value: CustomFieldTypeValue; label: string }[] = [
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Custom fields', href: '/household/custom-fields' }];
 
-const createForm = useForm<{ name: string; type: CustomFieldTypeValue }>({ name: '', type: 'text' });
+const createForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: true });
 function add() {
     createForm.post('/household/custom-fields', { preserveScroll: true, onSuccess: () => createForm.reset() });
 }
 
 const editingId = ref<number | null>(null);
-const editForm = useForm<{ name: string; type: CustomFieldTypeValue }>({ name: '', type: 'text' });
+const editForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: true });
 function startEdit(field: CustomFieldDefinition) {
     editingId.value = field.id;
     editForm.name = field.name;
     editForm.type = field.type;
+    editForm.searchable = field.is_searchable ?? true;
     editForm.clearErrors();
 }
 function saveEdit(id: number) {
@@ -64,6 +65,10 @@ function typeLabel(type: CustomFieldTypeValue) {
                     <select v-model="createForm.type" class="field" style="max-width: 150px" data-test="custom-field-type">
                         <option v-for="t in types" :key="t.value" :value="t.value">{{ t.label }}</option>
                     </select>
+                    <label class="flex items-center gap-1.5 text-sm" style="color: var(--fg-muted)" title="Include this field's values in search">
+                        <input v-model="createForm.searchable" type="checkbox" data-test="custom-field-searchable" />
+                        Searchable
+                    </label>
                     <button type="submit" class="btn-primary" style="height: 32px" :disabled="createForm.processing || !createForm.name">
                         <Plus :size="14" />
                         Add field
@@ -79,13 +84,23 @@ function typeLabel(type: CustomFieldTypeValue) {
                             <select v-model="editForm.type" class="field" style="max-width: 150px">
                                 <option v-for="t in types" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
+                            <label class="flex items-center gap-1.5 text-sm" style="color: var(--fg-muted)" title="Include this field's values in search">
+                                <input v-model="editForm.searchable" type="checkbox" />
+                                Searchable
+                            </label>
                             <button type="button" class="btn-pill" @click="saveEdit(field.id)"><Check :size="14" /> Save</button>
                             <button type="button" class="btn-ghost" @click="editingId = null"><X :size="14" /></button>
                         </template>
                         <template v-else>
                             <div class="flex-1">
                                 <div style="font-weight: 500; font-size: 14px">{{ field.name }}</div>
-                                <div class="text-xs" style="color: var(--fg-muted)">{{ typeLabel(field.type) }}</div>
+                                <div class="flex items-center gap-2 text-xs" style="color: var(--fg-muted)">
+                                    <span>{{ typeLabel(field.type) }}</span>
+                                    <span class="inline-flex items-center gap-1" :title="field.is_searchable ? 'Included in search' : 'Excluded from search'">
+                                        <component :is="field.is_searchable ? Search : SearchX" :size="11" />
+                                        {{ field.is_searchable ? 'Searchable' : 'Not searchable' }}
+                                    </span>
+                                </div>
                             </div>
                             <span v-if="field.is_system" class="inline-flex items-center gap-1 text-xs" style="color: var(--fg-subtle)">
                                 <Lock :size="12" /> System

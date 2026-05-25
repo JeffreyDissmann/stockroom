@@ -80,6 +80,7 @@ export interface CustomFieldDefinition {
     key: string;
     name: string;
     type: CustomFieldTypeValue;
+    is_searchable?: boolean;
     is_system?: boolean;
 }
 

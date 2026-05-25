@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomField\StoreCustomFieldRequest;
 use App\Http\Requests\CustomField\UpdateCustomFieldRequest;
 use App\Models\CustomField;
+use App\Models\Item;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,6 +32,7 @@ class CustomFieldController extends Controller
         CustomField::create([
             'name' => $request->string('name')->trim()->value(),
             'type' => $request->string('type')->value(),
+            'is_searchable' => $request->boolean('searchable', true),
             'sort_order' => (int) CustomField::max('sort_order') + 1,
         ]);
 
@@ -44,7 +46,15 @@ class CustomFieldController extends Controller
         $customField->update([
             'name' => $request->string('name')->trim()->value(),
             'type' => $request->string('type')->value(),
+            'is_searchable' => $request->boolean('searchable', true),
         ]);
+
+        // Toggling searchability changes what lands in the index for every item
+        // carrying this field, so rebuild the whole Scout index.
+        if ($customField->wasChanged('is_searchable')) {
+            Item::removeAllFromSearch();
+            Item::makeAllSearchable();
+        }
 
         return back();
     }
@@ -59,7 +69,7 @@ class CustomFieldController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, key: string, type: string, is_system: bool}
+     * @return array{id: int, name: string, key: string, type: string, is_searchable: bool, is_system: bool}
      */
     private function present(CustomField $field): array
     {
@@ -68,6 +78,7 @@ class CustomFieldController extends Controller
             'name' => $field->name,
             'key' => $field->key,
             'type' => $field->type->value,
+            'is_searchable' => $field->is_searchable,
             'is_system' => $field->is_system,
         ];
     }

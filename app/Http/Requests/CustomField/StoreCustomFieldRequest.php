@@ -23,6 +23,7 @@ class StoreCustomFieldRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', new Enum(CustomFieldType::class)],
+            'searchable' => ['boolean'],
         ];
     }
 }

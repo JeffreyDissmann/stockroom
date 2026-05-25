@@ -116,7 +116,7 @@ class Item extends Model
      */
     public function toSearchableArray(): array
     {
-        $this->loadMissing(['tags', 'customFieldValues']);
+        $this->loadMissing(['tags', 'customFieldValues.field']);
 
         return [
             'id' => (string) $this->id,
@@ -127,7 +127,11 @@ class Item extends Model
             'model_number' => $this->model_number,
             'serial_number' => $this->serial_number,
             'tags' => $this->tags->pluck('name')->implode(' '),
-            'custom_fields' => $this->customFieldValues->pluck('value')->filter()->implode(' '),
+            'custom_fields' => $this->customFieldValues
+                ->filter(fn (CustomFieldValue $value): bool => (bool) $value->field?->is_searchable)
+                ->pluck('value')
+                ->filter()
+                ->implode(' '),
             'location_path' => $this->locationPath(),
         ];
     }

@@ -23,9 +23,15 @@ class CustomFieldFactory extends Factory
         return [
             'name' => $name,
             'type' => CustomFieldType::Text,
+            'is_searchable' => true,
             'sort_order' => 0,
             'is_system' => false,
         ];
+    }
+
+    public function notSearchable(): static
+    {
+        return $this->state(fn (): array => ['is_searchable' => false]);
     }
 
     public function type(CustomFieldType $type): static
