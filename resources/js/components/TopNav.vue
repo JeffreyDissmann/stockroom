@@ -2,10 +2,13 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useCommandPalette } from '@/composables/useCommandPalette';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Boxes, LayoutGrid, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
+import { Boxes, LayoutGrid, Search, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
 import { computed } from 'vue';
+
+const { open } = useCommandPalette();
 
 interface NavLink {
     label: string;
@@ -53,6 +56,11 @@ function initials(name: string): string {
             <span>{{ link.label }}</span>
         </Link>
         <div class="topnav-spacer" />
+        <button type="button" class="topnav-search" data-test="open-search" @click="open()">
+            <Search :size="14" />
+            <span>Search</span>
+            <kbd>⌘K</kbd>
+        </button>
         <Link
             v-for="link in secondary"
             :key="link.href"
@@ -74,6 +82,31 @@ function initials(name: string): string {
 </template>
 
 <style scoped>
+.topnav-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    margin-right: 4px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--fg-muted);
+    font-size: 12.5px;
+    cursor: pointer;
+}
+.topnav-search:hover {
+    border-color: var(--border-strong);
+    color: var(--fg);
+}
+.topnav-search kbd {
+    font-size: 10.5px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--fg-subtle);
+    font-family: inherit;
+}
 .av {
     margin-left: 8px;
     width: 26px;

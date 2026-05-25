@@ -80,6 +80,10 @@ class ItemController extends Controller
             $this->imageProcessor->store($item, $file);
         }
 
+        // Re-index for search now that tags + custom fields are attached
+        // (Item::create only auto-indexed the bare item, before those syncs).
+        $item->searchable();
+
         return to_route('items.show', $item);
     }
 
@@ -163,8 +167,16 @@ class ItemController extends Controller
         $data = $this->normaliseDetailFields($data);
 
         $item->update($data);
+        $nameChanged = $item->wasChanged('name');
         $item->tags()->sync($tagIds);
         $this->syncCustomFields($item, $customFields);
+        // Re-index for search now that tags + custom fields are attached.
+        $item->searchable();
+
+        // A rename changes the location_path of everything inside this item.
+        if ($nameChanged) {
+            $item->reindexDescendants();
+        }
 
         return to_route('items.show', $item);
     }
@@ -182,6 +194,10 @@ class ItemController extends Controller
     public function move(MoveItemRequest $request, Item $item): RedirectResponse
     {
         $item->update(['parent_id' => $request->input('parent_id')]);
+
+        // The item itself re-indexes on save; its descendants' location_path
+        // also shifted, so re-index them too.
+        $item->reindexDescendants();
 
         return back();
     }

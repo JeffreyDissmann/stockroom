@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,8 @@ Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('search', SearchController::class)->name('search');
 
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
     Route::resource('items', ItemController::class);

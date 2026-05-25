@@ -27,6 +27,19 @@ class ItemMoveTest extends TestCase
         $this->assertSame($kitchen->id, $toolbox->fresh()->parent_id);
     }
 
+    public function test_descendant_ids_returns_the_full_subtree(): void
+    {
+        $garage = Item::factory()->room()->create();
+        $shelf = Item::factory()->container()->create(['parent_id' => $garage->id]);
+        $box = Item::factory()->container()->create(['parent_id' => $shelf->id]);
+        $drill = Item::factory()->create(['parent_id' => $box->id]);
+        $unrelated = Item::factory()->room()->create();
+
+        $this->assertEqualsCanonicalizing([$shelf->id, $box->id, $drill->id], $garage->descendantIds());
+        $this->assertSame([], $drill->descendantIds());
+        $this->assertNotContains($unrelated->id, $garage->descendantIds());
+    }
+
     public function test_show_move_targets_exclude_self_and_descendants(): void
     {
         $user = User::factory()->create();

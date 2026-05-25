@@ -40,6 +40,9 @@ class ResetController extends Controller
         // Image rows are gone via cascade; clear their now-orphaned files.
         Storage::disk('public')->deleteDirectory('item-images');
 
+        // Mass deletes skip model events, so the search index won't have cleared.
+        Item::removeAllFromSearch();
+
         return back();
     }
 }

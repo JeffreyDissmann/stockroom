@@ -89,6 +89,9 @@ class HomeboxImporter
             $this->linkParent($map, $summary['id'], Arr::get($summary, 'parent.id'));
         }
 
+        // Re-index with the now-complete tags/custom fields and parent paths.
+        Item::query()->whereKey(array_values($map))->get()->searchable();
+
         return [
             'entities' => $total,
             'images' => $imageCount,

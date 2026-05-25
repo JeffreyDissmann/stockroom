@@ -48,7 +48,7 @@ class BackupImporter
             $this->assertSupported($manifest);
             $data = $this->readJson("{$dir}/data.json");
 
-            return DB::transaction(function () use ($data, $dir): array {
+            $result = DB::transaction(function () use ($data, $dir): array {
                 $tags = $data['tags'] ?? [];
                 $items = $data['items'] ?? [];
 
@@ -88,6 +88,12 @@ class BackupImporter
                     'images' => $imageCount,
                 ];
             });
+
+            // Rebuild the search index to match the restored data.
+            Item::removeAllFromSearch();
+            Item::makeAllSearchable();
+
+            return $result;
         } finally {
             File::deleteDirectory($dir);
         }

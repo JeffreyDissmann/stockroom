@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BottomTabs from '@/components/BottomTabs.vue';
+import CommandPalette from '@/components/CommandPalette.vue';
 import Topbar from '@/components/Topbar.vue';
 import TopNav from '@/components/TopNav.vue';
 import type { BreadcrumbItemType } from '@/types';
@@ -26,5 +27,6 @@ withDefaults(
             </div>
             <BottomTabs />
         </main>
+        <CommandPalette />
     </div>
 </template>

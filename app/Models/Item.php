@@ -13,11 +13,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
+use Laravel\Scout\Searchable;
 
 class Item extends Model
 {
     /** @use HasFactory<ItemFactory> */
     use HasFactory;
+
+    use Searchable;
 
     protected $fillable = [
         'parent_id',
@@ -106,5 +109,80 @@ class Item extends Model
     public function isDescendantOf(self $other): bool
     {
         return $this->ancestors()->contains(fn (self $ancestor) => $ancestor->is($other));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        $this->loadMissing(['tags', 'customFieldValues']);
+
+        return [
+            'id' => (string) $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'type' => $this->type->value,
+            'manufacturer' => $this->manufacturer,
+            'model_number' => $this->model_number,
+            'serial_number' => $this->serial_number,
+            'tags' => $this->tags->pluck('name')->implode(' '),
+            'custom_fields' => $this->customFieldValues->pluck('value')->filter()->implode(' '),
+            'location_path' => $this->locationPath(),
+        ];
+    }
+
+    /**
+     * IDs of every item beneath this one, at any depth. Uses explicit queries so
+     * it's safe under Model::preventLazyLoading().
+     *
+     * @return list<int>
+     */
+    public function descendantIds(): array
+    {
+        $ids = [];
+        $frontier = [$this->id];
+
+        while ($frontier !== []) {
+            $children = self::query()->whereIn('parent_id', $frontier)->pluck('id')->all();
+            $ids = array_merge($ids, $children);
+            $frontier = $children;
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Re-index this item's descendants for search. Their location_path embeds this
+     * item's name and position, so it goes stale when this item is renamed or moved.
+     */
+    public function reindexDescendants(): void
+    {
+        $ids = $this->descendantIds();
+
+        if ($ids !== []) {
+            self::query()->whereKey($ids)->get()->searchable();
+        }
+    }
+
+    /**
+     * The human-readable ancestor path ("Room / Container"), built with explicit
+     * queries so it works under Model::preventLazyLoading() (incl. chunked indexing).
+     */
+    public function locationPath(): string
+    {
+        $names = [];
+        $parentId = $this->parent_id;
+
+        while ($parentId !== null) {
+            $parent = self::query()->find($parentId, ['id', 'parent_id', 'name']);
+            if ($parent === null) {
+                break;
+            }
+            array_unshift($names, $parent->name);
+            $parentId = $parent->parent_id;
+        }
+
+        return implode(' / ', $names);
     }
 }
