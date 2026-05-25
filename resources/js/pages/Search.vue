@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Search as SearchIcon } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 interface Paginated<T> {
     data: T[];
@@ -41,6 +41,19 @@ function apply(overrides: Record<string, string | number | number[] | null>) {
     }
     router.get('/search', params, { preserveState: true, preserveScroll: true, replace: true });
 }
+
+// Auto-search a short moment after the user stops typing.
+let debounce: ReturnType<typeof setTimeout> | undefined;
+watch(term, () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => apply({ q: term.value }), 400);
+});
+
+// Search right away when the field is cleared (the native ✕) or Enter is hit.
+function searchNow() {
+    clearTimeout(debounce);
+    apply({ q: term.value });
+}
 </script>
 
 <template>
@@ -48,10 +61,10 @@ function apply(overrides: Record<string, string | number | number[] | null>) {
         <Head title="Search" />
 
         <div class="page">
-            <form class="filterbar searchbar" style="padding: 0; margin-bottom: 14px" @submit.prevent="apply({ q: term })">
+            <form class="filterbar searchbar" style="padding: 0; margin-bottom: 14px" @submit.prevent>
                 <div class="search" style="flex: 1">
                     <SearchIcon :size="14" />
-                    <input v-model="term" type="search" placeholder="Search all items…" autofocus />
+                    <input v-model="term" type="search" placeholder="Search all items…" autofocus @search="searchNow" />
                 </div>
             </form>
 
