@@ -20,6 +20,7 @@ interface NavLink {
 const primary: NavLink[] = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutGrid, matches: (u) => u.startsWith('/dashboard') },
     { label: 'Inventory', href: '/items', icon: Boxes, matches: (u) => u.startsWith('/items') },
+    { label: 'Search', href: '/search', icon: Search, matches: (u) => u.startsWith('/search') },
     { label: 'Tags', href: '/tags', icon: TagIcon, matches: (u) => u.startsWith('/tags') },
 ];
 

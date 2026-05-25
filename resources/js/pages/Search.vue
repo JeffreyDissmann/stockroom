@@ -1,0 +1,106 @@
+<script setup lang="ts">
+import ItemCollection from '@/components/ItemCollection.vue';
+import ItemViewToggle from '@/components/ItemViewToggle.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Search as SearchIcon } from 'lucide-vue-next';
+import { ref } from 'vue';
+
+interface Paginated<T> {
+    data: T[];
+    links: { url: string | null; label: string; active: boolean }[];
+    total: number;
+    from: number | null;
+    to: number | null;
+}
+
+const props = defineProps<{
+    query: string;
+    filters: { type: ItemTypeValue | null; tag: number | null; sort: 'relevance' | 'name' };
+    items: Paginated<ItemSummary>;
+    tags: TagSummary[];
+    types: { value: ItemTypeValue; label: string }[];
+}>();
+
+const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Search', href: '/search' }];
+
+const term = ref(props.query);
+const view = ref<ItemViewMode>('list');
+
+function apply(overrides: Record<string, string | number | null>) {
+    const params: Record<string, string | number> = {};
+    const merged = { q: term.value, type: props.filters.type, tag: props.filters.tag, sort: props.filters.sort, ...overrides };
+    for (const [key, value] of Object.entries(merged)) {
+        if (value !== null && value !== '' && !(key === 'sort' && value === 'relevance')) params[key] = value as string | number;
+    }
+    router.get('/search', params, { preserveState: true, preserveScroll: true, replace: true });
+}
+</script>
+
+<template>
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <Head title="Search" />
+
+        <div class="page">
+            <form class="filterbar searchbar" style="padding: 0; margin-bottom: 14px" @submit.prevent="apply({ q: term })">
+                <div class="search" style="flex: 1">
+                    <SearchIcon :size="14" />
+                    <input v-model="term" type="search" placeholder="Search all items…" autofocus />
+                </div>
+            </form>
+
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <div class="flex items-center gap-1">
+                    <button type="button" :class="['chip', filters.type === null ? 'active' : '']" @click="apply({ type: null })">All</button>
+                    <button
+                        v-for="t in types"
+                        :key="t.value"
+                        type="button"
+                        :class="['chip', filters.type === t.value ? 'active' : '']"
+                        @click="apply({ type: t.value })"
+                    >
+                        {{ t.label }}
+                    </button>
+                </div>
+
+                <select class="field" style="max-width: 180px" :value="filters.tag ?? ''" @change="apply({ tag: ($event.target as HTMLSelectElement).value || null })">
+                    <option value="">All tags</option>
+                    <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
+                </select>
+
+                <select class="field" style="max-width: 150px" :value="filters.sort" @change="apply({ sort: ($event.target as HTMLSelectElement).value })">
+                    <option value="relevance">Relevance</option>
+                    <option value="name">Name</option>
+                </select>
+
+                <div class="flex items-center gap-2" style="margin-left: auto">
+                    <span class="section-label">{{ items.total }} result{{ items.total === 1 ? '' : 's' }}</span>
+                    <ItemViewToggle v-model="view" />
+                </div>
+            </div>
+
+            <div v-if="items.data.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
+                <p v-if="query === '' && filters.type === null && filters.tag === null" style="margin: 0">Type above to search every item.</p>
+                <p v-else style="margin: 0">No items match.</p>
+            </div>
+
+            <template v-else>
+                <ItemCollection :items="items.data" :view="view" />
+
+                <nav v-if="items.links.length > 3" class="flex flex-wrap gap-1 mt-6 justify-center">
+                    <component
+                        :is="link.url ? Link : 'span'"
+                        v-for="(link, i) in items.links"
+                        :key="i"
+                        :href="link.url ?? undefined"
+                        :preserve-scroll="true"
+                        :class="['chip', link.active ? 'active' : '', !link.url ? 'opacity-40 pointer-events-none' : '']"
+                    >
+                        <span v-html="link.label" />
+                    </component>
+                </nav>
+            </template>
+        </div>
+    </AppLayout>
+</template>

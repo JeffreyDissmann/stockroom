@@ -61,6 +61,12 @@ function goTo(result: Result) {
     router.visit(`/items/${result.id}`);
 }
 
+function viewAll() {
+    const term = query.value.trim();
+    close();
+    router.visit(term ? `/search?q=${encodeURIComponent(term)}` : '/search');
+}
+
 function onKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -116,6 +122,9 @@ defineExpose({ open });
                     <span class="cmdk-type">{{ result.type.label }}</span>
                 </button>
             </div>
+            <button v-if="hasQuery" type="button" class="cmdk-footer" data-test="command-view-all" @click="viewAll()">
+                See all results for "{{ query.trim() }}"
+            </button>
         </div>
     </div>
 </template>
@@ -223,5 +232,20 @@ defineExpose({ open });
     font-size: 11px;
     color: var(--fg-subtle);
     flex-shrink: 0;
+}
+.cmdk-footer {
+    width: 100%;
+    border: 0;
+    border-top: 1px solid var(--border);
+    background: transparent;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12.5px;
+    color: var(--fg-muted);
+    cursor: pointer;
+}
+.cmdk-footer:hover {
+    color: var(--fg);
+    background: var(--bg-sunken);
 }
 </style>

@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class SearchTest extends TestCase
@@ -71,5 +72,63 @@ class SearchTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'results')
             ->assertJsonPath('results.0.name', 'Angle grinder');
+    }
+
+    public function test_search_page_renders_matching_items(): void
+    {
+        $room = Item::factory()->room()->create(['name' => 'Garage']);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Cordless Drill', 'parent_id' => $room->id]);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Hammer']);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search?q=drill')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Search')
+                ->where('query', 'drill')
+                ->has('items.data', 1)
+                ->where('items.data.0.name', 'Cordless Drill'));
+    }
+
+    public function test_search_page_filters_by_type(): void
+    {
+        Item::factory()->room()->create(['name' => 'Workshop']);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Workshop drill']);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/search?q=Workshop')
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 2));
+
+        $this->actingAs($user)->get('/search?q=Workshop&type=item')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 1)
+                ->where('items.data.0.name', 'Workshop drill'));
+    }
+
+    public function test_search_page_filters_by_tag(): void
+    {
+        $tag = Tag::factory()->create(['name' => 'Outdoor']);
+        $hose = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Garden hose']);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Garden gnome']);
+        $hose->tags()->attach($tag);
+
+        $this->actingAs(User::factory()->create())
+            ->get("/search?q=Garden&tag={$tag->id}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 1)
+                ->where('items.data.0.name', 'Garden hose'));
+    }
+
+    public function test_search_page_browses_all_without_a_query(): void
+    {
+        Item::factory()->count(3)->create(['type' => ItemType::Item]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Search')
+                ->where('query', '')
+                ->has('items.data', 3));
     }
 }

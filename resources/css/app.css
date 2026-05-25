@@ -404,6 +404,8 @@
     color: var(--fg);
 }
 .filterbar .search input::placeholder { color: var(--fg-subtle); }
+/* The dedicated search page gives the box its own row, so let it fill the width. */
+.filterbar.searchbar .search { max-width: none; }
 .chip {
     display: inline-flex; align-items: center; gap: 6px;
     height: 28px; padding: 0 10px;
