@@ -86,7 +86,54 @@ class ItemController extends Controller
             'item' => $this->presentItem($item, withTags: true, withImages: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true))->values(),
+            'moveTargets' => $this->moveTargets($item),
         ]);
+    }
+
+    /**
+     * Eligible new parents for an item: every other item except the item itself
+     * and its descendants (mirrors MoveItemRequest's cycle guard). Each carries a
+     * breadcrumb path so same-named items are distinguishable in the picker.
+     *
+     * @return array<int, array{id: int, name: string, path: string, type: array{value: string, label: string}}>
+     */
+    private function moveTargets(Item $item): array
+    {
+        $all = Item::query()->orderBy('name')->get(['id', 'parent_id', 'type', 'name']);
+        $byId = $all->keyBy('id');
+        $byParent = $all->groupBy('parent_id');
+
+        $excluded = collect([$item->id]);
+        $stack = [$item->id];
+        while ($stack !== []) {
+            foreach ($byParent->get(array_pop($stack), collect()) as $child) {
+                $excluded->push($child->id);
+                $stack[] = $child->id;
+            }
+        }
+
+        return $all
+            ->reject(fn (Item $candidate) => $excluded->contains($candidate->id))
+            ->map(function (Item $candidate) use ($byId) {
+                $names = collect([$candidate->name]);
+                $cursor = $candidate->parent_id;
+                while ($cursor !== null && $byId->has($cursor)) {
+                    $names->prepend($byId->get($cursor)->name);
+                    $cursor = $byId->get($cursor)->parent_id;
+                }
+
+                return [
+                    'id' => $candidate->id,
+                    'name' => $candidate->name,
+                    'path' => $names->implode(' / '),
+                    'type' => [
+                        'value' => $candidate->type->value,
+                        'label' => $candidate->type->label(),
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function edit(Item $item): Response

@@ -70,6 +70,23 @@ it('edits an item name and persists it', function () {
     expect($item->fresh()->name)->toBe('New Name');
 });
 
+it('moves an item to a new parent via the move dialog', function () {
+    $garage = Item::factory()->room()->create(['name' => 'Garage']);
+    $kitchen = Item::factory()->room()->create(['name' => 'Kitchen']);
+    $toolbox = Item::factory()->container()->create(['name' => 'Toolbox', 'parent_id' => $garage->id]);
+
+    $page = visit("/items/{$toolbox->id}");
+
+    $page->assertSee('Garage')
+        ->click('@move-item')
+        ->select('@move-target', (string) $kitchen->id)
+        ->click('Move here')
+        ->assertSee('Kitchen')
+        ->assertNoJavaScriptErrors();
+
+    expect($toolbox->fresh()->parent_id)->toBe($kitchen->id);
+});
+
 it('toggles a tag on while creating an item', function () {
     Tag::factory()->create(['name' => 'Tools']);
 

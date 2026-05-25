@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemImageSummary, ItemSummary } from '@/types';
@@ -8,10 +9,18 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
+interface MoveTarget {
+    id: number;
+    name: string;
+    path: string;
+    type: { value: string; label: string };
+}
+
 const props = defineProps<{
     item: ItemSummary;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
+    moveTargets: MoveTarget[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
@@ -49,6 +58,7 @@ function destroyItem() {
                 <Pencil :size="14" />
                 Edit
             </Link>
+            <MoveItemDialog :item="item" :targets="moveTargets" />
             <button class="btn-pill btn-danger" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
                 Delete

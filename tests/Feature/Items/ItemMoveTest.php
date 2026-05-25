@@ -27,6 +27,24 @@ class ItemMoveTest extends TestCase
         $this->assertSame($kitchen->id, $toolbox->fresh()->parent_id);
     }
 
+    public function test_show_move_targets_exclude_self_and_descendants(): void
+    {
+        $user = User::factory()->create();
+        $garage = Item::factory()->room()->create(['name' => 'Garage']);
+        $kitchen = Item::factory()->room()->create(['name' => 'Kitchen']);
+        $shelf = Item::factory()->container()->create(['name' => 'Shelf', 'parent_id' => $garage->id]);
+        $box = Item::factory()->container()->create(['name' => 'Box', 'parent_id' => $shelf->id]);
+
+        // Targets for Garage must exclude Garage (self) and Shelf + Box (descendants),
+        // leaving only Kitchen.
+        $this->actingAs($user)
+            ->get("/items/{$garage->id}")
+            ->assertInertia(fn ($page) => $page
+                ->component('items/Show')
+                ->where('moveTargets', fn ($targets) => collect($targets)->pluck('id')->all() === [$kitchen->id])
+            );
+    }
+
     public function test_item_can_be_moved_to_top_level(): void
     {
         $user = User::factory()->create();
