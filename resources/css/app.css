@@ -191,6 +191,7 @@
 .topbar .crumb .sep { color: var(--fg-subtle); display: inline-flex; }
 .topbar .crumb .current { color: var(--fg); font-weight: 600; }
 .topbar .grow { flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .btn-pill {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 10px;
@@ -481,6 +482,9 @@
     color: var(--fg-muted);
 }
 .gallery .main-img svg { width: 25%; height: 25%; opacity: 0.6; }
+/* No photo: a small placeholder tile rather than a big empty box. */
+.gallery .main-img.is-empty { aspect-ratio: auto; height: 180px; }
+.gallery .main-img.is-empty svg { width: 56px; height: 56px; }
 .kv {
     display: grid;
     grid-template-columns: 120px 1fr;
@@ -564,7 +568,9 @@ textarea.field { height: auto; min-height: 80px; resize: vertical; padding: 8px 
     .topnav, .topnav-only { display: none; }
     .bottom-tabs { display: flex; }
     .page { padding: 16px; }
-    .topbar { padding: 12px 16px; }
+    .topbar { padding: 12px 16px; flex-wrap: wrap; row-gap: 10px; }
+    /* Cap the detail image so it doesn't eat the whole phone screen. */
+    .gallery .main-img { max-height: 40vh; }
     .filterbar { padding: 0 16px 12px; }
     .stats-strip {
         grid-template-columns: repeat(2, 1fr);

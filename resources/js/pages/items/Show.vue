@@ -109,7 +109,7 @@ function destroyItem() {
         <div class="page">
             <div class="detail-grid">
                 <div class="gallery">
-                    <div class="main-img">
+                    <div class="main-img" :class="{ 'is-empty': !activeImage }">
                         <img v-if="activeImage" :src="activeImage.large_url" :alt="item.name" class="gallery-img" />
                         <ItemTypeIcon v-else :type="item.type.value" />
                     </div>

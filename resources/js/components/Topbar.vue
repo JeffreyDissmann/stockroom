@@ -18,6 +18,8 @@ defineProps<{
             </template>
         </nav>
         <div class="grow" />
-        <slot name="actions" />
+        <div class="topbar-actions">
+            <slot name="actions" />
+        </div>
     </div>
 </template>
