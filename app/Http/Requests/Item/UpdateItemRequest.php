@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Requests\Item;
 
 use App\Enums\ItemType;
+use App\Http\Requests\Item\Concerns\HasItemDetailRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 class UpdateItemRequest extends FormRequest
 {
+    use HasItemDetailRules;
+
     public function authorize(): bool
     {
         return true;
@@ -24,6 +27,7 @@ class UpdateItemRequest extends FormRequest
             'type' => ['required', new Enum(ItemType::class)],
             'tags' => ['array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
+            ...$this->detailRules(),
         ];
     }
 }

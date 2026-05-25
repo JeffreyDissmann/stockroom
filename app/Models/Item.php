@@ -24,10 +24,31 @@ class Item extends Model
         'type',
         'name',
         'description',
+        'quantity',
+        'purchased_from',
+        'purchase_date',
+        'purchase_price',
+        'manufacturer',
+        'model_number',
+        'serial_number',
+        'lifetime_warranty',
+        'warranty_expires',
+        'warranty_details',
+        'sold_to',
+        'sold_price',
+        'sold_date',
+        'sold_notes',
     ];
 
     protected $casts = [
         'type' => ItemType::class,
+        'quantity' => 'int',
+        'purchase_date' => 'date',
+        'purchase_price' => 'decimal:2',
+        'lifetime_warranty' => 'bool',
+        'warranty_expires' => 'date',
+        'sold_price' => 'decimal:2',
+        'sold_date' => 'date',
     ];
 
     protected static function booted(): void

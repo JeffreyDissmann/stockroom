@@ -70,6 +70,41 @@ it('edits an item name and persists it', function () {
     expect($item->fresh()->name)->toBe('New Name');
 });
 
+it('hides detail fields for rooms and shows them for items', function () {
+    $page = visit('/items/create');
+
+    // Default type on a top-level create is Room — detail fields hidden.
+    $page->assertSee('Tags')
+        ->assertDontSee('Manufacturer')
+        ->assertDontSee('Warranty')
+        // Switch to Item — detail fields appear.
+        ->click('Item')
+        ->assertSee('Manufacturer')
+        ->assertSee('Warranty')
+        ->assertSee('Serial number')
+        ->assertNoJavaScriptErrors();
+});
+
+it('captures detail fields when creating an item', function () {
+    $page = visit('/items/create');
+
+    $page->click('Item')
+        ->fill('#name', 'Espresso machine')
+        ->fill('#manufacturer', 'Breville')
+        ->fill('#serial_number', 'SN-123456')
+        ->fill('#purchase_price', '899.50')
+        ->click('Create')
+        ->assertSee('Espresso machine')
+        ->assertSee('Breville')
+        ->assertSee('SN-123456')
+        ->assertSee('899.50')
+        ->assertNoJavaScriptErrors();
+
+    $item = Item::where('name', 'Espresso machine')->firstOrFail();
+    expect($item->manufacturer)->toBe('Breville');
+    expect($item->purchase_price)->toBe('899.50');
+});
+
 it('moves an item to a new parent via the move dialog', function () {
     $garage = Item::factory()->room()->create(['name' => 'Garage']);
     $kitchen = Item::factory()->room()->create(['name' => 'Kitchen']);

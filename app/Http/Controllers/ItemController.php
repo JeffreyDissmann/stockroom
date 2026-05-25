@@ -66,6 +66,7 @@ class ItemController extends Controller
         $tagIds = $data['tags'] ?? [];
         $imageFiles = $request->file('images', []);
         unset($data['tags'], $data['images']);
+        $data = $this->normaliseDetailFields($data);
 
         $item = Item::create($data);
         $item->tags()->sync($tagIds);
@@ -83,7 +84,7 @@ class ItemController extends Controller
         $children = $item->children()->withCount('children')->with(['tags', 'primaryImage'])->get();
 
         return Inertia::render('items/Show', [
-            'item' => $this->presentItem($item, withTags: true, withImages: true),
+            'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true))->values(),
             'moveTargets' => $this->moveTargets($item),
@@ -141,7 +142,7 @@ class ItemController extends Controller
         $item->load(['tags', 'images']);
 
         return Inertia::render('items/Edit', [
-            'item' => $this->presentItem($item, withTags: true, withImages: true),
+            'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
         ]);
@@ -152,6 +153,7 @@ class ItemController extends Controller
         $data = $request->validated();
         $tagIds = $data['tags'] ?? [];
         unset($data['tags']);
+        $data = $this->normaliseDetailFields($data);
 
         $item->update($data);
         $item->tags()->sync($tagIds);
@@ -177,17 +179,49 @@ class ItemController extends Controller
     }
 
     /**
-     * @return array<int, array{value: string, label: string, icon: string}>
+     * @return array<int, array{value: string, label: string, icon: string, details: bool}>
      */
     private function typeOptions(): array
     {
         return collect(ItemType::cases())
-            ->map(fn (ItemType $t) => ['value' => $t->value, 'label' => $t->label(), 'icon' => $t->icon()])
+            ->map(fn (ItemType $t) => [
+                'value' => $t->value,
+                'label' => $t->label(),
+                'icon' => $t->icon(),
+                'details' => $t->hasDetailFields(),
+            ])
             ->values()
             ->all();
     }
 
-    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false): array
+    /**
+     * Default quantity and, for types that don't carry detail fields (rooms),
+     * blank out the acquisition/warranty/sale fields so they can't be persisted
+     * via a crafted request even though the form hides them.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normaliseDetailFields(array $data): array
+    {
+        $type = isset($data['type']) ? ItemType::from($data['type']) : null;
+
+        if ($type !== null && ! $type->hasDetailFields()) {
+            $data['quantity'] = 1;
+            foreach (['purchased_from', 'purchase_date', 'purchase_price', 'manufacturer', 'model_number', 'serial_number', 'warranty_expires', 'warranty_details', 'sold_to', 'sold_price', 'sold_date', 'sold_notes'] as $field) {
+                $data[$field] = null;
+            }
+            $data['lifetime_warranty'] = false;
+
+            return $data;
+        }
+
+        $data['quantity'] = $data['quantity'] ?? 1;
+
+        return $data;
+    }
+
+    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false, bool $withDetails = false): array
     {
         $payload = [
             'id' => $item->id,
@@ -198,6 +232,7 @@ class ItemController extends Controller
                 'value' => $item->type->value,
                 'label' => $item->type->label(),
                 'icon' => $item->type->icon(),
+                'details' => $item->type->hasDetailFields(),
             ],
             'thumb_url' => $item->relationLoaded('primaryImage') && $item->primaryImage
                 ? $item->primaryImage->thumbUrl()
@@ -206,6 +241,23 @@ class ItemController extends Controller
 
         if ($withChildrenCount) {
             $payload['children_count'] = $item->children_count ?? $item->children()->count();
+        }
+
+        if ($withDetails) {
+            $payload['quantity'] = $item->quantity;
+            $payload['purchased_from'] = $item->purchased_from;
+            $payload['purchase_date'] = $item->purchase_date?->toDateString();
+            $payload['purchase_price'] = $item->purchase_price;
+            $payload['manufacturer'] = $item->manufacturer;
+            $payload['model_number'] = $item->model_number;
+            $payload['serial_number'] = $item->serial_number;
+            $payload['lifetime_warranty'] = $item->lifetime_warranty;
+            $payload['warranty_expires'] = $item->warranty_expires?->toDateString();
+            $payload['warranty_details'] = $item->warranty_details;
+            $payload['sold_to'] = $item->sold_to;
+            $payload['sold_price'] = $item->sold_price;
+            $payload['sold_date'] = $item->sold_date?->toDateString();
+            $payload['sold_notes'] = $item->sold_notes;
         }
 
         if ($withTags) {

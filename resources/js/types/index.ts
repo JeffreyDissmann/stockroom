@@ -47,6 +47,8 @@ export interface ItemTypeDescriptor {
     value: ItemTypeValue;
     label: string;
     icon: string;
+    // Whether acquisition/warranty/sale detail fields apply (false for rooms).
+    details?: boolean;
 }
 
 export interface TagSummary {
@@ -75,5 +77,20 @@ export interface ItemSummary {
     children_count?: number;
     tags?: TagSummary[];
     images?: ItemImageSummary[];
+    // Detail fields (present on show/edit payloads via withDetails).
+    quantity?: number;
+    purchased_from?: string | null;
+    purchase_date?: string | null;
+    purchase_price?: string | null;
+    manufacturer?: string | null;
+    model_number?: string | null;
+    serial_number?: string | null;
+    lifetime_warranty?: boolean;
+    warranty_expires?: string | null;
+    warranty_details?: string | null;
+    sold_to?: string | null;
+    sold_price?: string | null;
+    sold_date?: string | null;
+    sold_notes?: string | null;
 }
 

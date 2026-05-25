@@ -43,6 +43,43 @@ watch(initialActive, (img) => {
     }
 });
 
+function fmtMoney(value?: string | null): string | null {
+    if (value === null || value === undefined || value === '') return null;
+    return Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+const detailRows = computed<[string, string][]>(() => {
+    const i = props.item;
+    const rows: [string, string][] = [];
+    if (i.type.details === false) return rows; // rooms carry no detail fields
+    if (i.quantity != null) rows.push(['Quantity', String(i.quantity)]);
+    if (i.manufacturer) rows.push(['Manufacturer', i.manufacturer]);
+    if (i.model_number) rows.push(['Model', i.model_number]);
+    if (i.serial_number) rows.push(['Serial', i.serial_number]);
+    if (i.purchased_from) rows.push(['Purchased from', i.purchased_from]);
+    if (i.purchase_date) rows.push(['Purchased', i.purchase_date]);
+    const paid = fmtMoney(i.purchase_price);
+    if (paid) rows.push(['Paid', paid]);
+    if (i.lifetime_warranty) rows.push(['Warranty', 'Lifetime']);
+    else if (i.warranty_expires) rows.push(['Warranty until', i.warranty_expires]);
+    return rows;
+});
+
+const isSold = computed(() => {
+    const i = props.item;
+    return Boolean(i.sold_to || i.sold_price || i.sold_date || i.sold_notes);
+});
+
+const soldRows = computed<[string, string][]>(() => {
+    const i = props.item;
+    const rows: [string, string][] = [];
+    if (i.sold_to) rows.push(['Sold to', i.sold_to]);
+    const price = fmtMoney(i.sold_price);
+    if (price) rows.push(['Sold for', price]);
+    if (i.sold_date) rows.push(['Sold on', i.sold_date]);
+    return rows;
+});
+
 function destroyItem() {
     if (!confirm(`Delete "${props.item.name}"? Any items inside will become top-level.`)) return;
     router.delete(`/items/${props.item.id}`);
@@ -115,6 +152,40 @@ function destroyItem() {
                                     </Link>
                                 </template>
                             </div>
+                        </div>
+                    </div>
+
+                    <div v-if="detailRows.length" class="card">
+                        <div class="card-head">
+                            <h3>Details</h3>
+                        </div>
+                        <div class="card-pad">
+                            <dl class="kv">
+                                <template v-for="[label, value] in detailRows" :key="label">
+                                    <dt>{{ label }}</dt>
+                                    <dd :class="{ mono: label === 'Serial' || label === 'Paid' }">{{ value }}</dd>
+                                </template>
+                            </dl>
+                            <p v-if="item.warranty_details" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
+                                {{ item.warranty_details }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div v-if="isSold" class="card">
+                        <div class="card-head">
+                            <h3>Sold</h3>
+                        </div>
+                        <div class="card-pad">
+                            <dl class="kv">
+                                <template v-for="[label, value] in soldRows" :key="label">
+                                    <dt>{{ label }}</dt>
+                                    <dd :class="{ mono: label === 'Sold for' }">{{ value }}</dd>
+                                </template>
+                            </dl>
+                            <p v-if="item.sold_notes" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
+                                {{ item.sold_notes }}
+                            </p>
                         </div>
                     </div>
                 </div>

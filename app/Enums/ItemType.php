@@ -27,4 +27,13 @@ enum ItemType: string
             self::Item => 'package',
         };
     }
+
+    /**
+     * Whether the acquisition/warranty/sale detail fields apply to this type.
+     * A Room is a place, not a possession — those fields are meaningless for it.
+     */
+    public function hasDetailFields(): bool
+    {
+        return $this !== self::Room;
+    }
 }

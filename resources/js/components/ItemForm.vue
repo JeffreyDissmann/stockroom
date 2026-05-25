@@ -26,6 +26,20 @@ const form = useForm({
     parent_id: props.item?.parent_id ?? props.parent?.id ?? null,
     tags: (props.item?.tags ?? []).map((t) => t.id),
     images: [] as File[],
+    quantity: props.item?.quantity ?? 1,
+    purchased_from: props.item?.purchased_from ?? '',
+    purchase_date: props.item?.purchase_date ?? '',
+    purchase_price: props.item?.purchase_price ?? '',
+    manufacturer: props.item?.manufacturer ?? '',
+    model_number: props.item?.model_number ?? '',
+    serial_number: props.item?.serial_number ?? '',
+    lifetime_warranty: props.item?.lifetime_warranty ?? false,
+    warranty_expires: props.item?.warranty_expires ?? '',
+    warranty_details: props.item?.warranty_details ?? '',
+    sold_to: props.item?.sold_to ?? '',
+    sold_price: props.item?.sold_price ?? '',
+    sold_date: props.item?.sold_date ?? '',
+    sold_notes: props.item?.sold_notes ?? '',
 });
 
 const queuedFiles = ref<File[]>([]);
@@ -36,6 +50,10 @@ function onFilesUpdate(files: File[]) {
 }
 
 const eligibleParents = computed(() => props.items.filter((i) => !props.item || i.id !== props.item.id));
+
+// Rooms are places, not possessions — hide the purchase/warranty/sale fields.
+// Reactive to the type selector, and the server blanks them too on save.
+const showDetails = computed(() => props.types.find((t) => t.value === form.type)?.details ?? true);
 
 function toggleTag(id: number) {
     if (form.tags.includes(id)) {
@@ -93,6 +111,12 @@ function submit() {
             <InputError :message="form.errors.description" />
         </div>
 
+        <div v-if="showDetails" class="form-row" style="max-width: 160px">
+            <label for="quantity">Quantity</label>
+            <input id="quantity" v-model.number="form.quantity" type="number" min="0" step="1" class="field" />
+            <InputError :message="form.errors.quantity" />
+        </div>
+
         <div v-if="mode === 'create'" class="form-row">
             <label for="parent_id">Inside</label>
             <select id="parent_id" v-model="form.parent_id" class="field">
@@ -138,6 +162,90 @@ function submit() {
             </div>
             <InputError :message="form.errors.tags" />
         </div>
+
+        <template v-if="showDetails">
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+        <p class="section-label">Purchase &amp; identification</p>
+
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="manufacturer">Manufacturer</label>
+                <input id="manufacturer" v-model="form.manufacturer" class="field" placeholder="e.g. DeWalt" />
+                <InputError :message="form.errors.manufacturer" />
+            </div>
+            <div class="form-row">
+                <label for="model_number">Model number</label>
+                <input id="model_number" v-model="form.model_number" class="field" />
+                <InputError :message="form.errors.model_number" />
+            </div>
+            <div class="form-row">
+                <label for="serial_number">Serial number</label>
+                <input id="serial_number" v-model="form.serial_number" class="field" />
+                <InputError :message="form.errors.serial_number" />
+            </div>
+            <div class="form-row">
+                <label for="purchased_from">Purchased from</label>
+                <input id="purchased_from" v-model="form.purchased_from" class="field" placeholder="Vendor / store" />
+                <InputError :message="form.errors.purchased_from" />
+            </div>
+            <div class="form-row">
+                <label for="purchase_date">Purchase date</label>
+                <input id="purchase_date" v-model="form.purchase_date" type="date" class="field" />
+                <InputError :message="form.errors.purchase_date" />
+            </div>
+            <div class="form-row">
+                <label for="purchase_price">Purchase price</label>
+                <input id="purchase_price" v-model="form.purchase_price" type="number" min="0" step="0.01" class="field" placeholder="0.00" />
+                <InputError :message="form.errors.purchase_price" />
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+        <p class="section-label">Warranty</p>
+
+        <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+            <input v-model="form.lifetime_warranty" type="checkbox" />
+            Lifetime warranty
+        </label>
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="warranty_expires">Warranty expires</label>
+                <input id="warranty_expires" v-model="form.warranty_expires" type="date" class="field" :disabled="form.lifetime_warranty" />
+                <InputError :message="form.errors.warranty_expires" />
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="warranty_details">Warranty details</label>
+            <textarea id="warranty_details" v-model="form.warranty_details" rows="2" class="field" placeholder="Coverage notes, claim contact, etc." />
+            <InputError :message="form.errors.warranty_details" />
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+        <p class="section-label">Sold</p>
+
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="sold_to">Sold to</label>
+                <input id="sold_to" v-model="form.sold_to" class="field" placeholder="Buyer" />
+                <InputError :message="form.errors.sold_to" />
+            </div>
+            <div class="form-row">
+                <label for="sold_price">Sold price</label>
+                <input id="sold_price" v-model="form.sold_price" type="number" min="0" step="0.01" class="field" placeholder="0.00" />
+                <InputError :message="form.errors.sold_price" />
+            </div>
+            <div class="form-row">
+                <label for="sold_date">Sold date</label>
+                <input id="sold_date" v-model="form.sold_date" type="date" class="field" />
+                <InputError :message="form.errors.sold_date" />
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="sold_notes">Sold notes</label>
+            <textarea id="sold_notes" v-model="form.sold_notes" rows="2" class="field" />
+            <InputError :message="form.errors.sold_notes" />
+        </div>
+        </template>
 
         <div class="flex justify-end gap-2">
             <button type="submit" :disabled="form.processing" class="btn-primary">
