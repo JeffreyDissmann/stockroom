@@ -21,11 +21,18 @@ export interface CurrencyConfig {
     locale: string;
 }
 
+export interface BackupResult {
+    tags: number;
+    items: number;
+    images: number;
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
     currency: CurrencyConfig;
+    flash: { backup: BackupResult | null };
     ziggy: {
         location: string;
         url: string;

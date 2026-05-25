@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Settings\BackupController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SystemController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,4 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
+
+    Route::get('settings/system', [SystemController::class, 'index'])->name('system.index');
+    Route::get('settings/system/export', [BackupController::class, 'export'])->name('system.backup.export');
+    Route::post('settings/system/import', [BackupController::class, 'import'])->name('system.backup.import');
 });
