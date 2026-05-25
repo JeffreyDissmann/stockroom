@@ -2,10 +2,12 @@
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
-import type { ItemSummary, ItemTypeDescriptor, ItemTypeValue, TagSummary } from '@/types';
-import { useForm } from '@inertiajs/vue3';
+import type { ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+
+const currency = usePage<SharedData>().props.currency;
 
 type Mode = 'create' | 'edit';
 
@@ -194,7 +196,7 @@ function submit() {
                 <InputError :message="form.errors.purchase_date" />
             </div>
             <div class="form-row">
-                <label for="purchase_price">Purchase price</label>
+                <label for="purchase_price">Purchase price ({{ currency.code }})</label>
                 <input id="purchase_price" v-model="form.purchase_price" type="number" min="0" step="0.01" class="field" placeholder="0.00" />
                 <InputError :message="form.errors.purchase_price" />
             </div>
@@ -230,7 +232,7 @@ function submit() {
                 <InputError :message="form.errors.sold_to" />
             </div>
             <div class="form-row">
-                <label for="sold_price">Sold price</label>
+                <label for="sold_price">Sold price ({{ currency.code }})</label>
                 <input id="sold_price" v-model="form.sold_price" type="number" min="0" step="0.01" class="field" placeholder="0.00" />
                 <InputError :message="form.errors.sold_price" />
             </div>

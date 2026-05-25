@@ -47,6 +47,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'currency' => [
+                'code' => config('stockroom.currency.code'),
+                'locale' => config('stockroom.currency.locale'),
+            ],
         ]);
     }
 }

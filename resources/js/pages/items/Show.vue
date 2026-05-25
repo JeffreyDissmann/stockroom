@@ -3,6 +3,7 @@ import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
+import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemImageSummary, ItemSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -43,10 +44,7 @@ watch(initialActive, (img) => {
     }
 });
 
-function fmtMoney(value?: string | null): string | null {
-    if (value === null || value === undefined || value === '') return null;
-    return Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+const { format: fmtMoney } = useCurrency();
 
 const detailRows = computed<[string, string][]>(() => {
     const i = props.item;
