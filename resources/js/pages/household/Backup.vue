@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BackupRestore from '@/components/household/BackupRestore.vue';
+import DangerZone from '@/components/household/DangerZone.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -14,6 +15,7 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Backup & restore', href: '/
 
         <HouseholdLayout>
             <BackupRestore />
+            <DangerZone />
         </HouseholdLayout>
     </AppLayout>
 </template>
