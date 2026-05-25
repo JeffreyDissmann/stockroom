@@ -7,16 +7,12 @@ import { Link } from '@inertiajs/vue3';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
-        href: '/settings/profile',
+        title: 'Custom fields',
+        href: '/household/custom-fields',
     },
     {
-        title: 'Password',
-        href: '/settings/password',
-    },
-    {
-        title: 'Appearance',
-        href: '/settings/appearance',
+        title: 'Backup & restore',
+        href: '/household/backup',
     },
 ];
 
@@ -25,7 +21,7 @@ const currentPath = window.location.pathname;
 
 <template>
     <div class="px-4 py-6">
-        <Heading title="Settings" description="Manage your profile and account settings" />
+        <Heading title="Household" description="Settings shared across the whole home inventory" />
 
         <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-x-12 lg:space-y-0">
             <aside class="w-full max-w-xl lg:w-48">

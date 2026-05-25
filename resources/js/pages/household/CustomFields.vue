@@ -2,7 +2,7 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
+import HouseholdLayout from '@/layouts/household/Layout.vue';
 import type { BreadcrumbItem, CustomFieldDefinition, CustomFieldTypeValue } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Check, Lock, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
@@ -18,11 +18,11 @@ const types: { value: CustomFieldTypeValue; label: string }[] = [
     { value: 'url', label: 'Link' },
 ];
 
-const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Custom fields', href: '/settings/custom-fields' }];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Custom fields', href: '/household/custom-fields' }];
 
 const createForm = useForm<{ name: string; type: CustomFieldTypeValue }>({ name: '', type: 'text' });
 function add() {
-    createForm.post('/settings/custom-fields', { preserveScroll: true, onSuccess: () => createForm.reset() });
+    createForm.post('/household/custom-fields', { preserveScroll: true, onSuccess: () => createForm.reset() });
 }
 
 const editingId = ref<number | null>(null);
@@ -34,11 +34,11 @@ function startEdit(field: CustomFieldDefinition) {
     editForm.clearErrors();
 }
 function saveEdit(id: number) {
-    editForm.put(`/settings/custom-fields/${id}`, { preserveScroll: true, onSuccess: () => (editingId.value = null) });
+    editForm.put(`/household/custom-fields/${id}`, { preserveScroll: true, onSuccess: () => (editingId.value = null) });
 }
 function destroy(field: CustomFieldDefinition) {
     if (!confirm(`Delete the "${field.name}" field? Its values on every item will be removed.`)) return;
-    router.delete(`/settings/custom-fields/${field.id}`, { preserveScroll: true });
+    router.delete(`/household/custom-fields/${field.id}`, { preserveScroll: true });
 }
 function typeLabel(type: CustomFieldTypeValue) {
     return types.find((t) => t.value === type)?.label ?? type;
@@ -49,7 +49,7 @@ function typeLabel(type: CustomFieldTypeValue) {
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head title="Custom fields" />
 
-        <SettingsLayout>
+        <HouseholdLayout>
             <div class="space-y-6">
                 <HeadingSmall
                     title="Custom fields"
@@ -98,6 +98,6 @@ function typeLabel(type: CustomFieldTypeValue) {
                     </li>
                 </ul>
             </div>
-        </SettingsLayout>
+        </HouseholdLayout>
     </AppLayout>
 </template>

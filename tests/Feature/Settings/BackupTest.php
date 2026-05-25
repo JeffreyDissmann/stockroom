@@ -33,19 +33,19 @@ class BackupTest extends TestCase
 
     public function test_system_page_requires_authentication(): void
     {
-        $this->get('/settings/system')->assertRedirect('/login');
+        $this->get('/household/backup')->assertRedirect('/login');
     }
 
     public function test_system_page_renders_for_an_authenticated_user(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get('/settings/system')
+            ->get('/household/backup')
             ->assertOk();
     }
 
     public function test_export_route_requires_authentication(): void
     {
-        $this->get('/settings/system/export')->assertRedirect('/login');
+        $this->get('/household/backup/export')->assertRedirect('/login');
     }
 
     public function test_backup_archive_contains_the_manifest_data_and_original_images(): void
@@ -138,7 +138,7 @@ class BackupTest extends TestCase
         $upload = new UploadedFile($path, 'backup.zip', 'application/zip', null, true);
 
         $this->actingAs(User::factory()->create())
-            ->post('/settings/system/import', ['file' => $upload])
+            ->post('/household/backup/import', ['file' => $upload])
             ->assertRedirect()
             ->assertSessionHas('backup', ['tags' => 1, 'items' => 1, 'images' => 0]);
 
@@ -148,7 +148,7 @@ class BackupTest extends TestCase
     public function test_import_rejects_a_non_zip_upload(): void
     {
         $this->actingAs(User::factory()->create())
-            ->post('/settings/system/import', [
+            ->post('/household/backup/import', [
                 'file' => UploadedFile::fake()->create('notes.txt', 5, 'text/plain'),
             ])
             ->assertSessionHasErrors('file');

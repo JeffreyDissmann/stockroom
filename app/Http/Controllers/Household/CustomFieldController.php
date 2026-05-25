@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Household;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CustomField\StoreCustomFieldRequest;
 use App\Http\Requests\CustomField\UpdateCustomFieldRequest;
 use App\Models\CustomField;
@@ -15,7 +16,7 @@ class CustomFieldController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('settings/CustomFields', [
+        return Inertia::render('household/CustomFields', [
             'fields' => CustomField::query()
                 ->orderBy('sort_order')
                 ->orderBy('name')

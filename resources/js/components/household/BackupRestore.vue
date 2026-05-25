@@ -19,7 +19,7 @@ function onFileChange(event: Event) {
 }
 
 function restore() {
-    form.post('/settings/system/import', {
+    form.post('/household/backup/import', {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -39,7 +39,7 @@ function restore() {
 
         <div class="space-y-4">
             <Button as-child>
-                <a href="/settings/system/export">
+                <a href="/household/backup/export">
                     <Download class="size-4" />
                     Download backup
                 </a>

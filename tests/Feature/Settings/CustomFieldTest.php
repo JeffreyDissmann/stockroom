@@ -16,13 +16,13 @@ class CustomFieldTest extends TestCase
 
     public function test_index_requires_authentication(): void
     {
-        $this->get('/settings/custom-fields')->assertRedirect('/login');
+        $this->get('/household/custom-fields')->assertRedirect('/login');
     }
 
     public function test_admin_can_create_a_custom_field(): void
     {
         $this->actingAs(User::factory()->create())
-            ->post('/settings/custom-fields', ['name' => 'Color', 'type' => 'text'])
+            ->post('/household/custom-fields', ['name' => 'Color', 'type' => 'text'])
             ->assertRedirect();
 
         $field = CustomField::firstOrFail();
@@ -35,8 +35,8 @@ class CustomFieldTest extends TestCase
     public function test_create_assigns_unique_keys(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user)->post('/settings/custom-fields', ['name' => 'Color', 'type' => 'text']);
-        $this->actingAs($user)->post('/settings/custom-fields', ['name' => 'Color', 'type' => 'number']);
+        $this->actingAs($user)->post('/household/custom-fields', ['name' => 'Color', 'type' => 'text']);
+        $this->actingAs($user)->post('/household/custom-fields', ['name' => 'Color', 'type' => 'number']);
 
         $this->assertEqualsCanonicalizing(['color', 'color_2'], CustomField::pluck('key')->all());
     }
@@ -44,7 +44,7 @@ class CustomFieldTest extends TestCase
     public function test_type_must_be_valid(): void
     {
         $this->actingAs(User::factory()->create())
-            ->post('/settings/custom-fields', ['name' => 'Bad', 'type' => 'rainbow'])
+            ->post('/household/custom-fields', ['name' => 'Bad', 'type' => 'rainbow'])
             ->assertSessionHasErrors('type');
     }
 
@@ -53,7 +53,7 @@ class CustomFieldTest extends TestCase
         $field = CustomField::factory()->create(['name' => 'Voltage', 'type' => CustomFieldType::Text]);
 
         $this->actingAs(User::factory()->create())
-            ->put("/settings/custom-fields/{$field->id}", ['name' => 'Voltage (V)', 'type' => 'number'])
+            ->put("/household/custom-fields/{$field->id}", ['name' => 'Voltage (V)', 'type' => 'number'])
             ->assertRedirect();
 
         $field->refresh();
@@ -66,7 +66,7 @@ class CustomFieldTest extends TestCase
         $field = CustomField::factory()->create();
 
         $this->actingAs(User::factory()->create())
-            ->delete("/settings/custom-fields/{$field->id}")
+            ->delete("/household/custom-fields/{$field->id}")
             ->assertRedirect();
 
         $this->assertModelMissing($field);
@@ -77,7 +77,7 @@ class CustomFieldTest extends TestCase
         $field = CustomField::factory()->system('homebox_id')->create(['name' => 'Homebox ID']);
 
         $this->actingAs(User::factory()->create())
-            ->put("/settings/custom-fields/{$field->id}", ['name' => 'Hacked', 'type' => 'text'])
+            ->put("/household/custom-fields/{$field->id}", ['name' => 'Hacked', 'type' => 'text'])
             ->assertForbidden();
 
         $this->assertSame('Homebox ID', $field->fresh()->name);
@@ -88,7 +88,7 @@ class CustomFieldTest extends TestCase
         $field = CustomField::factory()->system('homebox_id')->create();
 
         $this->actingAs(User::factory()->create())
-            ->delete("/settings/custom-fields/{$field->id}")
+            ->delete("/household/custom-fields/{$field->id}")
             ->assertForbidden();
 
         $this->assertModelExists($field);
