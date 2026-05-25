@@ -113,7 +113,8 @@
 /* ── App shell ─────────────────────────────────────────────────────── */
 .app {
     display: grid;
-    height: 100vh;
+    height: 100vh; /* fallback for browsers without dvh */
+    height: 100dvh; /* track the visible viewport so the bottom tab bar stays pinned on mobile */
     width: 100%;
     overflow: hidden;
     grid-template-columns: 1fr;
@@ -568,6 +569,9 @@ textarea.field { height: auto; min-height: 80px; resize: vertical; padding: 8px 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 880px) {
     .topnav, .topnav-only { display: none; }
+    /* TopNav is hidden, so the only grid child (app-main) must fill the row to
+       keep the bottom tab bar pinned even when the page content is short. */
+    .app { grid-template-rows: 1fr; }
     .bottom-tabs { display: flex; }
     .page { padding: 16px; }
     .topbar { padding: 12px 16px; flex-wrap: wrap; row-gap: 10px; }
