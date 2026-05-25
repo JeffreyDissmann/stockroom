@@ -49,6 +49,50 @@
     --ring: 0 0% 4%;
 }
 
+/* ── Dark theme (toggled via the `.dark` class on <html>, see useAppearance) ── */
+.dark {
+    /* design tokens */
+    --bg: #0a0a0a;
+    --bg-elev: #161616;
+    --bg-sunken: #1e1e1e;
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --bg-active: rgba(255, 255, 255, 0.10);
+    --fg: #f5f5f5;
+    --fg-muted: #a1a1a1;
+    --fg-subtle: #6e6e6e;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.24);
+    --accent: #f5f5f5;
+    --accent-fg: #0a0a0a;
+    --tag-bg: rgba(255, 255, 255, 0.08);
+    --pos: oklch(72% 0.14 145);
+    --warn: oklch(76% 0.14 70);
+    --neg: oklch(68% 0.18 25);
+    --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(0, 0, 0, 0.6);
+
+    /* shadcn-vue compatibility bridge */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    --accent-hsl: 0 0% 15%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 96%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 83%;
+}
+
 @layer base {
     * { border-color: var(--border); box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }

@@ -6,6 +6,17 @@
 
         <title inertia>{{ config('app.name', 'Stockroom') }}</title>
 
+        {{-- Apply the saved appearance before first paint to avoid a flash of the wrong theme. --}}
+        <script>
+            (function () {
+                const saved = localStorage.getItem('appearance') || 'system';
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (saved === 'dark' || (saved === 'system' && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
+
         <link rel="icon" type="image/svg+xml" href="/icon.svg">
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
