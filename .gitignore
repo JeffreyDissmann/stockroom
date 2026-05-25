@@ -1,4 +1,7 @@
 /.phpunit.cache
+/.pest
+/tests/Browser/Screenshots
+/tests/Browser/Console
 /node_modules
 /public/build
 /public/hot
