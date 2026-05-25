@@ -75,7 +75,9 @@ class BackupImporter
                 $imageCount = 0;
                 foreach ($items as $row) {
                     $item = Item::query()->findOrFail($row['id']);
-                    $item->update(['parent_id' => $row['parent_id'] ?? null]);
+                    // Wire up the parent with a bare update so restoring the tree
+                    // logs each item once as "added", not as a misleading "moved".
+                    Item::query()->whereKey($item->id)->update(['parent_id' => $row['parent_id'] ?? null]);
                     $item->tags()->sync($row['tags'] ?? []);
                     $imageCount += $this->restoreImages($item, $row['images'] ?? [], $dir);
                 }

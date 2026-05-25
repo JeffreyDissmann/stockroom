@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { useCommandPalette } from '@/composables/useCommandPalette';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Boxes, LayoutGrid, Search, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const { open } = useCommandPalette();
@@ -25,6 +25,7 @@ const primary: NavLink[] = [
 ];
 
 const secondary: NavLink[] = [
+    { label: 'Activity', href: '/activity', icon: ActivityIcon, matches: (u) => u.startsWith('/activity') },
     { label: 'Household', href: '/household/custom-fields', icon: Warehouse, matches: (u) => u.startsWith('/household') },
 ];
 

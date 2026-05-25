@@ -10,11 +10,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class CustomField extends Model
 {
     /** @use HasFactory<CustomFieldFactory> */
     use HasFactory;
+
+    use LogsActivity;
 
     protected $fillable = [
         'name',
@@ -42,6 +46,15 @@ class CustomField extends Model
                 $field->key = self::uniqueKey($field->name, $field->id);
             }
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'type', 'is_searchable'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('custom_field');
     }
 
     public function values(): HasMany

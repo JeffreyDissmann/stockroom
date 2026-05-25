@@ -9,17 +9,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Tag extends Model
 {
     /** @use HasFactory<TagFactory> */
     use HasFactory;
 
+    use LogsActivity;
+
     protected $fillable = [
         'name',
         'slug',
         'color',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'color'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('tag');
+    }
 
     protected static function booted(): void
     {

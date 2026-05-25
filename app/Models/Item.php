@@ -14,12 +14,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Laravel\Scout\Searchable;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Item extends Model
 {
     /** @use HasFactory<ItemFactory> */
     use HasFactory;
 
+    use LogsActivity;
     use Searchable;
 
     protected $fillable = [
@@ -59,6 +62,18 @@ class Item extends Model
         static::deleting(function (Item $item): void {
             $item->images->each(fn (ItemImage $image) => $image->delete());
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        // Log the parent's name (not the opaque id) so a move reads "Garage -> Shed".
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnly(['parent.name'])
+            ->logExcept(['parent_id'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->useLogName('item');
     }
 
     public function parent(): BelongsTo

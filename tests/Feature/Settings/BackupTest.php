@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -126,6 +127,29 @@ class BackupTest extends TestCase
         }
 
         @unlink($path);
+    }
+
+    public function test_a_restore_logs_added_items_without_logging_moves(): void
+    {
+        $room = Item::factory()->room()->create(['name' => 'Office']);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Laptop', 'parent_id' => $room->id]);
+        $path = app(BackupExporter::class)->export();
+
+        $this->wipeInventory();
+        Activity::query()->delete();
+
+        app(BackupImporter::class)->import($path);
+
+        // The restore shows up as normal "added" activity...
+        $this->assertGreaterThan(0, Activity::where('event', 'created')->where('log_name', 'item')->count());
+
+        // ...and wiring the hierarchy back up does not masquerade as a move.
+        $this->assertFalse(
+            Activity::where('event', 'updated')->get()->contains(
+                fn (Activity $activity): bool => array_key_exists('parent.name', (array) ($activity->attribute_changes['attributes'] ?? []))
+            ),
+            'Restoring the hierarchy should not log location moves.'
+        );
     }
 
     public function test_import_via_http_restores_and_reports_counts(): void

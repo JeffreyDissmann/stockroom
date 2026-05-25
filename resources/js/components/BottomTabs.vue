@@ -8,7 +8,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Boxes, Database, Download, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Tag as TagIcon } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, Database, Download, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Tag as TagIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const tabs = [
@@ -25,7 +25,7 @@ const householdLinks = [
 ];
 
 const page = usePage();
-const moreActive = computed(() => /^\/(tags|household|settings)/.test(page.url));
+const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(page.url));
 </script>
 
 <template>
@@ -52,6 +52,12 @@ const moreActive = computed(() => /^\/(tags|household|settings)/.test(page.url))
                     <Link class="flex w-full items-center" href="/tags">
                         <TagIcon class="mr-2 h-4 w-4" />
                         Tags
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem as-child>
+                    <Link class="flex w-full items-center" href="/activity">
+                        <ActivityIcon class="mr-2 h-4 w-4" />
+                        Activity
                     </Link>
                 </DropdownMenuItem>
 
