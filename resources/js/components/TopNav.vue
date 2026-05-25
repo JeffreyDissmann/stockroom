@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import UserMenuContent from '@/components/UserMenuContent.vue';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Boxes, LayoutGrid, Settings, Tag as TagIcon } from 'lucide-vue-next';
@@ -60,7 +62,14 @@ function initials(name: string): string {
             <component :is="link.icon" />
             <span>{{ link.label }}</span>
         </Link>
-        <span v-if="user" class="av" :title="user.name">{{ initials(user.name) }}</span>
+        <DropdownMenu v-if="user">
+            <DropdownMenuTrigger as-child>
+                <button type="button" class="av" :title="user.name" data-test="user-menu">{{ initials(user.name) }}</button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-56">
+                <UserMenuContent :user="user" />
+            </DropdownMenuContent>
+        </DropdownMenu>
     </header>
 </template>
 
@@ -69,6 +78,9 @@ function initials(name: string): string {
     margin-left: 8px;
     width: 26px;
     height: 26px;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
     border-radius: 999px;
     background: var(--accent);
     color: var(--accent-fg);

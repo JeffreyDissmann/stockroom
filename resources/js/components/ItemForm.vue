@@ -47,7 +47,10 @@ function toggleTag(id: number) {
 
 function submit() {
     if (props.mode === 'create') {
-        form.post('/items', { forceFormData: true });
+        // No forceFormData: Inertia auto-detects a File in form.images and switches
+        // to multipart only when needed. Forcing it serialised an empty multipart
+        // body (dropping name/type) when no image was queued.
+        form.post('/items');
     } else if (props.item) {
         form.put(`/items/${props.item.id}`);
     }
