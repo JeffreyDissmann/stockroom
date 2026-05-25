@@ -18,7 +18,10 @@ defineProps<{ tags: TagRow[] }>();
 
 const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Tags', href: '/tags' }];
 
-const createForm = useForm({ name: '', color: '' as string | null });
+// A native color input always shows a colour (black for an empty value), so the
+// form must start with a real default — otherwise an untouched picker submits
+// nothing and the tag ends up colourless.
+const createForm = useForm({ name: '', color: '#64748b' });
 const editing = ref<TagRow | null>(null);
 const editForm = useForm({ name: '', color: '' as string | null });
 
