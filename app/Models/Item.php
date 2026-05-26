@@ -30,6 +30,7 @@ class Item extends Model
         'parent_id',
         'type',
         'name',
+        'icon',
         'description',
         'quantity',
         'purchased_from',

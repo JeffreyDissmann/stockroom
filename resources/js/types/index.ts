@@ -116,6 +116,7 @@ export interface ItemSummary {
     parent_id: number | null;
     type: ItemTypeDescriptor;
     thumb_url?: string | null;
+    icon?: string | null;
     image_thumbs?: string[];
     children_count?: number;
     tags?: TagSummary[];

@@ -26,6 +26,7 @@ class StoreItemRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'icon' => ['nullable', 'string', 'max:40'],
             'type' => ['required', new Enum(ItemType::class)],
             'parent_id' => ['nullable', 'integer', Rule::exists('items', 'id')],
             'tags' => ['array'],

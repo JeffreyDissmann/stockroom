@@ -30,7 +30,7 @@ class DashboardController extends Controller
             ->with(['parent:id,name,type', 'primaryImage'])
             ->orderByDesc('created_at')
             ->limit(6)
-            ->get(['id', 'parent_id', 'type', 'name', 'created_at']);
+            ->get(['id', 'parent_id', 'type', 'name', 'icon', 'created_at']);
 
         // Top 20 tags, most-used first — drives the clickable dashboard tag strip.
         $tags = Tag::query()
@@ -47,10 +47,11 @@ class DashboardController extends Controller
             ->orderByDesc('children_count')
             ->orderBy('name')
             ->limit(20)
-            ->get(['id', 'name'])
+            ->get(['id', 'name', 'icon'])
             ->map(fn (Item $r): array => [
                 'id' => $r->id,
                 'name' => $r->name,
+                'icon' => $r->icon,
                 'count' => $r->children_count,
             ]);
 
@@ -80,6 +81,7 @@ class DashboardController extends Controller
                     'icon' => $i->type->icon(),
                 ],
                 'thumb_url' => $i->primaryImage?->thumbUrl(),
+                'icon' => $i->icon,
                 'parent' => $i->parent ? [
                     'id' => $i->parent->id,
                     'name' => $i->parent->name,

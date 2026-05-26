@@ -26,6 +26,7 @@ class UpdateItemRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'icon' => ['nullable', 'string', 'max:40'],
             'type' => ['required', new Enum(ItemType::class)],
             'tags' => ['array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],

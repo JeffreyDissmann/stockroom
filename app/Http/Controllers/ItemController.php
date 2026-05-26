@@ -329,6 +329,7 @@ class ItemController extends Controller
                 'details' => $item->type->hasDetailFields(),
             ],
             'thumb_url' => $this->primaryThumbUrl($item),
+            'icon' => $item->icon,
         ];
 
         if ($withChildrenCount) {

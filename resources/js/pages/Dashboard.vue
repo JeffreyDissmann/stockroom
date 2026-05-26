@@ -2,6 +2,7 @@
 import ActivityFeed from '@/components/ActivityFeed.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { ActivityRow, BreadcrumbItemType, ItemSummary, SharedData, TagSummary } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -14,6 +15,7 @@ interface RecentItem {
     created_at_human: string | null;
     type: ItemSummary['type'];
     thumb_url: string | null;
+    icon: string | null;
     parent: { id: number; name: string; type: ItemSummary['type'] } | null;
 }
 
@@ -24,6 +26,7 @@ interface DashboardTag extends TagSummary {
 interface RoomRow {
     id: number;
     name: string;
+    icon: string | null;
     count: number;
 }
 
@@ -103,7 +106,8 @@ const valueLabel = computed(() =>
                 <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">No rooms yet.</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link v-for="room in rooms" :key="room.id" :href="`/items/${room.id}`" class="tag-pill shrink-0 whitespace-nowrap">
-                        <ItemTypeIcon type="room" class="size-3.5" />
+                        <component :is="itemIconMap[room.icon]" v-if="room.icon && itemIconMap[room.icon]" class="size-3.5" />
+                        <ItemTypeIcon v-else type="room" class="size-3.5" />
                         {{ room.name }}
                         <span class="tag-pill-count mono">{{ room.count }}</span>
                     </Link>
@@ -133,7 +137,7 @@ const valueLabel = computed(() =>
                             <tr v-for="r in recent" :key="r.id" class="row-clickable" @click="$inertia.visit(`/items/${r.id}`)">
                                 <td>
                                     <div class="row-name">
-                                        <span class="row-thumb"><ItemThumbnail :item="{ name: r.name, type: r.type, thumb_url: r.thumb_url }" size="sm" /></span>
+                                        <span class="row-thumb"><ItemThumbnail :item="{ name: r.name, type: r.type, thumb_url: r.thumb_url, icon: r.icon }" size="sm" /></span>
                                         <div>
                                             <div class="nm">{{ r.name }}</div>
                                             <div class="sub">{{ r.type.label }}</div>

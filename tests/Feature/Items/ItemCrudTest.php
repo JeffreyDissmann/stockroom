@@ -71,6 +71,17 @@ class ItemCrudTest extends TestCase
         $this->assertTrue($item->tags->contains($tag));
     }
 
+    public function test_store_persists_room_icon(): void
+    {
+        $this->actingAs(User::factory()->create())->post('/items', [
+            'name' => 'Kitchen',
+            'type' => ItemType::Room->value,
+            'icon' => 'utensils',
+        ])->assertRedirect();
+
+        $this->assertSame('utensils', Item::where('name', 'Kitchen')->firstOrFail()->icon);
+    }
+
     public function test_unauthenticated_user_is_redirected(): void
     {
         $this->get('/items')->assertRedirect('/login');
