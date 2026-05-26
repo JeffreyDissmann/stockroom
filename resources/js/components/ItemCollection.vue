@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ItemCardCarousel from '@/components/ItemCardCarousel.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import type { ItemSummary, ItemViewMode } from '@/types';
@@ -51,7 +52,8 @@ defineProps<{
     <div v-else class="items-grid">
         <Link v-for="item in items" :key="item.id" :href="`/items/${item.id}`" class="item-card">
             <div class="thumb">
-                <ItemThumbnail :item="item" size="md" />
+                <ItemCardCarousel v-if="(item.image_thumbs?.length ?? 0) > 1" :thumbs="item.image_thumbs ?? []" :alt="item.name" />
+                <ItemThumbnail v-else :item="item" size="md" />
             </div>
             <div class="info">
                 <div class="nm">{{ item.name }}</div>
