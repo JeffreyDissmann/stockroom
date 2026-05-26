@@ -20,9 +20,13 @@ class ItemImageController extends Controller
 
     public function store(StoreItemImagesRequest $request, Item $item): RedirectResponse
     {
-        foreach ($request->file('images') as $file) {
+        $files = $request->file('images');
+
+        foreach ($files as $file) {
             $this->processor->store($item, $file);
         }
+
+        $item->logImagesAdded(count($files));
 
         return back();
     }

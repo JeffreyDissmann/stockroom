@@ -37,7 +37,7 @@ class ItemController extends Controller
         $items = Item::query()
             ->where('parent_id', $parentId)
             ->withCount('children')
-            ->with(['tags', 'primaryImage'])
+            ->with(['tags', 'images'])
             ->orderBy('name')
             ->get();
 
@@ -51,7 +51,7 @@ class ItemController extends Controller
             'breadcrumb' => $parent
                 ? $parent->ancestors()->push($parent)->map(fn (Item $i) => $this->presentItem($i))->values()
                 : [],
-            'items' => $items->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true))->values(),
+            'items' => $items->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withThumbs: true))->values(),
         ]);
     }
 
@@ -96,7 +96,7 @@ class ItemController extends Controller
     public function show(Item $item): Response
     {
         $item->load(['tags', 'images', 'customFieldValues.field']);
-        $children = $item->children()->withCount('children')->with(['tags', 'primaryImage'])->get();
+        $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
 
         $activities = Activity::query()
             ->whereMorphedTo('subject', $item)
@@ -111,7 +111,7 @@ class ItemController extends Controller
         return Inertia::render('items/Show', [
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
-            'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true))->values(),
+            'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
             'activities' => $activities,
         ]);
     }
@@ -301,7 +301,21 @@ class ItemController extends Controller
         }
     }
 
-    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false, bool $withDetails = false): array
+    /** The primary image's thumbnail, resolved from whichever image relation is loaded. */
+    private function primaryThumbUrl(Item $item): ?string
+    {
+        if ($item->relationLoaded('primaryImage')) {
+            return $item->primaryImage?->thumbUrl();
+        }
+
+        if ($item->relationLoaded('images')) {
+            return ($item->images->firstWhere('is_primary', true) ?? $item->images->first())?->thumbUrl();
+        }
+
+        return null;
+    }
+
+    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false, bool $withThumbs = false, bool $withDetails = false): array
     {
         $payload = [
             'id' => $item->id,
@@ -314,9 +328,7 @@ class ItemController extends Controller
                 'icon' => $item->type->icon(),
                 'details' => $item->type->hasDetailFields(),
             ],
-            'thumb_url' => $item->relationLoaded('primaryImage') && $item->primaryImage
-                ? $item->primaryImage->thumbUrl()
-                : null,
+            'thumb_url' => $this->primaryThumbUrl($item),
         ];
 
         if ($withChildrenCount) {
@@ -358,6 +370,14 @@ class ItemController extends Controller
                 'is_primary' => $img->is_primary,
                 'sort_order' => $img->sort_order,
             ])->values();
+        }
+
+        // Lightweight list of thumbnail URLs (primary first) for the grid-card carousel.
+        if ($withThumbs && $item->relationLoaded('images')) {
+            $payload['image_thumbs'] = $item->images
+                ->sortByDesc('is_primary')
+                ->map(fn (ItemImage $img) => $img->thumbUrl())
+                ->values();
         }
 
         if ($withDetails && $item->relationLoaded('customFieldValues')) {

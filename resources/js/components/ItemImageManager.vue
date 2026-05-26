@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { ItemImageSummary } from '@/types';
+import SearchImageDialog from '@/components/SearchImageDialog.vue';
+import type { ItemImageSummary, SharedData } from '@/types';
 import { useSortable } from '@vueuse/integrations/useSortable';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { GripVertical, ImagePlus, Star, Trash2, Upload } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
@@ -30,6 +31,9 @@ const props = withDefaults(
 const emit = defineEmits<{
     (e: 'update:files', files: File[]): void;
 }>();
+
+const page = usePage<SharedData>();
+const imageSearchEnabled = computed(() => page.props.features.imageSearch);
 
 const dragOver = ref(false);
 const inputEl = ref<HTMLInputElement | null>(null);
@@ -172,6 +176,15 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
             />
         </div>
 
+        <div v-if="mode === 'edit' && itemId && imageSearchEnabled" class="search-row">
+            <span class="hint">or</span>
+            <SearchImageDialog :item-id="itemId" />
+        </div>
+
+        <p v-if="mode === 'create' && imageSearchEnabled" class="hint">
+            Tip: once this item is saved, you can search the web for an image of it.
+        </p>
+
         <p v-if="totalCount === 0" class="hint">No images yet.</p>
 
         <div ref="sortableList" v-if="sortableExisting.length > 0" class="img-grid">
@@ -240,28 +253,11 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
 .dz-title { margin: 0; font-size: 13px; font-weight: 500; color: var(--fg); }
 .dz-hint { margin: 2px 0 0; font-size: 11.5px; color: var(--fg-subtle); }
 .hint { margin: 0; font-size: 12px; color: var(--fg-subtle); }
+.search-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 
-.img-grid {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    margin-top: 4px;
-}
-.img-card {
-    position: relative;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    background: var(--bg-sunken);
-    aspect-ratio: 1 / 1;
-}
+/* .img-grid / .img-card / .img-thumb are shared globals (see app.css). */
+.img-grid { margin-top: 4px; }
 .img-card-pending { opacity: 0.85; }
-.img-thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
 .drag-handle {
     position: absolute;
     top: 4px;

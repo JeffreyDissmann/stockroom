@@ -204,4 +204,35 @@ class Item extends Model
 
         return implode(' / ', $names);
     }
+
+    /**
+     * A sensible default image-search query: maker + name + model number.
+     * The description is intentionally left out — long prose hurts image results.
+     */
+    public function defaultImageSearchQuery(): string
+    {
+        return collect([$this->manufacturer, $this->name, $this->model_number])
+            ->map(fn (?string $value): string => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->implode(' ');
+    }
+
+    /**
+     * Record on the activity log that images were attached to this item. (Images
+     * aren't a logged model themselves, so we note the addition against the item.)
+     */
+    public function logImagesAdded(int $count): void
+    {
+        if ($count < 1) {
+            return;
+        }
+
+        activity()
+            ->useLog('item')
+            ->performedOn($this)
+            ->event('image_added')
+            ->withProperties(['count' => $count])
+            ->log('image_added');
+    }
 }

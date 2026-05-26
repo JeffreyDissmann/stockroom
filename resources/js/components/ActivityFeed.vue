@@ -9,9 +9,14 @@ function isMove(row: ActivityRow): boolean {
     return row.event === 'updated' && row.changes.length === 1 && row.changes[0].field === 'location';
 }
 
+function isImageAdd(row: ActivityRow): boolean {
+    return row.event === 'image_added';
+}
+
 function verb(row: ActivityRow): string {
     switch (row.event) {
         case 'created':
+        case 'image_added':
             return 'Added';
         case 'deleted':
             return 'Deleted';
@@ -41,20 +46,36 @@ function when(iso: string | null): string {
             <div class="min-w-0 flex-1">
                 <div class="text-sm">
                     <span class="font-medium" :class="`act-text-${row.event}`">{{ verb(row) }}</span>
-                    <template v-if="showSubject">
-                        <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type.toLowerCase() }}</span>
-                        <component
-                            :is="row.subject_url ? Link : 'span'"
-                            :href="row.subject_url ?? undefined"
-                            class="font-medium"
-                            :class="[isMove(row) ? 'mx-1' : '', row.subject_url ? 'hover:underline' : '']"
-                        >{{ row.subject_label ?? 'unknown' }}</component>
+
+                    <template v-if="isImageAdd(row)">
+                        <span class="mx-1 font-medium">{{ row.count }} image{{ row.count === 1 ? '' : 's' }}</span>
+                        <template v-if="showSubject">
+                            <span style="color: var(--fg-subtle)">to</span>
+                            <component
+                                :is="row.subject_url ? Link : 'span'"
+                                :href="row.subject_url ?? undefined"
+                                class="ml-1 font-medium"
+                                :class="row.subject_url ? 'hover:underline' : ''"
+                            >{{ row.subject_label ?? 'unknown' }}</component>
+                        </template>
                     </template>
-                    <template v-if="isMove(row)">
-                        <span :class="showSubject ? '' : 'ml-1'" style="color: var(--fg-subtle)">from</span>
-                        <span class="mx-1 font-medium">{{ row.changes[0].from }}</span>
-                        <span style="color: var(--fg-subtle)">to</span>
-                        <span class="ml-1 font-medium">{{ row.changes[0].to }}</span>
+
+                    <template v-else>
+                        <template v-if="showSubject">
+                            <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type.toLowerCase() }}</span>
+                            <component
+                                :is="row.subject_url ? Link : 'span'"
+                                :href="row.subject_url ?? undefined"
+                                class="font-medium"
+                                :class="[isMove(row) ? 'mx-1' : '', row.subject_url ? 'hover:underline' : '']"
+                            >{{ row.subject_label ?? 'unknown' }}</component>
+                        </template>
+                        <template v-if="isMove(row)">
+                            <span :class="showSubject ? '' : 'ml-1'" style="color: var(--fg-subtle)">from</span>
+                            <span class="mx-1 font-medium">{{ row.changes[0].from }}</span>
+                            <span style="color: var(--fg-subtle)">to</span>
+                            <span class="ml-1 font-medium">{{ row.changes[0].to }}</span>
+                        </template>
                     </template>
                 </div>
                 <ul v-if="row.event === 'updated' && !isMove(row) && row.changes.length" class="mt-1 space-y-0.5">
@@ -82,7 +103,8 @@ function when(iso: string | null): string {
     flex-shrink: 0;
     background: var(--fg-subtle);
 }
-.act-created {
+.act-created,
+.act-image_added {
     background: #16a34a;
 }
 .act-updated {
@@ -91,13 +113,15 @@ function when(iso: string | null): string {
 .act-deleted {
     background: #dc2626;
 }
-.act-text-created {
+.act-text-created,
+.act-text-image_added {
     color: #16a34a;
 }
 .act-text-deleted {
     color: #dc2626;
 }
-.dark .act-created {
+.dark .act-created,
+.dark .act-image_added {
     background: #4ade80;
 }
 .dark .act-updated {
@@ -106,7 +130,8 @@ function when(iso: string | null): string {
 .dark .act-deleted {
     background: #f87171;
 }
-.dark .act-text-created {
+.dark .act-text-created,
+.dark .act-text-image_added {
     color: #4ade80;
 }
 .dark .act-text-deleted {
