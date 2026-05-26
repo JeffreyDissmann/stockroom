@@ -10,6 +10,8 @@ use App\Services\ItemImageProcessor;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 
@@ -17,15 +19,13 @@ use Throwable;
  * Runs a Homebox import in the background. Carries only a short-lived token
  * (the payload is encrypted at rest) and reports progress via the cache.
  */
+#[Timeout(1800)]
+#[Tries(1)]
 class ImportFromHomeboxJob implements ShouldBeEncrypted, ShouldQueue
 {
     use Queueable;
 
     public const STATUS_KEY = 'homebox.import';
-
-    public int $timeout = 1800;
-
-    public int $tries = 1;
 
     public function __construct(
         public readonly string $baseUrl,
