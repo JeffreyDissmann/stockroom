@@ -15,6 +15,7 @@ use App\Models\ItemImage;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
 use App\Services\ItemImageProcessor;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -111,55 +112,47 @@ class ItemController extends Controller
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true))->values(),
-            'moveTargets' => $this->moveTargets($item),
             'activities' => $activities,
         ]);
     }
 
     /**
-     * Eligible new parents for an item: every other item except the item itself
-     * and its descendants (mirrors MoveItemRequest's cycle guard). Each carries a
-     * breadcrumb path so same-named items are distinguishable in the picker.
-     *
-     * @return array<int, array{id: int, name: string, path: string, type: array{value: string, label: string}}>
+     * Search eligible destinations for moving an item. Fuzzy query via Scout,
+     * excluding the item itself and its subtree (mirrors MoveItemRequest's cycle
+     * guard). Defaults to rooms/containers; pass all=1 to search every item.
+     * Loaded on demand so an item page doesn't have to ship every possible target.
      */
-    private function moveTargets(Item $item): array
+    public function moveTargets(Request $request, Item $item): JsonResponse
     {
-        $all = Item::query()->orderBy('name')->get(['id', 'parent_id', 'type', 'name']);
-        $byId = $all->keyBy('id');
-        $byParent = $all->groupBy('parent_id');
+        $query = trim((string) $request->query('q', ''));
+        $includeItems = $request->boolean('all');
+        $excluded = [$item->id, ...$item->descendantIds()];
 
-        $excluded = collect([$item->id]);
-        $stack = [$item->id];
-        while ($stack !== []) {
-            foreach ($byParent->get(array_pop($stack), collect()) as $child) {
-                $excluded->push($child->id);
-                $stack[] = $child->id;
-            }
-        }
-
-        return $all
-            ->reject(fn (Item $candidate) => $excluded->contains($candidate->id))
-            ->map(function (Item $candidate) use ($byId) {
-                $names = collect([$candidate->name]);
-                $cursor = $candidate->parent_id;
-                while ($cursor !== null && $byId->has($cursor)) {
-                    $names->prepend($byId->get($cursor)->name);
-                    $cursor = $byId->get($cursor)->parent_id;
-                }
-
-                return [
-                    'id' => $candidate->id,
-                    'name' => $candidate->name,
-                    'path' => $names->implode(' / '),
-                    'type' => [
-                        'value' => $candidate->type->value,
-                        'label' => $candidate->type->label(),
-                    ],
-                ];
-            })
-            ->values()
+        $targets = Item::query()
+            ->when(! $includeItems, fn ($builder) => $builder->whereIn('type', [ItemType::Room->value, ItemType::Container->value]))
+            ->whereNotIn('id', $excluded)
+            ->when(
+                $query !== '',
+                function ($builder) use ($query): void {
+                    $ids = Item::search($query)->take(100)->keys()->all();
+                    $builder->whereIn('id', $ids);
+                    if ($ids !== []) {
+                        $builder->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']);
+                    }
+                },
+                fn ($builder) => $builder->orderBy('name'),
+            )
+            ->limit(25)
+            ->get(['id', 'parent_id', 'name'])
+            ->map(fn (Item $target): array => [
+                'id' => $target->id,
+                'name' => $target->name,
+                // Ancestor path only ("Garage / Workbench"); empty for top-level.
+                'path' => $target->locationPath(),
+            ])
             ->all();
+
+        return response()->json(['targets' => $targets]);
     }
 
     public function edit(Item $item): Response

@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('activity', ActivityController::class)->name('activity');
 
+    Route::get('items/{item}/move-targets', [ItemController::class, 'moveTargets'])->name('items.move-targets');
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
     Route::resource('items', ItemController::class);
 

@@ -114,7 +114,7 @@ it('moves an item to a new parent via the move dialog', function () {
 
     $page->assertSee('Garage')
         ->click('@move-item')
-        ->select('@move-target', (string) $kitchen->id)
+        ->click('Kitchen') // pick the Kitchen destination row in the move dialog
         ->click('Move here')
         ->assertSee('Kitchen')
         ->assertNoJavaScriptErrors();
