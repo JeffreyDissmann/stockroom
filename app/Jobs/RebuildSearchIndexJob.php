@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Jobs;
+
+use App\Models\Item;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
+
+/**
+ * Rebuilds the whole search index in the background — re-pushing every item to
+ * Scout, which regenerates its embedding (unchanged item text is served from
+ * the embedding cache). Progress is reported via the cache so the household UI
+ * can show a live progress bar.
+ */
+#[Timeout(1800)]
+#[Tries(1)]
+class RebuildSearchIndexJob implements ShouldQueue
+{
+    use Queueable;
+
+    public const STATUS_KEY = 'search.reindex';
+
+    public function handle(): void
+    {
+        $total = Item::count();
+
+        $this->putStatus(['state' => 'running', 'done' => 0, 'total' => $total]);
+
+        $done = 0;
+
+        Item::query()->chunkById(50, function (Collection $items) use (&$done, $total): void {
+            $items->searchable();
+            $done += $items->count();
+
+            $this->putStatus(['state' => 'running', 'done' => $done, 'total' => $total]);
+        });
+
+        $this->putStatus(['state' => 'done', 'total' => $total, 'indexed' => $done]);
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        $this->putStatus(['state' => 'failed', 'error' => $exception?->getMessage() ?? 'Reindex failed.']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $status
+     */
+    private function putStatus(array $status): void
+    {
+        Cache::put(self::STATUS_KEY, $status, now()->addHour());
+    }
+}

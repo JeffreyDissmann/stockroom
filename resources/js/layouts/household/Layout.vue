@@ -18,6 +18,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Import from Homebox',
         href: '/household/import',
     },
+    {
+        title: 'Search index',
+        href: '/household/search-index',
+    },
 ];
 
 const currentPath = window.location.pathname;
