@@ -2,7 +2,8 @@
 import type { ActivityRow } from '@/types';
 import { Link } from '@inertiajs/vue3';
 
-withDefaults(defineProps<{ rows: ActivityRow[]; showSubject?: boolean }>(), { showSubject: true });
+// `flat` drops the card wrapper so the feed can sit inside another card.
+withDefaults(defineProps<{ rows: ActivityRow[]; showSubject?: boolean; flat?: boolean }>(), { showSubject: true, flat: false });
 
 // A move is an update whose sole change is the item's location.
 function isMove(row: ActivityRow): boolean {
@@ -40,7 +41,7 @@ function when(iso: string | null): string {
 </script>
 
 <template>
-    <ul class="card divide-y">
+    <ul :class="['divide-y', { card: !flat }]">
         <li v-for="row in rows" :key="row.id" class="flex gap-3 px-4 py-3">
             <span :class="['act-dot', `act-${row.event}`]" />
             <div class="min-w-0 flex-1">

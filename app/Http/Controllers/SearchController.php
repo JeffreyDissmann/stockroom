@@ -121,7 +121,9 @@ class SearchController extends Controller
             ->unique()
             ->values()
             ->all();
-        $sort = $request->query('sort') === 'name' ? 'name' : 'relevance';
+        $sort = in_array($request->query('sort'), ['name', 'added', 'edited'], true)
+            ? $request->query('sort')
+            : 'relevance';
 
         // Relevance-ordered matching ids from Meilisearch (null = browse everything).
         $ids = $query !== '' ? $this->search($query, fn ($b) => $b->take(500)->keys()->all()) : null;
@@ -135,7 +137,11 @@ class SearchController extends Controller
             ->when(
                 $ids !== null && $ids !== [] && $sort === 'relevance',
                 fn ($q) => $q->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']),
-                fn ($q) => $q->orderBy('name'),
+                fn ($q) => match ($sort) {
+                    'added' => $q->orderByDesc('created_at'),
+                    'edited' => $q->orderByDesc('updated_at'),
+                    default => $q->orderBy('name'),
+                },
             )
             ->paginate(24)
             ->withQueryString()

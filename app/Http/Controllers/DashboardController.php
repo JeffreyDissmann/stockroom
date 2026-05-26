@@ -7,11 +7,15 @@ namespace App\Http\Controllers;
 use App\Enums\ItemType;
 use App\Models\Item;
 use App\Models\Tag;
+use App\Services\ActivityPresenter;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
+    public function __construct(private readonly ActivityPresenter $presenter) {}
+
     public function __invoke(): Response
     {
         $byType = Item::query()
@@ -19,44 +23,54 @@ class DashboardController extends Controller
             ->groupBy('type')
             ->pluck('count', 'type');
 
+        // Estimated value of what's currently owned (sold items excluded).
+        $value = (float) Item::query()->whereNull('sold_date')->sum('purchase_price');
+
         $recent = Item::query()
             ->with(['parent:id,name,type', 'primaryImage'])
             ->orderByDesc('created_at')
             ->limit(6)
             ->get(['id', 'parent_id', 'type', 'name', 'created_at']);
 
-        $rooms = Item::query()
-            ->where('type', ItemType::Room)
-            ->withCount('children')
-            ->with('primaryImage')
-            ->orderBy('name')
-            ->get(['id', 'type', 'name'])
-            ->map(fn (Item $r) => [
-                'id' => $r->id,
-                'name' => $r->name,
-                'children_count' => $r->children_count,
-                'thumb_url' => $r->primaryImage?->thumbUrl(),
-                'type' => [
-                    'value' => $r->type->value,
-                    'label' => $r->type->label(),
-                    'icon' => $r->type->icon(),
-                ],
-            ]);
-
+        // Top 20 tags, most-used first — drives the clickable dashboard tag strip.
         $tags = Tag::query()
             ->withCount('items')
             ->orderByDesc('items_count')
-            ->limit(6)
+            ->orderBy('name')
+            ->limit(20)
             ->get(['id', 'name', 'slug', 'color']);
+
+        // Top 20 rooms, fullest first — drives the clickable dashboard room strip.
+        $rooms = Item::query()
+            ->where('type', ItemType::Room)
+            ->withCount('children')
+            ->orderByDesc('children_count')
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name'])
+            ->map(fn (Item $r): array => [
+                'id' => $r->id,
+                'name' => $r->name,
+                'count' => $r->children_count,
+            ]);
+
+        $activity = Activity::query()
+            ->with(['causer', 'subject'])
+            ->latest()
+            ->latest('id')
+            ->limit(8)
+            ->get()
+            ->map(fn (Activity $activity): array => $this->presenter->present($activity));
 
         return Inertia::render('Dashboard', [
             'stats' => [
                 'total' => (int) $byType->sum(),
+                'value' => $value,
                 'rooms' => (int) ($byType[ItemType::Room->value] ?? 0),
                 'containers' => (int) ($byType[ItemType::Container->value] ?? 0),
                 'items' => (int) ($byType[ItemType::Item->value] ?? 0),
             ],
-            'recent' => $recent->map(fn (Item $i) => [
+            'recent' => $recent->map(fn (Item $i): array => [
                 'id' => $i->id,
                 'name' => $i->name,
                 'created_at_human' => $i->created_at?->diffForHumans(),
@@ -76,8 +90,9 @@ class DashboardController extends Controller
                     ],
                 ] : null,
             ]),
-            'rooms' => $rooms,
             'tags' => $tags,
+            'rooms' => $rooms,
+            'activity' => $activity,
         ]);
     }
 }

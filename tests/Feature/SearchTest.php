@@ -157,4 +157,25 @@ class SearchTest extends TestCase
                 ->where('query', '')
                 ->has('items.data', 3));
     }
+
+    public function test_search_page_can_sort_by_recently_added(): void
+    {
+        $oldest = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Oldest']);
+        $newest = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Newest']);
+        $middle = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Middle']);
+
+        $oldest->forceFill(['created_at' => now()->subDays(2)])->saveQuietly();
+        $middle->forceFill(['created_at' => now()->subDay()])->saveQuietly();
+        $newest->forceFill(['created_at' => now()])->saveQuietly();
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sort=added')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Search')
+                ->where('filters.sort', 'added')
+                ->where('items.data.0.name', 'Newest')
+                ->where('items.data.1.name', 'Middle')
+                ->where('items.data.2.name', 'Oldest'));
+    }
 }
