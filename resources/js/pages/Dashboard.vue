@@ -63,26 +63,26 @@ const valueLabel = computed(() =>
             </div>
 
             <section class="stats-strip mb-4">
-                <div class="stat-cell">
+                <Link href="/search?type=item" class="stat-cell stat-cell-link">
                     <div class="lbl">Items</div>
-                    <div class="val">{{ stats.total.toLocaleString() }}</div>
-                    <div class="delta">Tracked across all rooms</div>
-                </div>
+                    <div class="val">{{ stats.items.toLocaleString() }}</div>
+                    <div class="delta">Individual things</div>
+                </Link>
                 <div class="stat-cell">
                     <div class="lbl">Estimated value</div>
                     <div class="val">{{ valueLabel }}</div>
                     <div class="delta">Purchase price of owned items</div>
                 </div>
-                <div class="stat-cell">
+                <Link href="/search?type=room" class="stat-cell stat-cell-link">
                     <div class="lbl">Rooms</div>
                     <div class="val">{{ stats.rooms }}</div>
                     <div class="delta">Top-level spaces</div>
-                </div>
-                <div class="stat-cell">
+                </Link>
+                <Link href="/search?type=container" class="stat-cell stat-cell-link">
                     <div class="lbl">Containers</div>
                     <div class="val">{{ stats.containers }}</div>
                     <div class="delta">Boxes, drawers, shelves</div>
-                </div>
+                </Link>
             </section>
 
             <!-- Tags: most-used first; click to open search filtered by that tag. -->
@@ -94,6 +94,7 @@ const valueLabel = computed(() =>
                         {{ tag.name }}
                         <span class="tag-pill-count mono">{{ tag.items_count }}</span>
                     </Link>
+                    <Link href="/tags" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">More <ChevronRight :size="12" /></Link>
                 </div>
             </section>
 
@@ -106,6 +107,7 @@ const valueLabel = computed(() =>
                         {{ room.name }}
                         <span class="tag-pill-count mono">{{ room.count }}</span>
                     </Link>
+                    <Link href="/search?type=room" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">More <ChevronRight :size="12" /></Link>
                 </div>
             </section>
 
@@ -170,6 +172,15 @@ const valueLabel = computed(() =>
     align-items: center;
     gap: 4px;
 }
+.stat-cell-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.stat-cell-link:hover {
+    background: var(--bg-hover);
+}
 .tag-pill {
     display: inline-flex;
     align-items: center;
@@ -195,5 +206,10 @@ const valueLabel = computed(() =>
 .tag-pill-count {
     font-size: 11px;
     color: var(--fg-subtle);
+}
+.tag-pill-more {
+    gap: 2px;
+    color: var(--fg);
+    font-weight: 600;
 }
 </style>
