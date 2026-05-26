@@ -18,7 +18,7 @@ interface Paginated<T> {
 
 const props = defineProps<{
     query: string;
-    filters: { type: ItemTypeValue | null; tags: number[]; sort: 'relevance' | 'name' };
+    filters: { type: ItemTypeValue | null; tags: number[]; sort: 'relevance' | 'name' | 'added' | 'edited' };
     items: Paginated<ItemSummary>;
     tags: TagSummary[];
     types: { value: ItemTypeValue; label: string }[];
@@ -87,6 +87,8 @@ function searchNow() {
                 <select class="field" style="max-width: 150px" :value="filters.sort" @change="apply({ sort: ($event.target as HTMLSelectElement).value })">
                     <option value="relevance">Relevance</option>
                     <option value="name">Name</option>
+                    <option value="added">Recently added</option>
+                    <option value="edited">Recently edited</option>
                 </select>
 
                 <div class="flex items-center gap-2" style="margin-left: auto">

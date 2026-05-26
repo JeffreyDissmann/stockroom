@@ -94,7 +94,7 @@ const valueLabel = computed(() =>
                 <section class="card">
                     <div class="card-head">
                         <h3>Recently added</h3>
-                        <Link href="/items" class="meta dash-link">View all <ChevronRight :size="12" /></Link>
+                        <Link href="/search?sort=added" class="meta dash-link">View all <ChevronRight :size="12" /></Link>
                     </div>
                     <div v-if="recent.length === 0" class="card-pad" style="text-align: center; color: var(--fg-muted)">
                         Nothing yet.
