@@ -9,6 +9,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
+use App\Http\Middleware\EnsureImageSearchEnabled;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
@@ -24,11 +25,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
     Route::resource('items', ItemController::class);
 
-    Route::get('items/{item}/image-search', [ImageSearchController::class, 'search'])->name('items.image-search');
+    Route::middleware(EnsureImageSearchEnabled::class)->group(function () {
+        Route::get('items/{item}/image-search', [ImageSearchController::class, 'search'])->name('items.image-search');
+        Route::post('items/{item}/images/from-search', [ImageSearchController::class, 'attach'])->name('items.images.from-search');
+    });
 
     Route::scopeBindings()->group(function () {
         Route::post('items/{item}/images', [ItemImageController::class, 'store'])->name('items.images.store');
-        Route::post('items/{item}/images/from-search', [ImageSearchController::class, 'attach'])->name('items.images.from-search');
         Route::patch('items/{item}/images/order', [ItemImageController::class, 'reorder'])->name('items.images.reorder');
         Route::patch('items/{item}/images/{image}', [ItemImageController::class, 'update'])->name('items.images.update');
         Route::delete('items/{item}/images/{image}', [ItemImageController::class, 'destroy'])->name('items.images.destroy');

@@ -30,8 +30,6 @@ class ImageSearchController extends Controller
      */
     public function search(Request $request, Item $item): JsonResponse
     {
-        abort_unless(BraveImageSearchClient::isConfigured(), 503);
-
         $validated = $request->validate(['q' => ['nullable', 'string', 'max:200']]);
         $query = trim((string) ($validated['q'] ?? '')) ?: $item->defaultImageSearchQuery();
 
@@ -55,8 +53,6 @@ class ImageSearchController extends Controller
      */
     public function attach(AttachImagesFromSearchRequest $request, Item $item): RedirectResponse
     {
-        abort_unless(BraveImageSearchClient::isConfigured(), 503);
-
         $stored = 0;
 
         foreach ($request->validated('urls') as $url) {

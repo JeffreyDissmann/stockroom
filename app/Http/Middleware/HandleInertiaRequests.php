@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Brave\BraveImageSearchClient;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -52,7 +53,7 @@ class HandleInertiaRequests extends Middleware
                 'locale' => config('stockroom.currency.locale'),
             ],
             'features' => [
-                'imageSearch' => filled(config('services.brave.key')),
+                'imageSearch' => BraveImageSearchClient::isConfigured(),
             ],
             'flash' => [
                 'backup' => $request->session()->get('backup'),
