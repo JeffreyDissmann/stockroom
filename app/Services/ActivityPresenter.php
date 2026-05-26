@@ -43,6 +43,8 @@ class ActivityPresenter
                 : null,
             'causer' => $activity->causer?->name,
             'changes' => $activity->event === 'updated' ? $this->changes($attributes, $old) : [],
+            // For 'image_added' events: how many images were attached.
+            'count' => (int) ($activity->properties?->get('count') ?? 0),
             'at' => $activity->created_at?->toIso8601String(),
         ];
     }

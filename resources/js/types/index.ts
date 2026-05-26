@@ -32,6 +32,7 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     currency: CurrencyConfig;
+    features: { imageSearch: boolean };
     flash: { backup: BackupResult | null };
     ziggy: {
         location: string;
@@ -101,6 +102,13 @@ export interface ItemImageSummary {
     sort_order: number;
 }
 
+export interface ImageSearchResult {
+    title: string;
+    thumb_url: string;
+    image_url: string;
+    source_url: string;
+}
+
 export interface ItemSummary {
     id: number;
     name: string;
@@ -138,12 +146,13 @@ export interface ActivityChange {
 
 export interface ActivityRow {
     id: number;
-    event: 'created' | 'updated' | 'deleted' | string;
+    event: 'created' | 'updated' | 'deleted' | 'image_added' | string;
     subject_type: string;
     subject_label: string | null;
     subject_url: string | null;
     causer: string | null;
     changes: ActivityChange[];
+    count: number;
     at: string | null;
 }
 

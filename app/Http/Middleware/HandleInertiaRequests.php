@@ -51,6 +51,9 @@ class HandleInertiaRequests extends Middleware
                 'code' => config('stockroom.currency.code'),
                 'locale' => config('stockroom.currency.locale'),
             ],
+            'features' => [
+                'imageSearch' => filled(config('services.brave.key')),
+            ],
             'flash' => [
                 'backup' => $request->session()->get('backup'),
             ],

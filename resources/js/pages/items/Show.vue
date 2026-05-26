@@ -4,11 +4,12 @@ import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
+import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
+import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -25,6 +26,8 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
     base.push({ title: props.item.name, href: `/items/${props.item.id}` });
     return base;
 });
+
+const page = usePage<SharedData>();
 
 const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
 const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
@@ -93,6 +96,7 @@ function destroyItem() {
                 Edit
             </Link>
             <MoveItemDialog :item="item" />
+            <SearchImageDialog v-if="page.props.features.imageSearch" :item-id="item.id" :item-name="item.name" />
             <button class="btn-pill btn-danger" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
                 Delete

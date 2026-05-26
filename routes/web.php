@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImageSearchController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\SearchController;
@@ -23,8 +24,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
     Route::resource('items', ItemController::class);
 
+    Route::get('items/{item}/image-search', [ImageSearchController::class, 'search'])->name('items.image-search');
+
     Route::scopeBindings()->group(function () {
         Route::post('items/{item}/images', [ItemImageController::class, 'store'])->name('items.images.store');
+        Route::post('items/{item}/images/from-search', [ImageSearchController::class, 'attach'])->name('items.images.from-search');
         Route::patch('items/{item}/images/order', [ItemImageController::class, 'reorder'])->name('items.images.reorder');
         Route::patch('items/{item}/images/{image}', [ItemImageController::class, 'update'])->name('items.images.update');
         Route::delete('items/{item}/images/{image}', [ItemImageController::class, 'destroy'])->name('items.images.destroy');

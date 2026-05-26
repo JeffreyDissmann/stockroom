@@ -37,4 +37,9 @@ return [
         ],
     ],
 
+    'brave' => [
+        // Brave Search image API key. Blank disables the item image-search feature.
+        'key' => env('BRAVE_SEARCH_KEY'),
+    ],
+
 ];
