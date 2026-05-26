@@ -32,7 +32,7 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     currency: CurrencyConfig;
-    features: { imageSearch: boolean };
+    features: { imageSearch: boolean; ai: boolean };
     flash: { backup: BackupResult | null };
     ziggy: {
         location: string;

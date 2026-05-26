@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImageSearchController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
+use App\Http\Controllers\ItemPhotoAnalysisController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('items/{item}/move-targets', [ItemController::class, 'moveTargets'])->name('items.move-targets');
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
+
+    // Analyse an uploaded photo into draft item fields (gated by EnsureAiEnabled on the controller).
+    Route::post('items/analyze-photo', ItemPhotoAnalysisController::class)->name('items.analyze-photo');
+
     Route::resource('items', ItemController::class);
 
     // Gated by the EnsureImageSearchEnabled middleware declared on the controller.

@@ -24,6 +24,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Stockroom AI Feature Settings
+    |--------------------------------------------------------------------------
+    |
+    | Application-specific switches layered on top of the SDK config. "enabled"
+    | gates all AI-powered UI and endpoints; "vision_model" is the model used to
+    | analyse item photos and must be a vision-capable model on the active
+    | provider (e.g. an Ollama VL model such as "qwen3-vl:4b").
+    |
+    */
+
+    'enabled' => env('AI_ENABLED', true),
+    'vision_model' => env('AI_VISION_MODEL', 'qwen3-vl:4b'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Caching
     |--------------------------------------------------------------------------
     |

@@ -5,7 +5,7 @@ import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
-import { Check } from 'lucide-vue-next';
+import { Check, Loader2, Sparkles } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const currency = usePage<SharedData>().props.currency;
@@ -54,6 +54,81 @@ const queuedFiles = ref<File[]>([]);
 function onFilesUpdate(files: File[]) {
     queuedFiles.value = files;
     form.images = files;
+}
+
+// ── AI: pre-fill the form from a photo ──────────────────────────────────────
+// Vision inference can take a few seconds (and longer on a cold model), so the
+// call is fully async with a visible busy state, a disabled trigger, and a
+// hard client-side timeout so the UI never hangs indefinitely.
+const aiEnabled = usePage<SharedData>().props.features.ai;
+const analyzing = ref(false);
+const analyzeError = ref<string | null>(null);
+
+const ANALYZE_TIMEOUT_MS = 130_000; // a touch beyond the server-side agent timeout
+
+function readXsrfToken(): string {
+    const match = document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN='));
+    return match ? decodeURIComponent(match.split('=')[1]) : '';
+}
+
+async function analyzeFromPhoto() {
+    const photo = queuedFiles.value[0];
+    if (!photo || analyzing.value) {
+        return;
+    }
+
+    analyzing.value = true;
+    analyzeError.value = null;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
+
+    try {
+        const body = new FormData();
+        body.append('photo', photo);
+
+        const response = await fetch('/items/analyze-photo', {
+            method: 'POST',
+            headers: { Accept: 'application/json', 'X-XSRF-TOKEN': readXsrfToken() },
+            credentials: 'same-origin',
+            body,
+            signal: controller.signal,
+        });
+
+        if (!response.ok) {
+            throw new Error(String(response.status));
+        }
+
+        const { fields } = (await response.json()) as { fields: Record<string, string | null> };
+        applyDetectedFields(fields);
+    } catch (error) {
+        analyzeError.value =
+            error instanceof DOMException && error.name === 'AbortError'
+                ? 'The photo is taking too long to analyse. Please try again or fill the form manually.'
+                : 'Could not read that photo. Fill the form manually, or try another image.';
+    } finally {
+        window.clearTimeout(timeout);
+        analyzing.value = false;
+    }
+}
+
+// The server already trims values and nulls out blanks, so apply each present field directly.
+function applyDetectedFields(fields: Record<string, string | null>) {
+    if (fields.name) {
+        form.name = fields.name;
+    }
+    if (fields.description) {
+        form.description = fields.description;
+    }
+    if (fields.manufacturer) {
+        form.manufacturer = fields.manufacturer;
+    }
+    if (fields.model_number) {
+        form.model_number = fields.model_number;
+    }
+    if (fields.serial_number) {
+        form.serial_number = fields.serial_number;
+    }
 }
 
 const eligibleParents = computed(() => props.items.filter((i) => !props.item || i.id !== props.item.id));
@@ -143,6 +218,18 @@ function submit() {
             @update:files="onFilesUpdate"
         />
         <InputError :message="form.errors['images.0']" />
+
+        <div v-if="mode === 'create' && aiEnabled && queuedFiles.length > 0" class="ai-fill">
+            <button type="button" class="btn-pill" :disabled="analyzing" data-test="ai-fill" @click="analyzeFromPhoto">
+                <Loader2 v-if="analyzing" :size="14" class="ai-spin" />
+                <Sparkles v-else :size="14" />
+                {{ analyzing ? 'Reading photo…' : 'Fill details from photo' }}
+            </button>
+            <span v-if="!analyzeError" class="ai-fill-hint">
+                {{ analyzing ? 'The vision model is looking at your photo…' : 'Reads the first photo to pre-fill the fields below — review before saving.' }}
+            </span>
+            <p v-if="analyzeError" class="ai-fill-error">{{ analyzeError }}</p>
+        </div>
 
         <div class="form-row">
             <label>Tags</label>
@@ -268,3 +355,34 @@ function submit() {
         </div>
     </form>
 </template>
+
+<style scoped>
+.ai-fill {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: -4px;
+}
+.ai-fill-hint {
+    font-size: 12px;
+    color: var(--fg-subtle);
+}
+.ai-fill-error {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 12px;
+    color: #dc2626;
+}
+.dark .ai-fill-error {
+    color: #f87171;
+}
+.ai-spin {
+    animation: ai-spin 0.8s linear infinite;
+}
+@keyframes ai-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+</style>

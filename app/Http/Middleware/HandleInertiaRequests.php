@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'features' => [
                 'imageSearch' => BraveImageSearchClient::isConfigured(),
+                'ai' => (bool) config('ai.enabled'),
             ],
             'flash' => [
                 'backup' => $request->session()->get('backup'),
