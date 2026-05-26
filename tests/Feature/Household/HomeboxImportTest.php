@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Household;
 
+use App\Enums\CustomFieldType;
 use App\Enums\ItemType;
 use App\Models\CustomField;
 use App\Models\Item;
@@ -62,7 +63,12 @@ class HomeboxImportTest extends TestCase
         $this->assertSame('A3', $values['Bin']);
         $this->assertSame('600', $values['Watts']);
         $this->assertSame('1', $values['Insured?']);
+        $this->assertSame('https://example.com/manual.pdf', $values['Manual']);
         $this->assertSame(self::ITEM, $values['Homebox ID']);
+
+        // Homebox stores URLs in text fields; the importer promotes them to the URL type.
+        $this->assertSame(CustomFieldType::Url, CustomField::where('name', 'Manual')->firstOrFail()->type);
+        $this->assertSame(CustomFieldType::Text, CustomField::where('name', 'Bin')->firstOrFail()->type);
 
         $this->assertTrue(CustomField::where('key', 'homebox_id')->value('is_system'));
 
@@ -219,6 +225,7 @@ class HomeboxImportTest extends TestCase
                 ['type' => 'text', 'name' => 'Bin', 'textValue' => 'A3', 'numberValue' => 0, 'booleanValue' => false],
                 ['type' => 'number', 'name' => 'Watts', 'textValue' => '', 'numberValue' => 600, 'booleanValue' => false],
                 ['type' => 'boolean', 'name' => 'Insured?', 'textValue' => '', 'numberValue' => 0, 'booleanValue' => true],
+                ['type' => 'text', 'name' => 'Manual', 'textValue' => 'https://example.com/manual.pdf', 'numberValue' => 0, 'booleanValue' => false],
             ],
             'attachments' => [
                 ['id' => self::ATT, 'type' => 'photo', 'primary' => true, 'title' => 'p.jpg', 'mimeType' => 'image/jpeg'],

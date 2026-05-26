@@ -278,6 +278,12 @@ class HomeboxImporter
                 continue;
             }
 
+            // Homebox has no URL field type — promote a text value that's an
+            // http(s) URL so we store (and render) it as a link, not plain text.
+            if ($type === CustomFieldType::Text && Str::isUrl($value, ['http', 'https'])) {
+                $type = CustomFieldType::Url;
+            }
+
             $definition = CustomField::firstOrCreate(['name' => $name], ['type' => $type]);
             $item->customFieldValues()->updateOrCreate(
                 ['custom_field_id' => $definition->id],
