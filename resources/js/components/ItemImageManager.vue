@@ -181,6 +181,10 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
             <SearchImageDialog :item-id="itemId" />
         </div>
 
+        <p v-if="mode === 'create' && imageSearchEnabled" class="hint">
+            Tip: once this item is saved, you can search the web for an image of it.
+        </p>
+
         <p v-if="totalCount === 0" class="hint">No images yet.</p>
 
         <div ref="sortableList" v-if="sortableExisting.length > 0" class="img-grid">
