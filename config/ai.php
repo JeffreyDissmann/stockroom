@@ -28,14 +28,17 @@ return [
     |--------------------------------------------------------------------------
     |
     | Application-specific switches layered on top of the SDK config. "enabled"
-    | gates all AI-powered UI and endpoints; "vision_model" is the model used to
-    | analyse item photos and must be a vision-capable model on the active
-    | provider (e.g. an Ollama VL model such as "qwen3-vl:4b").
+    | gates all AI-powered UI and endpoints; "vision_model" analyses item photos
+    | (must be vision-capable, e.g. an Ollama VL model); "embeddings_model" powers
+    | semantic search (used with default_for_embeddings above).
     |
     */
 
     'enabled' => env('AI_ENABLED', true),
     'vision_model' => env('AI_VISION_MODEL', 'qwen3-vl:4b'),
+    // bge-m3 is multilingual and prefix-free, which suits mixed-language item
+    // data well. If you change this, update AI_EMBEDDINGS_DIMENSIONS to match.
+    'embeddings_model' => env('AI_EMBEDDINGS_MODEL', 'bge-m3:567m'),
 
     /*
     |--------------------------------------------------------------------------

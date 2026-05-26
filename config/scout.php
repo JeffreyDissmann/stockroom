@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use App\Models\Item;
 
+// Name of the Meilisearch embedder powering hybrid (semantic) search. When unset
+// no embedder is configured and Scout behaves as pure keyword search.
+$embedder = env('SCOUT_HYBRID_EMBEDDER');
+
 return [
 
     /*
@@ -143,8 +147,17 @@ return [
     'meilisearch' => [
         'host' => env('MEILISEARCH_HOST', 'http://localhost:7700'),
         'key' => env('MEILISEARCH_KEY'),
+
+        // Hybrid (keyword + semantic) search. When an embedder is set, the
+        // SearchController blends keyword and vector matches at this ratio
+        // (0 = keyword only, 1 = semantic only).
+        'hybrid' => [
+            'embedder' => $embedder,
+            'semantic_ratio' => (float) env('SCOUT_HYBRID_SEMANTIC_RATIO', 0.5),
+        ],
+
         'index-settings' => [
-            Item::class => [
+            Item::class => array_merge([
                 'searchableAttributes' => [
                     'name',
                     'manufacturer',
@@ -157,7 +170,17 @@ return [
                 ],
                 'filterableAttributes' => ['type'],
                 'sortableAttributes' => ['name'],
-            ],
+            ], $embedder ? [
+                // A2: the app computes embeddings with the Laravel AI SDK and pushes
+                // them as `_vectors` (see App\Search\ItemEmbedder). Meilisearch only
+                // stores the vectors we provide and never calls an embedding server.
+                'embedders' => [
+                    $embedder => [
+                        'source' => 'userProvided',
+                        'dimensions' => (int) env('AI_EMBEDDINGS_DIMENSIONS', 768),
+                    ],
+                ],
+            ] : []),
         ],
     ],
 
