@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AiFieldBadge from '@/components/AiFieldBadge.vue';
 import CustomFieldsInput from '@/components/CustomFieldsInput.vue';
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
@@ -64,6 +65,34 @@ const aiEnabled = usePage<SharedData>().props.features.ai;
 const analyzing = ref(false);
 const analyzeError = ref<string | null>(null);
 
+// Field keys the most recent analysis populated, so the UI can flag them for review.
+const aiFilled = ref<Set<string>>(new Set());
+
+// Fields the photo analysis can populate. While analysing they show a "pending"
+// cue so the user sees values are still coming; once filled, a "suggested" cue.
+const aiCandidates = ['name', 'description', 'manufacturer', 'model_number', 'serial_number'];
+
+type AiFieldState = 'pending' | 'suggested' | null;
+
+const fieldStates = computed<Record<string, AiFieldState>>(() => {
+    const states: Record<string, AiFieldState> = {};
+    for (const key of aiCandidates) {
+        states[key] = analyzing.value ? 'pending' : aiFilled.value.has(key) ? 'suggested' : null;
+    }
+    return states;
+});
+
+const analyzeHint = computed(() => {
+    if (analyzing.value) {
+        return 'The vision model is looking at your photo…';
+    }
+    if (aiFilled.value.size > 0) {
+        const n = aiFilled.value.size;
+        return `Filled ${n} field${n === 1 ? '' : 's'} from the photo — review the highlighted fields before saving.`;
+    }
+    return 'Reads the first photo to pre-fill the fields below — review before saving.';
+});
+
 const ANALYZE_TIMEOUT_MS = 130_000; // a touch beyond the server-side agent timeout
 
 function readXsrfToken(): string {
@@ -112,23 +141,38 @@ async function analyzeFromPhoto() {
     }
 }
 
-// The server already trims values and nulls out blanks, so apply each present field directly.
+// The server already trims values and nulls out blanks, so apply each present
+// field directly and remember which ones we touched (to flag them for review).
 function applyDetectedFields(fields: Record<string, string | null>) {
+    const filled = new Set<string>();
+
     if (fields.name) {
         form.name = fields.name;
+        filled.add('name');
     }
     if (fields.description) {
         form.description = fields.description;
+        filled.add('description');
     }
     if (fields.manufacturer) {
         form.manufacturer = fields.manufacturer;
+        filled.add('manufacturer');
     }
     if (fields.model_number) {
         form.model_number = fields.model_number;
+        filled.add('model_number');
     }
     if (fields.serial_number) {
         form.serial_number = fields.serial_number;
+        filled.add('serial_number');
     }
+
+    aiFilled.value = filled;
+}
+
+// Once the user edits a suggested field, it's been reviewed — drop the flag.
+function clearAiFlag(key: string) {
+    aiFilled.value.delete(key);
 }
 
 const eligibleParents = computed(() => props.items.filter((i) => !props.item || i.id !== props.item.id));
@@ -182,14 +226,29 @@ function submit() {
         </div>
 
         <div class="form-row">
-            <label for="name">Name</label>
-            <input id="name" v-model="form.name" autofocus required placeholder="e.g. Toolbox" class="field" />
+            <label for="name">Name <AiFieldBadge :state="fieldStates.name" /></label>
+            <input
+                id="name"
+                v-model="form.name"
+                autofocus
+                required
+                placeholder="e.g. Toolbox"
+                :class="['field', fieldStates.name ? `ai-${fieldStates.name}` : '']"
+                @input="clearAiFlag('name')"
+            />
             <InputError :message="form.errors.name" />
         </div>
 
         <div class="form-row">
-            <label for="description">Description</label>
-            <textarea id="description" v-model="form.description" rows="3" placeholder="Optional notes" class="field" />
+            <label for="description">Description <AiFieldBadge :state="fieldStates.description" /></label>
+            <textarea
+                id="description"
+                v-model="form.description"
+                rows="3"
+                placeholder="Optional notes"
+                :class="['field', fieldStates.description ? `ai-${fieldStates.description}` : '']"
+                @input="clearAiFlag('description')"
+            />
             <InputError :message="form.errors.description" />
         </div>
 
@@ -225,9 +284,7 @@ function submit() {
                 <Sparkles v-else :size="14" />
                 {{ analyzing ? 'Reading photo…' : 'Fill details from photo' }}
             </button>
-            <span v-if="!analyzeError" class="ai-fill-hint">
-                {{ analyzing ? 'The vision model is looking at your photo…' : 'Reads the first photo to pre-fill the fields below — review before saving.' }}
-            </span>
+            <span v-if="!analyzeError" class="ai-fill-hint">{{ analyzeHint }}</span>
             <p v-if="analyzeError" class="ai-fill-error">{{ analyzeError }}</p>
         </div>
 
@@ -263,18 +320,34 @@ function submit() {
 
         <div class="form-grid">
             <div class="form-row">
-                <label for="manufacturer">Manufacturer</label>
-                <input id="manufacturer" v-model="form.manufacturer" class="field" placeholder="e.g. DeWalt" />
+                <label for="manufacturer">Manufacturer <AiFieldBadge :state="fieldStates.manufacturer" /></label>
+                <input
+                    id="manufacturer"
+                    v-model="form.manufacturer"
+                    placeholder="e.g. DeWalt"
+                    :class="['field', fieldStates.manufacturer ? `ai-${fieldStates.manufacturer}` : '']"
+                    @input="clearAiFlag('manufacturer')"
+                />
                 <InputError :message="form.errors.manufacturer" />
             </div>
             <div class="form-row">
-                <label for="model_number">Model number</label>
-                <input id="model_number" v-model="form.model_number" class="field" />
+                <label for="model_number">Model number <AiFieldBadge :state="fieldStates.model_number" /></label>
+                <input
+                    id="model_number"
+                    v-model="form.model_number"
+                    :class="['field', fieldStates.model_number ? `ai-${fieldStates.model_number}` : '']"
+                    @input="clearAiFlag('model_number')"
+                />
                 <InputError :message="form.errors.model_number" />
             </div>
             <div class="form-row">
-                <label for="serial_number">Serial number</label>
-                <input id="serial_number" v-model="form.serial_number" class="field" />
+                <label for="serial_number">Serial number <AiFieldBadge :state="fieldStates.serial_number" /></label>
+                <input
+                    id="serial_number"
+                    v-model="form.serial_number"
+                    :class="['field', fieldStates.serial_number ? `ai-${fieldStates.serial_number}` : '']"
+                    @input="clearAiFlag('serial_number')"
+                />
                 <InputError :message="form.errors.serial_number" />
             </div>
             <div class="form-row">
@@ -384,5 +457,16 @@ function submit() {
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Field cues that pair with <AiFieldBadge>: dashed while a value is incoming,
+   solid accent once the model has suggested one. */
+.field.ai-pending {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+.field.ai-suggested {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 </style>
