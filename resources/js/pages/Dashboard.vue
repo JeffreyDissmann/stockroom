@@ -21,10 +21,17 @@ interface DashboardTag extends TagSummary {
     items_count: number;
 }
 
+interface RoomRow {
+    id: number;
+    name: string;
+    count: number;
+}
+
 const props = defineProps<{
     stats: { total: number; value: number; rooms: number; containers: number; items: number };
     recent: RecentItem[];
     tags: DashboardTag[];
+    rooms: RoomRow[];
     activity: ActivityRow[];
 }>();
 
@@ -81,11 +88,23 @@ const valueLabel = computed(() =>
             <!-- Tags: most-used first; click to open search filtered by that tag. -->
             <section class="card mb-4">
                 <div v-if="tags.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">No tags yet.</div>
-                <div v-else class="card-pad flex flex-wrap items-center gap-2">
-                    <Link v-for="tag in tags" :key="tag.id" :href="`/search?tags[]=${tag.id}`" class="tag-pill">
+                <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
+                    <Link v-for="tag in tags" :key="tag.id" :href="`/search?tags[]=${tag.id}`" class="tag-pill shrink-0 whitespace-nowrap">
                         <span v-if="tag.color" class="size-2 rounded-full" :style="{ backgroundColor: tag.color }" />
                         {{ tag.name }}
                         <span class="tag-pill-count mono">{{ tag.items_count }}</span>
+                    </Link>
+                </div>
+            </section>
+
+            <!-- Rooms: fullest first; click to open the room. -->
+            <section class="card mb-4">
+                <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">No rooms yet.</div>
+                <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
+                    <Link v-for="room in rooms" :key="room.id" :href="`/items/${room.id}`" class="tag-pill shrink-0 whitespace-nowrap">
+                        <ItemTypeIcon type="room" class="size-3.5" />
+                        {{ room.name }}
+                        <span class="tag-pill-count mono">{{ room.count }}</span>
                     </Link>
                 </div>
             </section>

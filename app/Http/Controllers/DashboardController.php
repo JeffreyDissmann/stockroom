@@ -32,12 +32,27 @@ class DashboardController extends Controller
             ->limit(6)
             ->get(['id', 'parent_id', 'type', 'name', 'created_at']);
 
-        // All tags, most-used first — drives the clickable dashboard tag strip.
+        // Top 20 tags, most-used first — drives the clickable dashboard tag strip.
         $tags = Tag::query()
             ->withCount('items')
             ->orderByDesc('items_count')
             ->orderBy('name')
+            ->limit(20)
             ->get(['id', 'name', 'slug', 'color']);
+
+        // Top 20 rooms, fullest first — drives the clickable dashboard room strip.
+        $rooms = Item::query()
+            ->where('type', ItemType::Room)
+            ->withCount('children')
+            ->orderByDesc('children_count')
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name'])
+            ->map(fn (Item $r): array => [
+                'id' => $r->id,
+                'name' => $r->name,
+                'count' => $r->children_count,
+            ]);
 
         $activity = Activity::query()
             ->with(['causer', 'subject'])
@@ -76,6 +91,7 @@ class DashboardController extends Controller
                 ] : null,
             ]),
             'tags' => $tags,
+            'rooms' => $rooms,
             'activity' => $activity,
         ]);
     }

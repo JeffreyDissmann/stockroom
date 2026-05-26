@@ -44,6 +44,9 @@ class DashboardTest extends TestCase
                 ->component('Dashboard')
                 ->where('stats.rooms', 1)
                 ->where('stats.value', 200)
+                ->has('rooms', 1)
+                ->where('rooms.0.name', 'Garage')
+                ->where('rooms.0.count', 2)
                 ->has('activity')
                 ->has('recent')
                 ->has('tags'));
