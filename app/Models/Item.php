@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\ItemType;
+use App\Search\ItemEmbedder;
 use Database\Factories\ItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -133,7 +134,7 @@ class Item extends Model
     {
         $this->loadMissing(['tags', 'customFieldValues.field']);
 
-        return [
+        $document = [
             'id' => (string) $this->id,
             'name' => $this->name,
             'description' => $this->description,
@@ -149,6 +150,32 @@ class Item extends Model
                 ->implode(' '),
             'location_path' => $this->locationPath(),
         ];
+
+        // Semantic search (A2): attach a user-provided embedding under the
+        // configured embedder name. Skipped (keyword-only) when AI is off or
+        // the embedding provider is unavailable — embed() returns null.
+        if (($embedder = config('scout.meilisearch.hybrid.embedder'))
+            && ($vector = app(ItemEmbedder::class)->embed($this->searchEmbeddingText())) !== null) {
+            $document['_vectors'] = [$embedder => $vector];
+        }
+
+        return $document;
+    }
+
+    /**
+     * Compact natural-language summary of the item used to generate its
+     * semantic-search embedding. Assumes tags are loaded (see toSearchableArray).
+     */
+    public function searchEmbeddingText(): string
+    {
+        return collect([
+            $this->name,
+            $this->manufacturer ? "by {$this->manufacturer}" : null,
+            $this->model_number ? "model {$this->model_number}" : null,
+            $this->description,
+            $this->tags->isNotEmpty() ? 'Tags: '.$this->tags->pluck('name')->implode(', ') : null,
+            $this->locationPath() !== '' ? 'Location: '.$this->locationPath() : null,
+        ])->filter()->implode('. ');
     }
 
     /**

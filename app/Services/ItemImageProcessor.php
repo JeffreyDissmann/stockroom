@@ -69,6 +69,18 @@ class ItemImageProcessor
     }
 
     /**
+     * Decode an upload, scale it down to fit within $maxEdge, and return JPEG
+     * bytes — a lightweight, EXIF-stripped copy for sending to an AI vision
+     * model (decoding reuses the GD→Imagick fallback, so HEIC works too).
+     */
+    public function downscaleToJpeg(UploadedFile $file, int $maxEdge = 1280, int $quality = 80): string
+    {
+        return (string) $this->decodeSource($file->getRealPath())
+            ->scaleDown($maxEdge, $maxEdge)
+            ->encodeUsingFileExtension('jpg', quality: $quality);
+    }
+
+    /**
      * Decode a source image to a GD-backed image. Formats GD rejects (e.g. TIFF)
      * fall back to Imagick, which converts them to JPEG first.
      */

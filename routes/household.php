@@ -6,6 +6,7 @@ use App\Http\Controllers\Household\BackupController;
 use App\Http\Controllers\Household\CustomFieldController;
 use App\Http\Controllers\Household\ImportController;
 use App\Http\Controllers\Household\ResetController;
+use App\Http\Controllers\Household\SearchIndexController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -24,4 +25,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('household/import', [ImportController::class, 'index'])->name('household.import.index');
     Route::post('household/import', [ImportController::class, 'start'])->name('household.import.start');
+
+    Route::get('household/search-index', [SearchIndexController::class, 'index'])->name('household.search-index.index');
+    Route::post('household/search-index', [SearchIndexController::class, 'rebuild'])->name('household.search-index.rebuild');
 });
