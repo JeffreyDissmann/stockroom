@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\EnsureImageSearchEnabled;
 use App\Http\Requests\Item\AttachImagesFromSearchRequest;
 use App\Models\Item;
 use App\Services\Brave\BraveException;
@@ -14,9 +15,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
+#[Middleware(EnsureImageSearchEnabled::class)]
 class ImageSearchController extends Controller
 {
     public function __construct(

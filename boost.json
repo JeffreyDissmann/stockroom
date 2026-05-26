@@ -9,6 +9,7 @@
     "sail": true,
     "skills": [
         "laravel-best-practices",
+        "scout-development",
         "pest-testing",
         "inertia-vue-development",
         "tailwindcss-development"
