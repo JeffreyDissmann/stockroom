@@ -174,6 +174,7 @@ class SearchController extends Controller
                 'details' => $item->type->hasDetailFields(),
             ],
             'thumb_url' => $item->primaryImage?->thumbUrl(),
+            'icon' => $item->icon,
             'children_count' => $item->children_count,
             'tags' => $item->tags->map(fn (Tag $tag): array => [
                 'id' => $tag->id,

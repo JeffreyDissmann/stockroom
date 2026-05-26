@@ -3,6 +3,8 @@ import AiFieldBadge from '@/components/AiFieldBadge.vue';
 import CustomFieldsInput from '@/components/CustomFieldsInput.vue';
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
+import ItemThumbnail from '@/components/ItemThumbnail.vue';
+import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
@@ -27,6 +29,7 @@ const props = defineProps<{
 const form = useForm({
     name: props.item?.name ?? '',
     description: props.item?.description ?? '',
+    icon: props.item?.icon ?? '',
     type: (props.item?.type.value ?? (props.parent ? 'item' : 'room')) as ItemTypeValue,
     parent_id: props.item?.parent_id ?? props.parent?.id ?? null,
     tags: (props.item?.tags ?? []).map((t) => t.id),
@@ -49,6 +52,8 @@ const form = useForm({
         (props.item?.custom_fields ?? []).map((f) => [f.custom_field_id, f.value]),
     ) as Record<number, string | number | boolean | null>,
 });
+
+const isPlace = computed(() => form.type === 'room' || form.type === 'container');
 
 const queuedFiles = ref<File[]>([]);
 
@@ -250,6 +255,21 @@ function submit() {
                 @input="clearAiFlag('description')"
             />
             <InputError :message="form.errors.description" />
+        </div>
+
+        <div v-if="isPlace" class="form-row">
+            <label for="icon">Icon</label>
+            <p class="appearance-hint">Rooms and containers rarely have a photo — pick an icon to tell them apart (or leave it on initials).</p>
+            <div class="appearance">
+                <span class="appearance-preview">
+                    <ItemThumbnail
+                        :item="{ name: form.name || 'Item', type: { value: form.type, label: '', icon: '' }, thumb_url: null, icon: form.icon || null }"
+                        size="md"
+                    />
+                </span>
+                <IconPicker v-model="form.icon" />
+            </div>
+            <InputError :message="form.errors.icon" />
         </div>
 
         <div v-if="showDetails" class="form-row" style="max-width: 160px">
@@ -468,5 +488,26 @@ function submit() {
 .field.ai-suggested {
     border-color: var(--accent);
     background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* Room appearance picker */
+.appearance-hint {
+    margin: 0 0 8px;
+    font-size: 12px;
+    color: var(--fg-subtle);
+}
+.appearance {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.appearance-preview {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
 }
 </style>

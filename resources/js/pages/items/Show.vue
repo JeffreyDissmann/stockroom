@@ -6,6 +6,7 @@ import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
+import { itemIconMap } from '@/lib/itemIcons';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
@@ -40,6 +41,14 @@ watch(initialActive, (img) => {
     if (img && (activeImageId.value === null || !images.value.find((i) => i.id === activeImageId.value))) {
         activeImageId.value = img.id;
     }
+});
+
+// Rooms/containers without a photo fall back to their chosen icon, then initials.
+const isPlace = computed(() => props.item.type.value === 'room' || props.item.type.value === 'container');
+const heroIcon = computed(() => (props.item.icon ? (itemIconMap[props.item.icon] ?? null) : null));
+const initials = computed(() => {
+    const words = props.item.name.trim().split(/\s+/).filter(Boolean);
+    return (words.slice(0, 2).map((w) => [...w][0]).join('') || '?').toUpperCase();
 });
 
 const { format: fmtMoney } = useCurrency();
@@ -112,6 +121,8 @@ function destroyItem() {
                 <div class="gallery">
                     <div class="main-img" :class="{ 'is-empty': !activeImage }">
                         <img v-if="activeImage" :src="activeImage.large_url" :alt="item.name" class="gallery-img" />
+                        <component :is="heroIcon" v-else-if="heroIcon" />
+                        <span v-else-if="isPlace" class="main-img-initials">{{ initials }}</span>
                         <ItemTypeIcon v-else :type="item.type.value" />
                     </div>
                     <div v-if="images.length > 1" class="gallery-row">
@@ -238,6 +249,14 @@ function destroyItem() {
 </template>
 
 <style scoped>
+/* Place initials shown big when a room/container has no photo and no chosen icon. */
+.main-img-initials {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--fg-muted);
+}
 /* Box hugs the photo's real shape, capped so it can't dominate the screen. */
 .gallery-img {
     display: block;
