@@ -130,3 +130,20 @@ export interface ItemSummary {
     custom_fields?: ItemCustomFieldValue[];
 }
 
+export interface ActivityChange {
+    field: string;
+    from: string | null;
+    to: string | null;
+}
+
+export interface ActivityRow {
+    id: number;
+    event: 'created' | 'updated' | 'deleted' | string;
+    subject_type: string;
+    subject_label: string | null;
+    subject_url: string | null;
+    causer: string | null;
+    changes: ActivityChange[];
+    at: string | null;
+}
+

@@ -57,6 +57,23 @@ class ActivityLogTest extends TestCase
                 ->where('activities.data.0.changes.0.to', 'Shed'));
     }
 
+    public function test_item_page_shows_its_own_activity(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $item = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Drill']);
+        $item->update(['name' => 'Cordless Drill']);
+
+        $this->get("/items/{$item->id}")
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('items/Show')
+                ->has('activities', 2)
+                ->where('activities.0.event', 'updated')
+                ->where('activities.0.changes.0.field', 'name'));
+    }
+
     public function test_activity_page_lists_recent_changes(): void
     {
         $user = User::factory()->create();

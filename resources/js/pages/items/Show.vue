@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ActivityFeed from '@/components/ActivityFeed.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
@@ -6,7 +7,7 @@ import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode } from '@/types';
+import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -23,6 +24,7 @@ const props = defineProps<{
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
     moveTargets: MoveTarget[];
+    activities: ActivityRow[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
@@ -229,6 +231,11 @@ function destroyItem() {
                 </div>
 
                 <ItemCollection v-else :items="children" :view="contentsView" />
+            </section>
+
+            <section v-if="activities.length" class="mt-8">
+                <h3 class="section-label mb-3" style="margin: 0 0 12px">Activity</h3>
+                <ActivityFeed :rows="activities" :show-subject="false" />
             </section>
         </div>
     </AppLayout>

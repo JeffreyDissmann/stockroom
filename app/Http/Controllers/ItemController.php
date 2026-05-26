@@ -13,15 +13,20 @@ use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\Tag;
+use App\Services\ActivityPresenter;
 use App\Services\ItemImageProcessor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Activitylog\Models\Activity;
 
 class ItemController extends Controller
 {
-    public function __construct(private readonly ItemImageProcessor $imageProcessor) {}
+    public function __construct(
+        private readonly ItemImageProcessor $imageProcessor,
+        private readonly ActivityPresenter $activityPresenter,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -92,11 +97,22 @@ class ItemController extends Controller
         $item->load(['tags', 'images', 'customFieldValues.field']);
         $children = $item->children()->withCount('children')->with(['tags', 'primaryImage'])->get();
 
+        $activities = Activity::query()
+            ->whereMorphedTo('subject', $item)
+            ->with(['causer', 'subject'])
+            ->latest()
+            ->latest('id')
+            ->limit(25)
+            ->get()
+            ->map(fn (Activity $activity): array => $this->activityPresenter->present($activity))
+            ->all();
+
         return Inertia::render('items/Show', [
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true))->values(),
             'moveTargets' => $this->moveTargets($item),
+            'activities' => $activities,
         ]);
     }
 
