@@ -2,28 +2,29 @@
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { trans } from '@/composables/useTranslations';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Custom fields',
+        title: trans('household.nav.custom_fields'),
         href: '/household/custom-fields',
     },
     {
-        title: 'Backup & restore',
+        title: trans('household.nav.backup'),
         href: '/household/backup',
     },
     {
-        title: 'Import from Homebox',
+        title: trans('household.nav.import'),
         href: '/household/import',
     },
     {
-        title: 'Search index',
+        title: trans('household.nav.search_index'),
         href: '/household/search-index',
     },
     {
-        title: 'Members',
+        title: trans('household.nav.members'),
         href: '/household/members',
     },
 ];
@@ -33,7 +34,7 @@ const currentPath = window.location.pathname;
 
 <template>
     <div class="px-4 py-6">
-        <Heading title="Household" description="Settings shared across the whole home inventory" />
+        <Heading :title="$t('household.title')" :description="$t('household.subtitle')" />
 
         <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-x-12 lg:space-y-0">
             <aside class="w-full max-w-xl lg:w-48">

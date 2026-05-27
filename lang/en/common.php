@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'save' => 'Save',
+    'save_changes' => 'Save changes',
+    'saved' => 'Saved.',
+    'cancel' => 'Cancel',
+    'delete' => 'Delete',
+    'edit' => 'Edit',
+    'add' => 'Add',
+    'create' => 'Create',
+    'remove' => 'Remove',
+    'close' => 'Close',
+    'back' => 'Back',
+    'confirm' => 'Confirm',
+    'search' => 'Search',
+    'loading' => 'Loading…',
+    'yes' => 'Yes',
+    'no' => 'No',
+    'more' => 'More',
+    'optional' => 'Optional',
+    'none' => 'None',
+    'copy' => 'Copy',
+    'copied' => 'Copied',
+    'retry' => 'Retry',
+    'all' => 'All',
+    'name' => 'Name',
+    'description' => 'Description',
+    'top_level' => 'Top level',
+];

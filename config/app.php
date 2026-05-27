@@ -88,6 +88,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | The languages a user can switch the interface to, keyed by locale code
+    | with the label shown in the language switcher. Drives both the settings
+    | UI options and the validation rule for the chosen locale.
+    |
+    */
+
+    'supported_locales' => [
+        'en' => 'English',
+        'de' => 'Deutsch',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

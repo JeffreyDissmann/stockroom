@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import { trans, transChoice } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
@@ -16,7 +17,7 @@ interface TagRow {
 
 defineProps<{ tags: TagRow[] }>();
 
-const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Tags', href: '/tags' }];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('tags.title'), href: '/tags' }];
 
 // A native color input always shows a colour (black for an empty value), so the
 // form must start with a real default — otherwise an untouched picker submits
@@ -57,42 +58,42 @@ function submitEdit() {
 }
 
 function destroyTag(tag: TagRow) {
-    if (!confirm(`Delete tag "${tag.name}"? It will be removed from ${tag.items_count} item(s).`)) return;
+    if (!confirm(trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }))) return;
     router.delete(`/tags/${tag.id}`, { preserveScroll: true });
 }
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Tags" />
+        <Head :title="$t('tags.title')" />
 
         <div class="page">
-            <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">Tags</h2>
+            <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('tags.title') }}</h2>
             <p class="sub" style="color: var(--fg-muted); font-size: 13px; margin: 0 0 20px">
-                Free-form labels you can attach to any item.
+                {{ $t('tags.subtitle') }}
             </p>
 
             <form class="card card-pad mb-6" @submit.prevent="submitCreate">
                 <div class="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">
                     <div class="form-row">
-                        <label for="new-name">New tag</label>
-                        <input id="new-name" v-model="createForm.name" required placeholder="e.g. tools" class="field" />
+                        <label for="new-name">{{ $t('tags.new_tag') }}</label>
+                        <input id="new-name" v-model="createForm.name" required :placeholder="$t('tags.name_placeholder')" class="field" />
                         <InputError :message="createForm.errors.name" />
                     </div>
                     <div class="form-row">
-                        <label for="new-color">Color</label>
+                        <label for="new-color">{{ $t('tags.color') }}</label>
                         <input id="new-color" v-model="createForm.color" type="color" class="field" style="padding: 2px; height: 32px" />
                         <InputError :message="createForm.errors.color" />
                     </div>
                     <button type="submit" :disabled="createForm.processing" class="btn-primary" style="height: 32px">
                         <Plus :size="14" />
-                        Add tag
+                        {{ $t('tags.add') }}
                     </button>
                 </div>
             </form>
 
             <div v-if="tags.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                No tags yet.
+                {{ $t('tags.empty') }}
             </div>
 
             <div v-else class="card">
@@ -100,19 +101,19 @@ function destroyTag(tag: TagRow) {
                     <div v-if="editing?.id === tag.id" class="card-pad">
                         <div class="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">
                             <div class="form-row">
-                                <label :for="`edit-name-${tag.id}`">Name</label>
+                                <label :for="`edit-name-${tag.id}`">{{ $t('common.name') }}</label>
                                 <input :id="`edit-name-${tag.id}`" v-model="editForm.name" required class="field" />
                                 <InputError :message="editForm.errors.name" />
                             </div>
                             <div class="form-row">
-                                <label :for="`edit-color-${tag.id}`">Color</label>
+                                <label :for="`edit-color-${tag.id}`">{{ $t('tags.color') }}</label>
                                 <input :id="`edit-color-${tag.id}`" v-model="editForm.color" type="color" class="field" style="padding: 2px; height: 32px" />
                                 <InputError :message="editForm.errors.color" />
                             </div>
                             <div class="flex gap-2">
                                 <button class="btn-primary" type="button" :disabled="editForm.processing" @click="submitEdit">
                                     <Check :size="14" />
-                                    Save
+                                    {{ $t('common.save') }}
                                 </button>
                                 <button class="btn-ghost" type="button" @click="cancelEdit">
                                     <X :size="14" />
@@ -129,11 +130,11 @@ function destroyTag(tag: TagRow) {
                         <Link
                             :href="`/search?tags[]=${tag.id}`"
                             class="group min-w-0 flex-1"
-                            :title="`Show items tagged “${tag.name}”`"
+                            :title="trans('tags.show_tagged', { name: tag.name })"
                         >
                             <div class="font-medium group-hover:underline" style="font-size: 13px">{{ tag.name }}</div>
                             <div class="mono" style="font-size: 11.5px; color: var(--fg-subtle)">
-                                {{ tag.items_count }} item{{ tag.items_count === 1 ? '' : 's' }}
+                                {{ transChoice('tags.items_count', tag.items_count) }}
                             </div>
                         </Link>
                         <div class="flex gap-1">

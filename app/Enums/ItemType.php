@@ -12,11 +12,7 @@ enum ItemType: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Room => 'Room',
-            self::Container => 'Container',
-            self::Item => 'Item',
-        };
+        return __('enums.item_type.'.$this->value);
     }
 
     public function icon(): string

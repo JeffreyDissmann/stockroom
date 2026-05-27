@@ -14,13 +14,7 @@ enum CustomFieldType: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Text => 'Text',
-            self::Number => 'Number',
-            self::Date => 'Date',
-            self::Boolean => 'Yes / No',
-            self::Url => 'Link',
-        };
+        return __('enums.custom_field_type.'.$this->value);
     }
 
     /**
