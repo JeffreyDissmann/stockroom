@@ -27,6 +27,7 @@ interface MemberRow {
     email: string;
     joined_human: string | null;
     is_self: boolean;
+    is_admin: boolean;
 }
 
 defineProps<{ invitations: InvitationRow[]; members: MemberRow[] }>();
@@ -52,6 +53,15 @@ async function copyLink(invitation: InvitationRow) {
 function revoke(invitation: InvitationRow) {
     if (!confirm(trans('members.revoke_confirm'))) return;
     router.delete(`/household/invitations/${invitation.id}`, { preserveScroll: true });
+}
+
+function toggleAdmin(member: MemberRow) {
+    router.patch(`/household/members/${member.id}`, { is_admin: !member.is_admin }, { preserveScroll: true });
+}
+
+function removeMember(member: MemberRow) {
+    if (!confirm(trans('members.remove_confirm', { name: member.name }))) return;
+    router.delete(`/household/members/${member.id}`, { preserveScroll: true });
 }
 </script>
 
@@ -111,7 +121,16 @@ function revoke(invitation: InvitationRow) {
                                 </div>
                                 <div class="text-xs" style="color: var(--fg-muted)">{{ member.email }}</div>
                             </div>
-                            <div v-if="member.joined_human" class="text-xs" style="color: var(--fg-subtle)">{{ $t('members.joined', { when: member.joined_human }) }}</div>
+                            <span class="text-xs" style="color: var(--fg-subtle)">{{ member.is_admin ? $t('members.role_admin') : $t('members.role_member') }}</span>
+                            <template v-if="isAdmin && !member.is_self">
+                                <button type="button" class="btn-ghost" style="font-size: 12px" @click="toggleAdmin(member)">
+                                    {{ member.is_admin ? $t('members.remove_admin') : $t('members.make_admin') }}
+                                </button>
+                                <button type="button" class="btn-ghost btn-danger" :title="$t('members.remove')" @click="removeMember(member)">
+                                    <Trash2 :size="14" />
+                                </button>
+                            </template>
+                            <div v-else-if="member.joined_human" class="text-xs" style="color: var(--fg-subtle)">{{ $t('members.joined', { when: member.joined_human }) }}</div>
                         </li>
                     </ul>
                 </div>

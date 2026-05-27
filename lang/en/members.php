@@ -17,4 +17,10 @@ return [
     'people_desc' => 'Everyone with access to this home inventory.',
     'you' => '(you)',
     'joined' => 'Joined :when',
+    'role_admin' => 'Admin',
+    'role_member' => 'Member',
+    'make_admin' => 'Make admin',
+    'remove_admin' => 'Remove admin',
+    'remove' => 'Remove',
+    'remove_confirm' => 'Remove :name? Their login and pending invites are deleted; the inventory is kept.',
 ];
