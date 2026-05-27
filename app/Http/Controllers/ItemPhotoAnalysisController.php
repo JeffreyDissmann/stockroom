@@ -40,8 +40,12 @@ class ItemPhotoAnalysisController extends Controller
 
     public function __invoke(AnalyzeItemPhotoRequest $request): JsonResponse
     {
+        // Propose name/description in the user's language (set on the request by
+        // SetLocale); identifiers are kept verbatim by the agent regardless.
+        $language = config('app.supported_locales.'.app()->getLocale().'.ai', 'English');
+
         try {
-            $response = (new ItemPhotoAnalyzer)->prompt(
+            $response = (new ItemPhotoAnalyzer($language))->prompt(
                 'Catalogue the main item shown in this photo.',
                 attachments: [$this->downscaledImage($request->file('photo'))],
                 model: config('ai.vision_model'),

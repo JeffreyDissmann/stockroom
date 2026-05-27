@@ -65,6 +65,28 @@ class ItemPhotoAnalysisTest extends TestCase
         ItemPhotoAnalyzer::assertPrompted(fn () => true);
     }
 
+    public function test_it_prompts_for_name_and_description_in_the_users_language(): void
+    {
+        ItemPhotoAnalyzer::fake([['name' => 'Bohrmaschine', 'description' => 'Eine Akku-Bohrmaschine.']]);
+
+        $this->actingAs(User::factory()->create(['locale' => 'de']))
+            ->analyze(['photo' => $this->photo()])
+            ->assertOk();
+
+        ItemPhotoAnalyzer::assertPrompted(fn ($prompt) => str_contains($prompt->agent->instructions(), 'in German'));
+    }
+
+    public function test_it_defaults_to_english_for_an_english_user(): void
+    {
+        ItemPhotoAnalyzer::fake([['name' => 'Drill']]);
+
+        $this->actingAs(User::factory()->create(['locale' => 'en']))
+            ->analyze(['photo' => $this->photo()])
+            ->assertOk();
+
+        ItemPhotoAnalyzer::assertPrompted(fn ($prompt) => str_contains($prompt->agent->instructions(), 'in English'));
+    }
+
     public function test_it_trims_values_blanks_to_null_and_only_returns_known_keys(): void
     {
         ItemPhotoAnalyzer::fake([[

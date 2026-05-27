@@ -91,15 +91,17 @@ return [
     | Supported Locales
     |--------------------------------------------------------------------------
     |
-    | The languages a user can switch the interface to, keyed by locale code
-    | with the label shown in the language switcher. Drives both the settings
-    | UI options and the validation rule for the chosen locale.
+    | The languages a user can switch the interface to, keyed by locale code.
+    | `label` is the autonym shown in the switcher; `ai` is the English language
+    | name handed to the vision model so it proposes name/description in that
+    | language. Drives the switcher options, the locale validation rule, and the
+    | AI photo analysis language.
     |
     */
 
     'supported_locales' => [
-        'en' => 'English',
-        'de' => 'Deutsch',
+        'en' => ['label' => 'English', 'ai' => 'English'],
+        'de' => ['label' => 'Deutsch', 'ai' => 'German'],
     ],
 
     /*

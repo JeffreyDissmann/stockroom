@@ -17,7 +17,9 @@ class LanguageController extends Controller
     {
         return Inertia::render('settings/Language', [
             'locale' => app()->getLocale(),
-            'locales' => config('app.supported_locales'),
+            'locales' => collect(config('app.supported_locales'))
+                ->map(fn (array $locale): string => $locale['label'])
+                ->all(),
         ]);
     }
 
