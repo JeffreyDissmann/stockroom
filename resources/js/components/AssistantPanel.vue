@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
 import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from 'lucide-vue-next';
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -17,7 +17,7 @@ interface ChatMessage {
 // rehydrates the previous thread, which is still the user's "latest").
 const FRESH_THREAD_KEY = 'assistant:fresh';
 
-const { isOpen, close } = useAssistant();
+const { isOpen, close, toggle } = useAssistant();
 
 const messages = ref<ChatMessage[]>([]);
 const conversationId = ref<string | null>(null);
@@ -152,6 +152,17 @@ async function send() {
         scrollToEnd();
     }
 }
+
+// ⌘⇧A / Ctrl+Shift+A toggles the panel from anywhere (mirrors the palette's ⌘K).
+function onShortcut(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        toggle();
+    }
+}
+
+onMounted(() => window.addEventListener('keydown', onShortcut));
+onUnmounted(() => window.removeEventListener('keydown', onShortcut));
 </script>
 
 <template>

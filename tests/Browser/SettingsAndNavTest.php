@@ -41,10 +41,21 @@ it('opens the assistant from the mobile more menu', function () {
     $page = visit('/dashboard')->on()->iPhone14Pro();
 
     $page->click('More')
-        ->click('Assistant')
+        ->click('@open-assistant-mobile')
         ->assertSee('Ask me where something is') // the panel's empty state
         ->assertPresent('@assistant-new') // the "New chat" reset control
         ->assertPresent('@assistant-attach') // the image-attach control
+        ->assertNoJavaScriptErrors();
+});
+
+it('opens the assistant with the keyboard shortcut', function () {
+    $page = visit('/dashboard');
+
+    // Fire ⌘/Ctrl+⇧+A; the panel's global keydown listener toggles it open.
+    // Dispatched directly so the assertion doesn't depend on the viewport/focus.
+    $page->script("window.dispatchEvent(new KeyboardEvent('keydown', { key: 'A', ctrlKey: true, shiftKey: true }))");
+
+    $page->assertSee('Ask me where something is')
         ->assertNoJavaScriptErrors();
 });
 

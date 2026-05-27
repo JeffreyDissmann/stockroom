@@ -54,7 +54,7 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="end" class="w-56">
-                <DropdownMenuItem v-if="aiEnabled" @click="openAssistant()">
+                <DropdownMenuItem v-if="aiEnabled" data-test="open-assistant-mobile" @click="openAssistant()">
                     <Sparkles class="mr-2 h-4 w-4" />
                     {{ $t('nav.assistant') }}
                 </DropdownMenuItem>
