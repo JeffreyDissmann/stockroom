@@ -25,13 +25,14 @@ class InvitationController extends Controller
                 ->values(),
             'members' => User::query()
                 ->oldest()
-                ->get(['id', 'name', 'email', 'created_at'])
+                ->get(['id', 'name', 'email', 'created_at', 'is_admin'])
                 ->map(fn (User $user): array => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'joined_human' => $user->created_at?->diffForHumans(),
                     'is_self' => $user->id === $request->user()?->id,
+                    'is_admin' => $user->is_admin,
                 ])
                 ->values(),
         ]);

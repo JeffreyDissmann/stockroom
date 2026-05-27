@@ -17,4 +17,10 @@ return [
     'people_desc' => 'Alle mit Zugriff auf dieses Inventar.',
     'you' => '(du)',
     'joined' => 'Beigetreten :when',
+    'role_admin' => 'Admin',
+    'role_member' => 'Mitglied',
+    'make_admin' => 'Zum Admin machen',
+    'remove_admin' => 'Adminrechte entziehen',
+    'remove' => 'Entfernen',
+    'remove_confirm' => ':name entfernen? Login und offene Einladungen werden gelöscht; das Inventar bleibt erhalten.',
 ];
