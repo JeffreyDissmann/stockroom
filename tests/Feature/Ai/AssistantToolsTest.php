@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ai;
 
+use App\Ai\AssistantContext;
 use App\Ai\Tools\AssignTags;
 use App\Ai\Tools\CreateItem;
 use App\Ai\Tools\DeleteItem;
@@ -15,7 +16,12 @@ use App\Ai\Tools\UpdateItem;
 use App\Enums\ItemType;
 use App\Models\Item;
 use App\Models\Tag;
+use App\Services\ItemImageProcessor;
+use App\Services\Items\PendingItemImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laravel\Ai\Tools\Request;
 use Tests\TestCase;
 
@@ -95,6 +101,35 @@ class AssistantToolsTest extends TestCase
 
         $this->assertDatabaseHas('items', ['name' => 'Hammer', 'type' => 'item']);
         $this->assertStringContainsString('Hammer', $result);
+    }
+
+    public function test_create_item_attaches_a_pending_uploaded_image(): void
+    {
+        Storage::fake('local');  // where the pending image is stashed
+        Storage::fake('public'); // where the item's image variants are written
+
+        // Stash a downscaled photo for the conversation the tool will run in.
+        $conversationId = (string) Str::uuid();
+        app(AssistantContext::class)->conversationId = $conversationId;
+        $jpeg = app(ItemImageProcessor::class)->downscaleToJpeg(UploadedFile::fake()->image('drill.jpg', 300, 300));
+        app(PendingItemImage::class)->put($conversationId, $jpeg);
+
+        $result = app(CreateItem::class)->handle(new Request(['name' => 'Cordless Drill', 'type' => 'item']));
+
+        $item = Item::where('name', 'Cordless Drill')->firstOrFail();
+        $this->assertTrue($item->images()->where('is_primary', true)->exists());
+        $this->assertStringContainsString('photo was saved', $result);
+        $this->assertFalse(app(PendingItemImage::class)->has($conversationId)); // stash cleared
+    }
+
+    public function test_create_item_without_a_pending_image_attaches_nothing(): void
+    {
+        app(AssistantContext::class)->conversationId = (string) Str::uuid();
+
+        $result = app(CreateItem::class)->handle(new Request(['name' => 'Plain Item', 'type' => 'item']));
+
+        $this->assertStringNotContainsString('photo', $result);
+        $this->assertSame(0, Item::where('name', 'Plain Item')->firstOrFail()->images()->count());
     }
 
     public function test_create_item_rejects_bad_type(): void

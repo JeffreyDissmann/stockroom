@@ -44,6 +44,7 @@ it('opens the assistant from the mobile more menu', function () {
         ->click('Assistant')
         ->assertSee('Ask me where something is') // the panel's empty state
         ->assertPresent('@assistant-new') // the "New chat" reset control
+        ->assertPresent('@assistant-attach') // the image-attach control
         ->assertNoJavaScriptErrors();
 });
 

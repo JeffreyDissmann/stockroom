@@ -2,12 +2,14 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
-import { Loader2, RefreshCw, SendHorizonal } from 'lucide-vue-next';
+import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from 'lucide-vue-next';
 import { nextTick, ref, watch } from 'vue';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
+    image?: string;
+    imageFailed?: boolean;
 }
 
 // Marks that the user reset to a fresh thread but hasn't sent a message yet.
@@ -23,7 +25,34 @@ const input = ref('');
 const sending = ref(false);
 const error = ref<string | null>(null);
 const listEl = ref<HTMLElement>();
+const fileInput = ref<HTMLInputElement>();
+const attachedImage = ref<File | null>(null);
+const attachedPreview = ref<string | null>(null);
 let loaded = false;
+
+function pickImage() {
+    fileInput.value?.click();
+}
+
+function onImageSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    attachedImage.value = file;
+    attachedPreview.value = null;
+    // A data URL keeps the preview self-contained (no object-URL revoke lifecycle).
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            attachedPreview.value = typeof reader.result === 'string' ? reader.result : null;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearImage() {
+    attachedImage.value = null;
+    attachedPreview.value = null;
+    if (fileInput.value) fileInput.value.value = '';
+}
 
 function readXsrfToken(): string {
     const match = document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN='));
@@ -62,28 +91,49 @@ function startNewChat() {
     conversationId.value = null;
     error.value = null;
     input.value = '';
+    clearImage();
     localStorage.setItem(FRESH_THREAD_KEY, '1');
 }
 
 async function send() {
     const text = input.value.trim();
-    if (text === '' || sending.value) return;
+    const image = attachedImage.value;
+    if ((text === '' && !image) || sending.value) return;
 
-    messages.value.push({ role: 'user', content: text });
+    messages.value.push({ role: 'user', content: text, image: attachedPreview.value ?? undefined });
     input.value = '';
     error.value = null;
     sending.value = true;
     scrollToEnd();
 
+    // Build the request body: multipart when a photo is attached, JSON otherwise.
+    let body: BodyInit;
+    const headers: Record<string, string> = { Accept: 'application/json', 'X-XSRF-TOKEN': readXsrfToken() };
+    if (image) {
+        const form = new FormData();
+        form.append('message', text);
+        if (conversationId.value) form.append('conversation_id', conversationId.value);
+        form.append('image', image);
+        body = form; // browser sets the multipart Content-Type with boundary
+    } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify({ message: text, conversation_id: conversationId.value });
+    }
+    // Detach from the input without revoking previewUrl (the bubble still uses it).
+    attachedImage.value = null;
+    attachedPreview.value = null;
+    if (fileInput.value) fileInput.value.value = '';
+
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 130_000);
+    // Analysing a photo runs an extra vision call, so allow longer.
+    const timeout = window.setTimeout(() => controller.abort(), image ? 240_000 : 130_000);
 
     try {
         const res = await fetch('/assistant/messages', {
             method: 'POST',
-            headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-XSRF-TOKEN': readXsrfToken() },
+            headers,
             credentials: 'same-origin',
-            body: JSON.stringify({ message: text, conversation_id: conversationId.value }),
+            body,
             signal: controller.signal,
         });
 
@@ -126,14 +176,18 @@ async function send() {
 
                 <div v-for="(m, i) in messages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
                     <div
-                        class="max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm"
+                        class="max-w-[85%] space-y-2 whitespace-pre-wrap rounded-lg px-3 py-2 text-sm"
                         :style="
                             m.role === 'user'
                                 ? { background: 'var(--accent)', color: 'var(--accent-fg)' }
                                 : { background: 'var(--bg-sunken)', color: 'var(--fg)' }
                         "
                     >
-                        {{ m.content }}
+                        <img v-if="m.image && !m.imageFailed" :src="m.image" alt="" class="max-h-40 rounded-md" @error="m.imageFailed = true" />
+                        <span v-else-if="m.imageFailed" class="inline-flex items-center gap-1 text-xs opacity-80">
+                            <ImagePlus :size="12" /> {{ $t('assistant.image') }}
+                        </span>
+                        <span v-if="m.content">{{ m.content }}</span>
                     </div>
                 </div>
 
@@ -145,19 +199,47 @@ async function send() {
                 <p v-if="error" class="text-sm" style="color: #dc2626">{{ error }}</p>
             </div>
 
-            <form class="flex items-center gap-2 border-t p-3" @submit.prevent="send">
-                <input
-                    v-model="input"
-                    type="text"
-                    class="field flex-1"
-                    :placeholder="$t('assistant.placeholder')"
-                    :disabled="sending"
-                    data-test="assistant-input"
-                />
-                <button type="submit" class="btn-primary" style="height: 32px" :disabled="sending || !input.trim()" :title="$t('assistant.send')">
-                    <SendHorizonal :size="14" />
-                </button>
-            </form>
+            <div class="border-t p-3">
+                <div v-if="attachedPreview" class="mb-2 flex items-center gap-2">
+                    <div class="assistant-attach-preview">
+                        <img :src="attachedPreview" alt="" />
+                        <button type="button" class="assistant-attach-remove" :title="$t('assistant.remove_image')" @click="clearImage">
+                            <X :size="12" />
+                        </button>
+                    </div>
+                </div>
+
+                <form class="flex items-center gap-2" @submit.prevent="send">
+                    <input ref="fileInput" type="file" accept="image/*" class="hidden" data-test="assistant-image" @change="onImageSelected" />
+                    <button
+                        type="button"
+                        class="assistant-reset"
+                        :title="$t('assistant.attach')"
+                        :disabled="sending"
+                        data-test="assistant-attach"
+                        @click="pickImage"
+                    >
+                        <ImagePlus :size="16" />
+                    </button>
+                    <input
+                        v-model="input"
+                        type="text"
+                        class="field flex-1"
+                        :placeholder="$t('assistant.placeholder')"
+                        :disabled="sending"
+                        data-test="assistant-input"
+                    />
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                        style="height: 32px"
+                        :disabled="sending || (!input.trim() && !attachedImage)"
+                        :title="$t('assistant.send')"
+                    >
+                        <SendHorizonal :size="14" />
+                    </button>
+                </form>
+            </div>
         </SheetContent>
     </Sheet>
 </template>
@@ -183,5 +265,34 @@ async function send() {
 .assistant-reset:disabled {
     opacity: 0.4;
     cursor: default;
+}
+.assistant-attach-preview {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+.assistant-attach-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.assistant-attach-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    cursor: pointer;
 }
 </style>

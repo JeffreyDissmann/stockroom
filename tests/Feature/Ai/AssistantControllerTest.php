@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Ai;
 
 use App\Ai\Agents\InventoryAssistant;
+use App\Ai\Agents\ItemPhotoAnalyzer;
 use App\Models\User;
+use App\Services\Items\PendingItemImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Ai\Contracts\Conversational;
 use Tests\TestCase;
 
@@ -141,6 +145,42 @@ class AssistantControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('conversation_id', $conversationId)
             ->assertJsonFragment(['role' => 'user', 'content' => 'an old question']);
+    }
+
+    public function test_an_uploaded_image_is_analysed_and_stashed_for_the_create(): void
+    {
+        Storage::fake('local');
+        InventoryAssistant::fake(['I found a DeWalt drill in the photo. Shall I add it?']);
+        ItemPhotoAnalyzer::fake([['name' => 'DeWalt Drill', 'manufacturer' => 'DeWalt']]);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->post('/assistant/messages', [
+                'message' => 'add this please',
+                'image' => UploadedFile::fake()->image('drill.jpg', 300, 300),
+            ], ['Accept' => 'application/json'])
+            ->assertOk();
+
+        $conversationId = $response->json('conversation_id');
+
+        // The vision-detected fields were folded into the prompt the chat model saw.
+        InventoryAssistant::assertPrompted(fn ($prompt) => str_contains($prompt->prompt, 'DeWalt'));
+
+        // The downscaled photo is stashed for the upcoming confirmation turn.
+        $this->assertTrue(app(PendingItemImage::class)->has($conversationId));
+    }
+
+    public function test_a_message_with_only_an_image_is_accepted(): void
+    {
+        Storage::fake('local');
+        InventoryAssistant::fake(['ok']);
+        ItemPhotoAnalyzer::fake([['name' => 'Mug']]);
+
+        $this->actingAs(User::factory()->create())
+            ->post('/assistant/messages', ['image' => UploadedFile::fake()->image('mug.jpg', 200, 200)], ['Accept' => 'application/json'])
+            ->assertOk();
+
+        InventoryAssistant::assertPrompted(fn () => true);
     }
 
     public function test_a_user_cannot_continue_another_users_conversation(): void

@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Ai\Agents\InventoryAssistant;
+use App\Ai\Agents\ItemPhotoAnalyzer;
+use App\Ai\AssistantContext;
 use App\Http\Middleware\EnsureAiEnabled;
 use App\Models\User;
+use App\Services\ItemImageProcessor;
+use App\Services\Items\PendingItemImage;
+use ArrayAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Laravel\Ai\Contracts\ConversationStore;
+use Laravel\Ai\Files\Image;
 use Laravel\Ai\Messages\MessageRole;
 use Throwable;
 
@@ -21,36 +28,121 @@ use Throwable;
 #[Middleware(EnsureAiEnabled::class)]
 class AssistantController extends Controller
 {
-    public function __construct(private readonly ConversationStore $conversations) {}
+    public function __construct(
+        private readonly ConversationStore $conversations,
+        private readonly ItemImageProcessor $images,
+        private readonly PendingItemImage $pendingImage,
+        private readonly AssistantContext $context,
+    ) {}
 
     public function messages(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'message' => ['required', 'string', 'max:2000'],
+            'message' => ['required_without:image', 'nullable', 'string', 'max:2000'],
             'conversation_id' => ['nullable', 'string'],
+            'image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,heic', 'max:10240', 'dimensions:min_width=64,min_height=64'],
         ]);
 
         $user = $request->user();
         $agent = new InventoryAssistant;
 
         // Only continue a thread the user actually owns; otherwise start fresh.
-        if (! empty($validated['conversation_id']) && $user->conversations()->whereKey($validated['conversation_id'])->exists()) {
+        $resume = ! empty($validated['conversation_id']) && $user->conversations()->whereKey($validated['conversation_id'])->exists();
+
+        if ($resume) {
             $agent->continue($validated['conversation_id'], $user);
         } else {
             $agent->forUser($user);
         }
 
+        // Tools resolve this to know which thread they're in (to attach a photo).
+        $this->context->conversationId = $resume ? $validated['conversation_id'] : null;
+
+        $message = trim((string) ($validated['message'] ?? ''));
+        $stashedImage = null;
+
+        if ($request->hasFile('image')) {
+            [$message, $stashedImage] = $this->describeUploadedImage($request->file('image'), $message);
+
+            // Continuing a known thread: stash now so the model can attach the
+            // photo if it creates the item within this same turn.
+            if ($resume) {
+                $this->pendingImage->put($validated['conversation_id'], $stashedImage);
+            }
+        }
+
         try {
-            $response = $agent->prompt($validated['message'], model: config('ai.chat_model'), timeout: 120);
+            $response = $agent->prompt($message, model: config('ai.chat_model'), timeout: 120);
         } catch (Throwable $e) {
             report($e);
             abort(502, 'The assistant is unavailable right now. Please try again.');
         }
 
+        $conversationId = $agent->currentConversation();
+        $this->context->conversationId ??= $conversationId;
+
+        // New thread: the id only exists after prompting, so stash for the next
+        // (confirmation) turn, when the model will call create_item.
+        if (! $resume && $stashedImage !== null && $conversationId !== null) {
+            $this->pendingImage->put($conversationId, $stashedImage);
+        }
+
         return response()->json([
-            'conversation_id' => $agent->currentConversation(),
+            'conversation_id' => $conversationId,
             'reply' => $response->text,
         ]);
+    }
+
+    /**
+     * Run an uploaded photo through the vision agent, fold the detected fields
+     * into the chat message (so the text-only chat model can act on them), and
+     * return [augmented message, downscaled JPEG to stash for the create].
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function describeUploadedImage(UploadedFile $image, string $message): array
+    {
+        $language = config('app.supported_locales.'.app()->getLocale().'.ai', 'English');
+        $jpeg = $this->images->downscaleToJpeg($image, 1280, 80);
+
+        $detected = [];
+
+        try {
+            $analysis = (new ItemPhotoAnalyzer($language))->prompt(
+                'Catalogue the main item shown in this photo.',
+                attachments: [Image::fromBase64(base64_encode($jpeg), 'image/jpeg')],
+                model: config('ai.vision_model'),
+                timeout: 120,
+            );
+
+            if ($analysis instanceof ArrayAccess) {
+                foreach (['name', 'manufacturer', 'model_number', 'serial_number', 'description'] as $key) {
+                    $value = $analysis[$key] ?? null;
+
+                    if (is_string($value) && trim($value) !== '') {
+                        $detected[$key] = trim($value);
+                    }
+                }
+            }
+        } catch (Throwable) {
+            // Vision analysis is best-effort; fall back to just attaching the photo.
+        }
+
+        if ($message === '') {
+            $message = 'Create a new inventory item from the photo I just uploaded.';
+        }
+
+        $summary = $detected === []
+            ? 'could not auto-detect details from it'
+            : 'detected '.collect($detected)->map(fn (string $value, string $key): string => "{$key}=\"{$value}\"")->implode(', ');
+
+        return [
+            $message
+                ."\n\n[The user attached a photo of an item; the vision model {$summary}. "
+                ."The photo will be saved as the new item's photo when you create it. "
+                .'Propose creating this item, then confirm with the user before calling create_item.]',
+            $jpeg,
+        ];
     }
 
     /**

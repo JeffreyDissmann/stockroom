@@ -59,6 +59,36 @@ class ItemImageProcessor
     }
 
     /**
+     * Attach an image to an item from a file already on disk (rather than an
+     * upload), e.g. a photo the assistant stashed while a "create this item"
+     * request was confirmed. Mirrors store() but sources from a path.
+     */
+    public function storeFromPath(Item $item, string $path, string $extension = 'jpg', string $mimeType = 'image/jpeg'): ItemImage
+    {
+        $sourceImage = $this->decodeSource($path);
+
+        return DB::transaction(function () use ($item, $path, $extension, $mimeType, $sourceImage): ItemImage {
+            $isFirst = ! $item->images()->exists();
+            $maxOrder = (int) $item->images()->max('sort_order');
+
+            /** @var ItemImage $record */
+            $record = $item->images()->create([
+                'extension' => $extension,
+                'mime_type' => $mimeType,
+                'width_original' => $sourceImage->width(),
+                'height_original' => $sourceImage->height(),
+                'size_bytes_original' => @filesize($path) ?: 0,
+                'sort_order' => $isFirst ? 0 : $maxOrder + 1,
+                'is_primary' => $isFirst,
+            ]);
+
+            $this->writeVariants($record, $sourceImage);
+
+            return $record;
+        });
+    }
+
+    /**
      * Regenerate the derived variants (original/large/thumb) for an already-persisted
      * image record from a source file on disk. Used when restoring a backup, which
      * bundles only the original — everything else is reproducible.
