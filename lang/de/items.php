@@ -85,6 +85,8 @@ return [
         'ai_hint_filled' => ':count Feld aus dem Foto ausgefüllt – bitte die markierten Felder vor dem Speichern prüfen.|:count Felder aus dem Foto ausgefüllt – bitte die markierten Felder vor dem Speichern prüfen.',
         'ai_error_timeout' => 'Die Analyse des Fotos dauert zu lange. Bitte versuche es erneut oder fülle das Formular manuell aus.',
         'ai_error_generic' => 'Dieses Foto konnte nicht gelesen werden. Fülle das Formular manuell aus oder versuche ein anderes Bild.',
+        'badge_analyzing' => 'Analysiere…',
+        'badge_suggested' => 'Vorschlag',
     ],
 
     'move' => [
@@ -124,5 +126,7 @@ return [
         'queued' => 'In Warteschlange',
         'remove' => 'Entfernen',
         'delete_confirm' => 'Dieses Bild löschen?',
+        'prev' => 'Vorheriges Bild',
+        'next' => 'Nächstes Bild',
     ],
 ];

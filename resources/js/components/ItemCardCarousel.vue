@@ -37,10 +37,10 @@ useSwipe(el, {
 <template>
     <div ref="el" class="cc">
         <img :src="thumbs[index]" :alt="alt" loading="lazy" class="cc-img" />
-        <button type="button" class="cc-nav cc-prev" aria-label="Previous image" @click="step(-1, $event)">
+        <button type="button" class="cc-nav cc-prev" :aria-label="$t('items.images.prev')" @click="step(-1, $event)">
             <ChevronLeft :size="16" />
         </button>
-        <button type="button" class="cc-nav cc-next" aria-label="Next image" @click="step(1, $event)">
+        <button type="button" class="cc-nav cc-next" :aria-label="$t('items.images.next')" @click="step(1, $event)">
             <ChevronRight :size="16" />
         </button>
         <div class="cc-dots">

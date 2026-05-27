@@ -96,7 +96,7 @@ defineExpose({ open });
 
 <template>
     <div v-if="isOpen" class="cmdk-overlay" @click.self="close()">
-        <div class="cmdk-panel" role="dialog" aria-label="Search items">
+        <div class="cmdk-panel" role="dialog" :aria-label="$t('search.command.aria')">
             <div class="cmdk-input">
                 <Search :size="16" />
                 <input ref="inputEl" v-model="query" type="text" :placeholder="$t('search.placeholder')" data-test="command-input" />

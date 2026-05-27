@@ -13,4 +13,5 @@ return [
     'settings' => 'Settings',
     'log_out' => 'Log out',
     'add_item' => 'Add item',
+    'primary' => 'Primary navigation',
 ];

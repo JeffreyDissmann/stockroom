@@ -31,4 +31,5 @@ return [
     'name' => 'Name',
     'description' => 'Beschreibung',
     'top_level' => 'Oberste Ebene',
+    'breadcrumb' => 'Navigationspfad',
 ];

@@ -19,5 +19,6 @@ return [
         'searching' => 'Searching…',
         'no_matches' => 'No matches.',
         'see_all' => 'See all results for ":query"',
+        'aria' => 'Search items',
     ],
 ];

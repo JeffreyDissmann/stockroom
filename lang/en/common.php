@@ -31,4 +31,5 @@ return [
     'name' => 'Name',
     'description' => 'Description',
     'top_level' => 'Top level',
+    'breadcrumb' => 'Breadcrumb',
 ];

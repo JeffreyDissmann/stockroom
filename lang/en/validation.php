@@ -197,6 +197,33 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'name' => 'name',
+        'email' => 'email address',
+        'username' => 'email address',
+        'password' => 'password',
+        'current_password' => 'current password',
+        'description' => 'description',
+        'type' => 'type',
+        'parent_id' => 'location',
+        'quantity' => 'quantity',
+        'purchased_from' => 'purchased from',
+        'purchase_date' => 'purchase date',
+        'purchase_price' => 'purchase price',
+        'manufacturer' => 'manufacturer',
+        'model_number' => 'model number',
+        'serial_number' => 'serial number',
+        'warranty_expires' => 'warranty expiry',
+        'warranty_details' => 'warranty details',
+        'sold_to' => 'buyer',
+        'sold_price' => 'sold price',
+        'sold_date' => 'sold date',
+        'sold_notes' => 'sold notes',
+        'tags' => 'tags',
+        'color' => 'colour',
+        'label' => 'label',
+        'locale' => 'language',
+        'url' => 'URL',
+    ],
 
 ];

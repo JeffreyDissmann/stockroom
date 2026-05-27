@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
     <div class="topbar">
-        <nav class="crumb" aria-label="Breadcrumb">
+        <nav class="crumb" :aria-label="$t('common.breadcrumb')">
             <template v-for="(crumb, i) in breadcrumbs ?? []" :key="crumb.href">
                 <ChevronRight v-if="i > 0" class="sep" :size="12" />
                 <Link v-if="i < (breadcrumbs ?? []).length - 1" :href="crumb.href">{{ crumb.title }}</Link>

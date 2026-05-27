@@ -85,6 +85,8 @@ return [
         'ai_hint_filled' => 'Filled :count field — review the highlighted fields before saving.|Filled :count fields — review the highlighted fields before saving.',
         'ai_error_timeout' => 'The photo is taking too long to analyse. Please try again or fill the form manually.',
         'ai_error_generic' => 'Could not read that photo. Fill the form manually, or try another image.',
+        'badge_analyzing' => 'Analyzing…',
+        'badge_suggested' => 'Suggested',
     ],
 
     'move' => [
@@ -124,5 +126,7 @@ return [
         'queued' => 'Queued',
         'remove' => 'Remove',
         'delete_confirm' => 'Delete this image?',
+        'prev' => 'Previous image',
+        'next' => 'Next image',
     ],
 ];

@@ -30,7 +30,7 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
 </script>
 
 <template>
-    <nav class="bottom-tabs" aria-label="Primary">
+    <nav class="bottom-tabs" :aria-label="$t('nav.primary')">
         <Link
             v-for="tab in tabs"
             :key="tab.href"
@@ -43,7 +43,7 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
 
         <DropdownMenu>
             <DropdownMenuTrigger as-child>
-                <button type="button" :class="moreActive ? 'active' : ''" aria-label="More">
+                <button type="button" :class="moreActive ? 'active' : ''" :aria-label="$t('common.more')">
                     <MoreHorizontal />
                     {{ $t('common.more') }}
                 </button>

@@ -13,4 +13,5 @@ return [
     'settings' => 'Einstellungen',
     'log_out' => 'Abmelden',
     'add_item' => 'Hinzufügen',
+    'primary' => 'Hauptnavigation',
 ];
