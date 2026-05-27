@@ -84,6 +84,22 @@ class AssistantControllerTest extends TestCase
         $this->assertStringNotContainsString('<script>', $reply);             // raw HTML stripped
     }
 
+    public function test_malformed_item_links_are_normalised(): void
+    {
+        // The model sometimes writes "[/items/557]" (url in the brackets, no label).
+        $item = Item::factory()->create(['name' => 'Repaired Item']);
+        InventoryAssistant::fake(["It is here ([/items/{$item->id}])."]);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'x'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('href="/items/'.$item->id.'"', $reply); // became a real link
+        $this->assertStringContainsString('Repaired Item', $reply);               // with the item name
+        $this->assertStringNotContainsString('[/items/', $reply);                 // malformed form gone
+    }
+
     public function test_item_links_to_missing_ids_are_stripped(): void
     {
         $item = Item::factory()->create(['name' => 'Real Item']);
@@ -283,6 +299,33 @@ class AssistantControllerTest extends TestCase
             ->assertOk();
 
         InventoryAssistant::assertPrompted(fn () => true);
+    }
+
+    public function test_the_current_item_is_passed_to_the_agent_as_context(): void
+    {
+        $item = Item::factory()->create(['name' => 'Espresso Machine']);
+        InventoryAssistant::fake(['It belongs in the kitchen.']);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'where should I store this?', 'context_item_id' => $item->id])
+            ->assertOk();
+
+        // The viewed item is woven into the agent's instructions (not the stored message).
+        InventoryAssistant::assertPrompted(function ($prompt) use ($item): bool {
+            return str_contains($prompt->agent->instructions(), 'currently viewing')
+                && str_contains($prompt->agent->instructions(), "/items/{$item->id}");
+        });
+    }
+
+    public function test_no_item_context_is_added_without_a_context_id(): void
+    {
+        InventoryAssistant::fake(['Hi.']);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'hello'])
+            ->assertOk();
+
+        InventoryAssistant::assertPrompted(fn ($prompt) => ! str_contains($prompt->agent->instructions(), 'currently viewing'));
     }
 
     public function test_a_user_cannot_continue_another_users_conversation(): void

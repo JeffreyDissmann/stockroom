@@ -114,10 +114,17 @@ class Item extends Model
     public function ancestors(): Collection
     {
         $chain = collect();
-        $current = $this->parent;
-        while ($current !== null) {
-            $chain->prepend($current);
-            $current = $current->parent;
+        $parentId = $this->parent_id;
+
+        // Walk by query (not the lazy `parent` relation) so this is safe under
+        // Model::shouldBeStrict()'s lazy-loading prevention at any tree depth.
+        while ($parentId !== null) {
+            $parent = self::find($parentId);
+            if ($parent === null) {
+                break;
+            }
+            $chain->prepend($parent);
+            $parentId = $parent->parent_id;
         }
 
         return $chain;

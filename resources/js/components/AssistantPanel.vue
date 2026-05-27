@@ -2,9 +2,9 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from 'lucide-vue-next';
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -19,6 +19,13 @@ interface ChatMessage {
 const FRESH_THREAD_KEY = 'assistant:fresh';
 
 const { isOpen, close, toggle } = useAssistant();
+
+// The item the user is viewing — only on its detail page — sent as ambient context.
+const page = usePage();
+const contextItemId = computed<number | null>(() => {
+    if (page.component !== 'items/Show') return null;
+    return (page.props as { item?: { id?: number } }).item?.id ?? null;
+});
 
 const messages = ref<ChatMessage[]>([]);
 const conversationId = ref<string | null>(null);
@@ -114,11 +121,12 @@ async function send() {
         const form = new FormData();
         form.append('message', text);
         if (conversationId.value) form.append('conversation_id', conversationId.value);
+        if (contextItemId.value) form.append('context_item_id', String(contextItemId.value));
         form.append('image', image);
         body = form; // browser sets the multipart Content-Type with boundary
     } else {
         headers['Content-Type'] = 'application/json';
-        body = JSON.stringify({ message: text, conversation_id: conversationId.value });
+        body = JSON.stringify({ message: text, conversation_id: conversationId.value, context_item_id: contextItemId.value });
     }
     // Detach from the input without revoking previewUrl (the bubble still uses it).
     attachedImage.value = null;

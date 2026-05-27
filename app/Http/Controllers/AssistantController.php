@@ -43,6 +43,8 @@ class AssistantController extends Controller
             'message' => ['required_without:image', 'nullable', 'string', 'max:2000'],
             'conversation_id' => ['nullable', 'string'],
             'image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,heic', 'max:10240', 'dimensions:min_width=64,min_height=64'],
+            // Id of the item whose page the chat was opened from (ambient context).
+            'context_item_id' => ['nullable', 'integer'],
         ]);
 
         $user = $request->user();
@@ -59,6 +61,11 @@ class AssistantController extends Controller
 
         // Tools resolve this to know which thread they're in (to attach a photo).
         $this->context->conversationId = $resume ? $validated['conversation_id'] : null;
+
+        // If opened from an item page, make that item ambient context (resolves "this"/"it").
+        if (! empty($validated['context_item_id'])) {
+            $agent->aboutItem(Item::find((int) $validated['context_item_id']));
+        }
 
         $message = trim((string) ($validated['message'] ?? ''));
         $stashedImage = null;
@@ -176,10 +183,30 @@ class AssistantController extends Controller
      */
     private function renderAssistantMarkdown(string $text): string
     {
-        return $this->validateItemLinks(Str::markdown($text, [
+        return $this->validateItemLinks(Str::markdown($this->normaliseItemLinks($text), [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
         ]));
+    }
+
+    /**
+     * Repair a common model mistake — writing the URL inside the brackets with
+     * no label, e.g. "[/items/557]" — into a proper [Name](/items/557) link so
+     * it renders instead of showing as literal text.
+     */
+    private function normaliseItemLinks(string $text): string
+    {
+        return preg_replace_callback('#\[/items/(\d+)\](?!\()#', function (array $m): string {
+            $item = Item::find((int) $m[1]);
+
+            if ($item === null) {
+                return $m[0];
+            }
+
+            $label = str_replace(['[', ']'], ['\[', '\]'], $item->name);
+
+            return "[{$label}](/items/{$item->id})";
+        }, $text) ?? $text;
     }
 
     /**

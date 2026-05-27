@@ -185,6 +185,50 @@ class AssistantToolsTest extends TestCase
         $this->assertStringContainsString('Cannot move', $result);
     }
 
+    public function test_move_item_resolves_the_destination_by_name(): void
+    {
+        $room = Item::factory()->room()->create(['name' => 'Toms Bedroom']);
+        $item = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Face Cream']);
+
+        $result = app(MoveItem::class)->handle(new Request(['id' => $item->id, 'parent_name' => 'Toms Bedroom']));
+
+        $this->assertSame($room->id, $item->fresh()->parent_id);
+        $this->assertStringContainsString('Moved', $result);
+    }
+
+    public function test_move_item_refuses_when_no_destination_is_given(): void
+    {
+        // Guards the reported bug: a move with no destination must NOT silently top-level.
+        $room = Item::factory()->room()->create();
+        $item = Item::factory()->create(['type' => ItemType::Item, 'parent_id' => $room->id]);
+
+        $result = app(MoveItem::class)->handle(new Request(['id' => $item->id]));
+
+        $this->assertStringContainsString('Specify where', $result);
+        $this->assertSame($room->id, $item->fresh()->parent_id); // unchanged
+    }
+
+    public function test_move_item_to_top_level_requires_an_explicit_flag(): void
+    {
+        $room = Item::factory()->room()->create();
+        $item = Item::factory()->create(['type' => ItemType::Item, 'parent_id' => $room->id]);
+
+        app(MoveItem::class)->handle(new Request(['id' => $item->id, 'to_top_level' => true]));
+
+        $this->assertNull($item->fresh()->parent_id);
+    }
+
+    public function test_move_item_errors_on_an_unknown_destination_name(): void
+    {
+        $room = Item::factory()->room()->create();
+        $item = Item::factory()->create(['type' => ItemType::Item, 'parent_id' => $room->id]);
+
+        $result = app(MoveItem::class)->handle(new Request(['id' => $item->id, 'parent_name' => 'Nonexistent Place']));
+
+        $this->assertStringContainsString('No room or container matches', $result);
+        $this->assertSame($room->id, $item->fresh()->parent_id); // unchanged
+    }
+
     public function test_assign_tags_attaches_existing_only(): void
     {
         $item = Item::factory()->create(['type' => ItemType::Item]);

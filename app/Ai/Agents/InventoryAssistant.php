@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Ai\Agents;
 
 use App\Ai\Tools\AssignTags;
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Ai\Tools\CreateItem;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
@@ -12,6 +13,7 @@ use App\Ai\Tools\InventoryStats;
 use App\Ai\Tools\MoveItem;
 use App\Ai\Tools\SearchItems;
 use App\Ai\Tools\UpdateItem;
+use App\Models\Item;
 use Laravel\Ai\Concerns\RemembersConversations;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Conversational;
@@ -27,12 +29,27 @@ use Laravel\Ai\Promptable;
  */
 class InventoryAssistant implements Agent, Conversational, HasTools
 {
+    use FormatsItemLinks;
     use Promptable;
     use RemembersConversations;
+
+    /**
+     * The item the user is currently viewing, if the chat was opened from an
+     * item page. Ambient context only — never the forced subject of the chat.
+     */
+    private ?Item $currentItem = null;
+
+    public function aboutItem(?Item $item): static
+    {
+        $this->currentItem = $item;
+
+        return $this;
+    }
 
     public function instructions(): string
     {
         $language = config('app.supported_locales.'.app()->getLocale().'.ai', 'English');
+        $context = $this->currentItemContext();
 
         return <<<PROMPT
         You are the assistant for Stockroom, a shared home-inventory app. The inventory is a tree of
@@ -48,11 +65,32 @@ class InventoryAssistant implements Agent, Conversational, HasTools
           move_item, assign_tags, delete_item). Deletion is permanent — be especially careful.
         - assign_tags can only attach tags that already exist; you cannot create tags.
         - When you mention a specific item, link it using the Markdown link the tools give you,
-          e.g. [Cordless Drill](/items/12). Reuse the exact link from the tool output — never invent ids.
+          written EXACTLY as [Name](/items/12) — never as [/items/12] or a bare URL. Reuse the exact
+          link from the tool output; never invent ids.
+        - To move or place something into a room/container, pass move_item a parent_name (the place's
+          name) and let it resolve the id — do not guess an id, and do not move to the top level unless
+          the user explicitly asks.
 
         Be concise and practical. Reply in {$language}. Format your answers in Markdown — use
-        **bold** for key values, and bullet lists when presenting several items — so they render nicely.
+        **bold** for key values, and bullet lists when presenting several items — so they render nicely.{$context}
         PROMPT;
+    }
+
+    /**
+     * An ambient note about the item the user is viewing, so "this"/"it" resolve
+     * to it — but the model should not raise it unprompted.
+     */
+    private function currentItemContext(): string
+    {
+        if ($this->currentItem === null) {
+            return '';
+        }
+
+        $link = $this->itemLink($this->currentItem);
+
+        return "\n\nContext: the user is currently viewing {$link} (a {$this->currentItem->type->value}). "
+            .'If they say "this", "it" or "this item" without naming something else, they mean it. '
+            .'Use this only when relevant — do not bring it up otherwise.';
     }
 
     /**
