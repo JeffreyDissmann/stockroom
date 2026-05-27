@@ -64,7 +64,7 @@ function when(iso: string | null): string {
 
                     <template v-else>
                         <template v-if="showSubject">
-                            <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type.toLowerCase() }}</span>
+                            <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"

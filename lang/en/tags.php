@@ -13,4 +13,12 @@ return [
     'items_count' => ':count item|:count items',
     'show_tagged' => 'Show items tagged “:name”',
     'delete_confirm' => 'Delete tag ":name"? It will be removed from :count item(s).',
+
+    'filter' => [
+        'all' => 'All tags',
+        'count' => ':count tag|:count tags',
+        'search' => 'Filter tags…',
+        'none' => 'No tags found.',
+        'clear' => 'Clear :count selected',
+    ],
 ];

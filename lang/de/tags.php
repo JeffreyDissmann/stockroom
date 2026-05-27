@@ -13,4 +13,12 @@ return [
     'items_count' => ':count Gegenstand|:count Gegenstände',
     'show_tagged' => 'Gegenstände mit „:name“ anzeigen',
     'delete_confirm' => 'Schlagwort „:name“ löschen? Es wird von :count Gegenstand/Gegenständen entfernt.',
+
+    'filter' => [
+        'all' => 'Alle Schlagwörter',
+        'count' => ':count Schlagwort|:count Schlagwörter',
+        'search' => 'Schlagwörter filtern…',
+        'none' => 'Keine Schlagwörter gefunden.',
+        'clear' => ':count ausgewählte entfernen',
+    ],
 ];

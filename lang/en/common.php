@@ -26,6 +26,8 @@ return [
     'copied' => 'Copied',
     'retry' => 'Retry',
     'all' => 'All',
+    'list' => 'List',
+    'grid' => 'Grid',
     'name' => 'Name',
     'description' => 'Description',
     'top_level' => 'Top level',

@@ -26,6 +26,8 @@ return [
     'copied' => 'Kopiert',
     'retry' => 'Erneut versuchen',
     'all' => 'Alle',
+    'list' => 'Liste',
+    'grid' => 'Raster',
     'name' => 'Name',
     'description' => 'Beschreibung',
     'top_level' => 'Oberste Ebene',

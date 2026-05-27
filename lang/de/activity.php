@@ -20,6 +20,12 @@ return [
         'unknown' => 'unbekannt',
     ],
 
+    'subjects' => [
+        'item' => 'Gegenstand',
+        'tag' => 'Schlagwort',
+        'custom_field' => 'eigenes Feld',
+    ],
+
     'images_count' => ':count Bild|:count Bilder',
 
     'time' => [

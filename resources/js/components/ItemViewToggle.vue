@@ -9,11 +9,11 @@ const view = defineModel<ItemViewMode>({ required: true });
     <div class="flex items-center gap-2">
         <button :class="['chip', view === 'list' ? 'active' : '']" type="button" @click="view = 'list'">
             <List />
-            List
+            {{ $t('common.list') }}
         </button>
         <button :class="['chip', view === 'grid' ? 'active' : '']" type="button" @click="view = 'grid'">
             <Grid />
-            Grid
+            {{ $t('common.grid') }}
         </button>
     </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
+import { trans } from '@/composables/useTranslations';
 import type { ItemImageSummary, SharedData } from '@/types';
 import { useSortable } from '@vueuse/integrations/useSortable';
 import { router, usePage } from '@inertiajs/vue3';
@@ -113,7 +114,7 @@ function makePrimary(image: ItemImageSummary) {
 
 function destroyImage(image: ItemImageSummary) {
     if (!props.itemId) return;
-    if (!confirm('Delete this image?')) return;
+    if (!confirm(trans('items.images.delete_confirm'))) return;
     router.delete(`/items/${props.itemId}/images/${image.id}`, { preserveScroll: true });
 }
 
@@ -148,7 +149,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
 
 <template>
     <div class="form-row">
-        <label>Images</label>
+        <label>{{ $t('items.images.label') }}</label>
 
         <div
             class="dropzone"
@@ -162,8 +163,8 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
         >
             <Upload :size="18" />
             <div>
-                <p class="dz-title">Drop images here or click to pick</p>
-                <p class="dz-hint">JPG / PNG / WebP / HEIC, up to 10 MB each</p>
+                <p class="dz-title">{{ $t('items.images.drop') }}</p>
+                <p class="dz-hint">{{ $t('items.images.formats') }}</p>
             </div>
             <input
                 ref="inputEl"
@@ -177,19 +178,19 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
         </div>
 
         <div v-if="mode === 'edit' && itemId && imageSearchEnabled" class="search-row">
-            <span class="hint">or</span>
+            <span class="hint">{{ $t('items.images.or') }}</span>
             <SearchImageDialog :item-id="itemId" />
         </div>
 
         <p v-if="mode === 'create' && imageSearchEnabled" class="hint">
-            Tip: once this item is saved, you can search the web for an image of it.
+            {{ $t('items.images.tip') }}
         </p>
 
-        <p v-if="totalCount === 0" class="hint">No images yet.</p>
+        <p v-if="totalCount === 0" class="hint">{{ $t('items.images.none') }}</p>
 
         <div ref="sortableList" v-if="sortableExisting.length > 0" class="img-grid">
             <div v-for="image in sortableExisting" :key="image.id" class="img-card">
-                <button type="button" class="drag-handle" aria-label="Reorder">
+                <button type="button" class="drag-handle" :aria-label="$t('items.images.reorder')">
                     <GripVertical :size="14" />
                 </button>
                 <img :src="image.thumb_url" :alt="''" class="img-thumb" />
@@ -198,7 +199,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
                         type="button"
                         class="img-btn"
                         :class="{ 'img-btn-primary': image.is_primary }"
-                        :title="image.is_primary ? 'Primary image' : 'Make primary'"
+                        :title="image.is_primary ? $t('items.images.primary') : $t('items.images.make_primary')"
                         @click="makePrimary(image)"
                         :disabled="image.is_primary"
                     >
@@ -207,7 +208,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
                     <button
                         type="button"
                         class="img-btn img-btn-danger"
-                        title="Delete image"
+                        :title="$t('items.images.delete')"
                         @click="destroyImage(image)"
                     >
                         <Trash2 :size="13" />
@@ -219,9 +220,9 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
         <div v-if="pending.length > 0" class="img-grid">
             <div v-for="p in pending" :key="p.id" class="img-card img-card-pending">
                 <img :src="p.previewUrl" alt="" class="img-thumb" />
-                <span class="pending-badge"><ImagePlus :size="11" /> Queued</span>
+                <span class="pending-badge"><ImagePlus :size="11" /> {{ $t('items.images.queued') }}</span>
                 <div class="img-actions">
-                    <button type="button" class="img-btn img-btn-danger" title="Remove" @click="removePending(p.id)">
+                    <button type="button" class="img-btn img-btn-danger" :title="$t('items.images.remove')" @click="removePending(p.id)">
                         <Trash2 :size="13" />
                     </button>
                 </div>
