@@ -84,6 +84,65 @@ class AssistantControllerTest extends TestCase
         $this->assertNotEmpty($history, 'Continuing a conversation must replay its stored messages.');
     }
 
+    public function test_omitting_the_conversation_id_starts_a_fresh_thread(): void
+    {
+        // Backs the panel's "New chat" reset: dropping the conversation_id begins a
+        // brand-new thread while the previous one stays saved (non-destructive).
+        InventoryAssistant::fake(['one', 'two']);
+        $user = User::factory()->create();
+
+        $first = $this->actingAs($user)
+            ->postJson('/assistant/messages', ['message' => 'first thread'])
+            ->json('conversation_id');
+
+        $second = $this->actingAs($user)
+            ->postJson('/assistant/messages', ['message' => 'fresh start'])
+            ->json('conversation_id');
+
+        $this->assertNotSame($first, $second);
+        $this->assertSame(2, $user->conversations()->count());
+    }
+
+    public function test_a_thread_idle_past_the_reset_window_is_not_rehydrated(): void
+    {
+        config(['ai.chat_reset_after_hours' => 3]);
+        InventoryAssistant::fake(['hello']);
+        $user = User::factory()->create();
+
+        $conversationId = $this->actingAs($user)
+            ->postJson('/assistant/messages', ['message' => 'an old question'])
+            ->json('conversation_id');
+
+        // Age the thread past the 3-hour window.
+        $user->conversations()->whereKey($conversationId)->update(['updated_at' => now()->subHours(4)]);
+
+        $this->actingAs($user)
+            ->getJson('/assistant/conversation')
+            ->assertOk()
+            ->assertJsonPath('conversation_id', null)
+            ->assertJsonPath('messages', []);
+    }
+
+    public function test_the_reset_window_is_configurable(): void
+    {
+        // 0 disables the timeout, so even a very old thread is resumed.
+        config(['ai.chat_reset_after_hours' => 0]);
+        InventoryAssistant::fake(['hello']);
+        $user = User::factory()->create();
+
+        $conversationId = $this->actingAs($user)
+            ->postJson('/assistant/messages', ['message' => 'an old question'])
+            ->json('conversation_id');
+
+        $user->conversations()->whereKey($conversationId)->update(['updated_at' => now()->subDays(30)]);
+
+        $this->actingAs($user)
+            ->getJson('/assistant/conversation')
+            ->assertOk()
+            ->assertJsonPath('conversation_id', $conversationId)
+            ->assertJsonFragment(['role' => 'user', 'content' => 'an old question']);
+    }
+
     public function test_a_user_cannot_continue_another_users_conversation(): void
     {
         InventoryAssistant::fake(['ok', 'ok']);

@@ -40,6 +40,10 @@ return [
     // small, tool-capable model; change to any tool-capable Ollama model you've pulled
     // (e.g. qwen2.5:7b-instruct, llama3.1:8b). Use the exact tag from `ollama list`.
     'chat_model' => env('AI_CHAT_MODEL', 'ministral-3:8b'),
+    // When the assistant panel reopens, it resumes the most recent thread only
+    // if that thread was active within this many hours; older threads start
+    // fresh. Set to 0 to always resume the latest thread regardless of age.
+    'chat_reset_after_hours' => (int) env('AI_CHAT_RESET_AFTER_HOURS', 3),
     // bge-m3 is multilingual and prefix-free, which suits mixed-language item
     // data well. If you change this, update AI_EMBEDDINGS_DIMENSIONS to match.
     'embeddings_model' => env('AI_EMBEDDINGS_MODEL', 'bge-m3:567m'),

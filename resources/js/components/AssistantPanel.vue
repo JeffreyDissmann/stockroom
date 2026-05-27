@@ -2,13 +2,18 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
-import { Loader2, SendHorizonal } from 'lucide-vue-next';
+import { Loader2, RefreshCw, SendHorizonal } from 'lucide-vue-next';
 import { nextTick, ref, watch } from 'vue';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
 }
+
+// Marks that the user reset to a fresh thread but hasn't sent a message yet.
+// Persisted so the clean slate survives a page reload (the server otherwise
+// rehydrates the previous thread, which is still the user's "latest").
+const FRESH_THREAD_KEY = 'assistant:fresh';
 
 const { isOpen, close } = useAssistant();
 
@@ -34,6 +39,8 @@ async function scrollToEnd() {
 watch(isOpen, async (open) => {
     if (!open || loaded) return;
     loaded = true;
+    // Honour a pending reset: stay empty instead of rehydrating the old thread.
+    if (localStorage.getItem(FRESH_THREAD_KEY) === '1') return;
     try {
         const res = await fetch('/assistant/conversation', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
         if (res.ok) {
@@ -46,6 +53,17 @@ watch(isOpen, async (open) => {
         // Non-fatal: start with an empty thread.
     }
 });
+
+// Start a fresh thread: dropping the conversation id makes the next message
+// begin a new conversation. Previous threads stay saved in the database.
+function startNewChat() {
+    if (sending.value) return;
+    messages.value = [];
+    conversationId.value = null;
+    error.value = null;
+    input.value = '';
+    localStorage.setItem(FRESH_THREAD_KEY, '1');
+}
 
 async function send() {
     const text = input.value.trim();
@@ -73,6 +91,8 @@ async function send() {
 
         const data = await res.json();
         conversationId.value = data.conversation_id ?? conversationId.value;
+        // A real thread now exists, so the reload should rehydrate it again.
+        localStorage.removeItem(FRESH_THREAD_KEY);
         messages.value.push({ role: 'assistant', content: data.reply ?? '' });
     } catch {
         error.value = trans('assistant.error');
@@ -87,8 +107,18 @@ async function send() {
 <template>
     <Sheet :open="isOpen" @update:open="(v) => !v && close()">
         <SheetContent side="right" class="flex w-full flex-col gap-0 p-0 sm:max-w-md">
-            <SheetHeader class="border-b p-4">
+            <SheetHeader class="flex-row items-center gap-1.5 space-y-0 border-b p-4 pr-12">
                 <SheetTitle>{{ $t('assistant.title') }}</SheetTitle>
+                <button
+                    type="button"
+                    class="assistant-reset"
+                    :title="$t('assistant.new')"
+                    :disabled="sending || (messages.length === 0 && conversationId === null)"
+                    data-test="assistant-new"
+                    @click="startNewChat()"
+                >
+                    <RefreshCw :size="14" />
+                </button>
             </SheetHeader>
 
             <div ref="listEl" class="flex-1 space-y-3 overflow-y-auto p-4">
@@ -131,3 +161,27 @@ async function send() {
         </SheetContent>
     </Sheet>
 </template>
+
+<style scoped>
+.assistant-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--fg-muted);
+    cursor: pointer;
+}
+.assistant-reset:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--fg);
+}
+.assistant-reset:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+</style>
