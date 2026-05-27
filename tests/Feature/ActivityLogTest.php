@@ -86,7 +86,8 @@ class ActivityLogTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Activity')
-                ->has('activities.data', 2)
+                // item created + item updated, plus the user's own creation (oldest).
+                ->has('activities.data', 3)
                 ->where('activities.data.0.event', 'updated')
                 ->where('activities.data.0.changes.0.field', 'name')
                 ->where('activities.data.0.changes.0.from', 'Drill')

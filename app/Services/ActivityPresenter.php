@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Lang;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityPresenter
@@ -13,14 +14,7 @@ class ActivityPresenter
         'item' => 'activity.subjects.item',
         'tag' => 'activity.subjects.tag',
         'custom_field' => 'activity.subjects.custom_field',
-    ];
-
-    /** Friendly labels for logged attribute keys. */
-    private const FIELDS = [
-        'parent.name' => 'location',
-        'is_searchable' => 'searchable',
-        'model_number' => 'model number',
-        'serial_number' => 'serial number',
+        'user' => 'activity.subjects.user',
     ];
 
     /**
@@ -44,7 +38,7 @@ class ActivityPresenter
                 ? "/items/{$activity->subject_id}"
                 : null,
             'causer' => $activity->causer?->name,
-            'changes' => $activity->event === 'updated' ? $this->changes($attributes, $old) : [],
+            'changes' => $activity->event === 'updated' ? $this->changes($attributes, $old, (string) $activity->log_name) : [],
             // For 'image_added' events: how many images were attached.
             'count' => (int) ($activity->properties?->get('count') ?? 0),
             'at' => $activity->created_at?->toIso8601String(),
@@ -52,31 +46,52 @@ class ActivityPresenter
     }
 
     /**
-     * Field-level diff for an update, presented with friendly labels and values.
+     * Field-level diff for an update, presented with localized labels and values.
      *
      * @param  array<string, mixed>  $attributes
      * @param  array<string, mixed>  $old
      * @return list<array{field: string, from: string|null, to: string|null}>
      */
-    private function changes(array $attributes, array $old): array
+    private function changes(array $attributes, array $old, string $logName): array
     {
         return collect($attributes)
             ->map(fn (mixed $value, string $field): array => [
-                'field' => self::FIELDS[$field] ?? str_replace('_', ' ', $field),
-                'from' => $this->format($field, $old[$field] ?? null),
-                'to' => $this->format($field, $value),
+                'field' => $this->fieldLabel($field),
+                'from' => $this->format($logName, $field, $old[$field] ?? null),
+                'to' => $this->format($logName, $field, $value),
             ])
             ->values()
             ->all();
     }
 
-    private function format(string $field, mixed $value): ?string
+    private function fieldLabel(string $field): string
     {
-        return match (true) {
-            $field === 'parent.name' => $value ?? 'Top level',
-            $value === null => null,
-            is_bool($value) => $value ? 'yes' : 'no',
-            default => (string) $value,
-        };
+        $key = 'activity.fields.'.str_replace('.', '_', $field);
+
+        return Lang::has($key) ? __($key) : str_replace(['.', '_'], ' ', $field);
+    }
+
+    private function format(string $logName, string $field, mixed $value): ?string
+    {
+        if ($field === 'parent.name') {
+            return $value ?? __('common.top_level');
+        }
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            return $value ? __('common.yes') : __('common.no');
+        }
+
+        // Enum-typed fields render with their localized label.
+        if ($field === 'type') {
+            $key = ($logName === 'custom_field' ? 'enums.custom_field_type.' : 'enums.item_type.').$value;
+
+            return Lang::has($key) ? __($key) : (string) $value;
+        }
+
+        return (string) $value;
     }
 }
