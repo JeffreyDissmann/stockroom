@@ -53,20 +53,92 @@ class AssistantControllerTest extends TestCase
 
         $response = $this->actingAs($user)
             ->postJson('/assistant/messages', ['message' => 'where are my drills?'])
-            ->assertOk()
-            ->assertJsonPath('reply', 'Found 2 drills.');
+            ->assertOk();
+        $this->assertStringContainsString('Found 2 drills.', $response->json('reply'));
 
         $conversationId = $response->json('conversation_id');
         $this->assertNotNull($conversationId);
 
-        $this->actingAs($user)
+        $rehydrated = $this->actingAs($user)
             ->getJson('/assistant/conversation')
             ->assertOk()
             ->assertJsonPath('conversation_id', $conversationId)
-            ->assertJsonFragment(['role' => 'user', 'content' => 'where are my drills?'])
-            ->assertJsonFragment(['role' => 'assistant', 'content' => 'Found 2 drills.']);
+            ->assertJsonFragment(['role' => 'user', 'content' => 'where are my drills?']);
+        $this->assertStringContainsString('Found 2 drills.', collect($rehydrated->json('messages'))->firstWhere('role', 'assistant')['content']);
 
         InventoryAssistant::assertPrompted(fn () => true);
+    }
+
+    public function test_assistant_replies_are_rendered_as_sanitised_markdown(): void
+    {
+        InventoryAssistant::fake(["Found these:\n\n- **Drill** in the Garage\n- Saw\n\n<script>alert(1)</script>"]);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'list my tools'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('<strong>Drill</strong>', $reply); // markdown rendered
+        $this->assertStringContainsString('<li>', $reply);                    // list rendered
+        $this->assertStringNotContainsString('<script>', $reply);             // raw HTML stripped
+    }
+
+    public function test_unsafe_links_in_assistant_replies_are_neutralised(): void
+    {
+        InventoryAssistant::fake(['Try [bad](javascript:alert(1)) or [good](https://example.com).']);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'hi'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringNotContainsString('javascript:', $reply);        // unsafe scheme dropped
+        $this->assertStringContainsString('https://example.com', $reply);   // safe link kept
+    }
+
+    public function test_user_messages_are_returned_verbatim_not_as_markdown(): void
+    {
+        InventoryAssistant::fake(['ok']);
+        $user = User::factory()->create();
+        $raw = '**keep me literal** <b>x</b>';
+
+        $this->actingAs($user)->postJson('/assistant/messages', ['message' => $raw])->assertOk();
+
+        $userContent = collect($this->actingAs($user)->getJson('/assistant/conversation')->json('messages'))
+            ->firstWhere('role', 'user')['content'];
+
+        // User text is not run through Markdown — it round-trips exactly.
+        $this->assertSame($raw, $userContent);
+    }
+
+    public function test_an_image_upload_still_works_when_no_details_are_detected(): void
+    {
+        Storage::fake('local');
+        InventoryAssistant::fake(['I could not read details — describe it and I will add it.']);
+        ItemPhotoAnalyzer::fake([[]]); // vision returns nothing usable
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->post('/assistant/messages', [
+                'message' => 'add this',
+                'image' => UploadedFile::fake()->image('blurry.jpg', 300, 300),
+            ], ['Accept' => 'application/json'])
+            ->assertOk();
+
+        // The prompt notes the lack of detail, and the photo is still stashed for the create.
+        InventoryAssistant::assertPrompted(fn ($prompt) => str_contains($prompt->prompt, 'could not auto-detect'));
+        $this->assertTrue(app(PendingItemImage::class)->has($response->json('conversation_id')));
+    }
+
+    public function test_a_non_image_upload_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->post('/assistant/messages', [
+                'message' => 'x',
+                'image' => UploadedFile::fake()->create('notes.pdf', 100, 'application/pdf'),
+            ], ['Accept' => 'application/json'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('image');
     }
 
     public function test_it_replays_prior_messages_so_the_model_has_memory(): void

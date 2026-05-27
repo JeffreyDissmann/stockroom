@@ -198,7 +198,9 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
                         <span v-else-if="m.imageFailed" class="inline-flex items-center gap-1 text-xs opacity-80">
                             <ImagePlus :size="12" /> {{ $t('assistant.image') }}
                         </span>
-                        <span v-if="m.content">{{ m.content }}</span>
+                        <!-- Assistant replies arrive as server-sanitised Markdown HTML; user text stays plain. -->
+                        <div v-if="m.content && m.role === 'assistant'" class="assistant-md" v-html="m.content" />
+                        <span v-else-if="m.content">{{ m.content }}</span>
                     </div>
                 </div>
 
@@ -305,5 +307,58 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
     background: rgba(0, 0, 0, 0.6);
     color: #fff;
     cursor: pointer;
+}
+
+/* Rendered Markdown from the assistant (v-html is unscoped, so use :deep). */
+.assistant-md {
+    white-space: normal;
+}
+.assistant-md :deep(> :first-child) {
+    margin-top: 0;
+}
+.assistant-md :deep(> :last-child) {
+    margin-bottom: 0;
+}
+.assistant-md :deep(p) {
+    margin: 0.4em 0;
+}
+.assistant-md :deep(ul),
+.assistant-md :deep(ol) {
+    margin: 0.4em 0;
+    padding-left: 1.25em;
+    list-style: revert;
+}
+.assistant-md :deep(li) {
+    margin: 0.15em 0;
+}
+.assistant-md :deep(a) {
+    text-decoration: underline;
+}
+.assistant-md :deep(strong) {
+    font-weight: 600;
+}
+.assistant-md :deep(code) {
+    background: var(--bg-elev);
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+.assistant-md :deep(pre) {
+    background: var(--bg-elev);
+    padding: 8px 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0.4em 0;
+}
+.assistant-md :deep(pre code) {
+    background: transparent;
+    padding: 0;
+}
+.assistant-md :deep(h1),
+.assistant-md :deep(h2),
+.assistant-md :deep(h3) {
+    font-weight: 600;
+    font-size: 1em;
+    margin: 0.5em 0 0.25em;
 }
 </style>

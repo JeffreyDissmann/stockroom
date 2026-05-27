@@ -48,7 +48,8 @@ class InventoryAssistant implements Agent, Conversational, HasTools
           move_item, assign_tags, delete_item). Deletion is permanent — be especially careful.
         - assign_tags can only attach tags that already exist; you cannot create tags.
 
-        Be concise and practical. Reply in {$language}.
+        Be concise and practical. Reply in {$language}. Format your answers in Markdown — use
+        **bold** for key values, and bullet lists when presenting several items — so they render nicely.
         PROMPT;
     }
 

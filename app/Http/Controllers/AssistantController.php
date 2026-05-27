@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
+use Illuminate\Support\Str;
 use Laravel\Ai\Contracts\ConversationStore;
 use Laravel\Ai\Files\Image;
 use Laravel\Ai\Messages\MessageRole;
@@ -89,7 +90,7 @@ class AssistantController extends Controller
 
         return response()->json([
             'conversation_id' => $conversationId,
-            'reply' => $response->text,
+            'reply' => $this->renderAssistantMarkdown($response->text),
         ]);
     }
 
@@ -154,11 +155,29 @@ class AssistantController extends Controller
 
         $messages = $id === null ? [] : collect($this->conversations->getLatestConversationMessages($id, 100))
             ->filter(fn ($m): bool => in_array($m->role, [MessageRole::User, MessageRole::Assistant], true) && trim((string) $m->content) !== '')
-            ->map(fn ($m): array => ['role' => $m->role->value, 'content' => (string) $m->content])
+            ->map(fn ($m): array => [
+                'role' => $m->role->value,
+                // Assistant replies are Markdown → render to safe HTML; user text stays verbatim.
+                'content' => $m->role === MessageRole::Assistant
+                    ? $this->renderAssistantMarkdown((string) $m->content)
+                    : (string) $m->content,
+            ])
             ->values()
             ->all();
 
         return response()->json(['conversation_id' => $id, 'messages' => $messages]);
+    }
+
+    /**
+     * Render an assistant Markdown reply to HTML, stripping any raw HTML and
+     * unsafe links so the result is safe to inject with v-html on the client.
+     */
+    private function renderAssistantMarkdown(string $text): string
+    {
+        return Str::markdown($text, [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
     }
 
     /**

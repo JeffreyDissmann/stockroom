@@ -51,11 +51,11 @@ it('opens the assistant from the mobile more menu', function () {
 it('opens the assistant with the keyboard shortcut', function () {
     $page = visit('/dashboard');
 
-    // Fire ⌘/Ctrl+⇧+A; the panel's global keydown listener toggles it open.
-    // Dispatched directly so the assertion doesn't depend on the viewport/focus.
-    $page->script("window.dispatchEvent(new KeyboardEvent('keydown', { key: 'A', ctrlKey: true, shiftKey: true }))");
-
-    $page->assertSee('Ask me where something is')
+    // Press ⌘/Ctrl+⇧+A on a focusable, hydrated element; the keydown bubbles to
+    // the panel's global listener and toggles it open. Using a real element
+    // (rather than a synthetic dispatch) waits for Vue to mount its listener.
+    $page->keys('@open-search', 'Control+Shift+A')
+        ->assertSee('Ask me where something is')
         ->assertNoJavaScriptErrors();
 });
 
