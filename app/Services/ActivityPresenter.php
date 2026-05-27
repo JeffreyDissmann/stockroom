@@ -10,9 +10,9 @@ class ActivityPresenter
 {
     /** Friendly labels for the model behind each log entry. */
     private const SUBJECTS = [
-        'item' => 'Item',
-        'tag' => 'Tag',
-        'custom_field' => 'Custom field',
+        'item' => 'activity.subjects.item',
+        'tag' => 'activity.subjects.tag',
+        'custom_field' => 'activity.subjects.custom_field',
     ];
 
     /** Friendly labels for logged attribute keys. */
@@ -36,7 +36,9 @@ class ActivityPresenter
         return [
             'id' => $activity->id,
             'event' => $activity->event,
-            'subject_type' => self::SUBJECTS[$activity->log_name] ?? ucfirst((string) $activity->log_name),
+            'subject_type' => isset(self::SUBJECTS[$activity->log_name])
+                ? __(self::SUBJECTS[$activity->log_name])
+                : ucfirst((string) $activity->log_name),
             'subject_label' => $activity->subject?->name ?? $attributes['name'] ?? $old['name'] ?? null,
             'subject_url' => $activity->log_name === 'item' && $activity->subject !== null
                 ? "/items/{$activity->subject_id}"

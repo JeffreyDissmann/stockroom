@@ -20,9 +20,15 @@ class ItemPhotoAnalyzer implements Agent, HasStructuredOutput
 {
     use Promptable;
 
+    /**
+     * @param  string  $language  Language for the human-readable fields (name, description),
+     *                            e.g. "English" or "German". Identifiers are never translated.
+     */
+    public function __construct(private readonly string $language = 'English') {}
+
     public function instructions(): string
     {
-        return <<<'PROMPT'
+        return <<<PROMPT
         You catalogue household belongings for a home-inventory app from a single product photo.
 
         Identify the main object in the photo and extract concise, factual fields for it:
@@ -30,6 +36,9 @@ class ItemPhotoAnalyzer implements Agent, HasStructuredOutput
         - "manufacturer", "model_number", "serial_number": report a value ONLY if it is clearly
           legible in the image. If it is not visible, return null. Never guess or invent identifiers.
         - "description": one or two neutral, factual sentences describing the item.
+
+        Write "name" and "description" in {$this->language}. Keep brand names as printed, and report
+        "manufacturer", "model_number" and "serial_number" exactly as shown on the item — never translate identifiers.
 
         Ignore the background, hands, packaging clutter, price tags, and watermarks.
         PROMPT;

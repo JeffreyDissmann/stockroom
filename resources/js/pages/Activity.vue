@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ActivityFeed from '@/components/ActivityFeed.vue';
+import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { ActivityRow, BreadcrumbItemType } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -11,21 +12,21 @@ interface Paginated<T> {
 
 defineProps<{ activities: Paginated<ActivityRow> }>();
 
-const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Activity', href: '/activity' }];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('activity.title'), href: '/activity' }];
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Activity" />
+        <Head :title="$t('activity.title')" />
 
         <div class="page">
-            <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">Activity</h2>
+            <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('activity.title') }}</h2>
             <p class="sub" style="color: var(--fg-muted); font-size: 13px; margin: 0 0 20px">
-                A log of changes made to items, tags and custom fields.
+                {{ $t('activity.subtitle') }}
             </p>
 
             <div v-if="activities.data.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                No activity yet.
+                {{ $t('activity.empty') }}
             </div>
 
             <template v-else>

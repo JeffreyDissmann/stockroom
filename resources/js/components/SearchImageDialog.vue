@@ -100,13 +100,13 @@ function attach(): void {
         <DialogTrigger as-child>
             <button type="button" class="btn-pill" data-test="image-search">
                 <ImagePlus :size="14" />
-                Find image
+                {{ $t('items.image_search.trigger') }}
             </button>
         </DialogTrigger>
         <DialogContent class="sm:max-w-2xl">
             <DialogHeader>
-                <DialogTitle>Find an image</DialogTitle>
-                <DialogDescription>Pick one or more images{{ itemName ? ` for "${itemName}"` : '' }}. They're downloaded and attached to the item.</DialogDescription>
+                <DialogTitle>{{ $t('items.image_search.title') }}</DialogTitle>
+                <DialogDescription>{{ itemName ? $t('items.image_search.description_named', { name: itemName }) : $t('items.image_search.description') }}</DialogDescription>
             </DialogHeader>
 
             <input
@@ -114,14 +114,14 @@ function attach(): void {
                 type="search"
                 class="field"
                 style="width: 100%"
-                placeholder="Search the web for images…"
+                :placeholder="$t('items.image_search.search')"
                 data-test="image-search-query"
             />
 
             <div class="img-results">
-                <p v-if="loading" class="img-results-note">Searching…</p>
-                <p v-else-if="failed" class="img-results-note">Image search is unavailable right now.</p>
-                <p v-else-if="results.length === 0" class="img-results-note">No images found — try a different search.</p>
+                <p v-if="loading" class="img-results-note">{{ $t('items.image_search.searching') }}</p>
+                <p v-else-if="failed" class="img-results-note">{{ $t('items.image_search.unavailable') }}</p>
+                <p v-else-if="results.length === 0" class="img-results-note">{{ $t('items.image_search.none') }}</p>
                 <div v-else class="img-grid">
                     <button
                         v-for="result in results"
@@ -141,11 +141,11 @@ function attach(): void {
 
             <DialogFooter>
                 <DialogClose as-child>
-                    <button type="button" class="btn-ghost">Cancel</button>
+                    <button type="button" class="btn-ghost">{{ $t('common.cancel') }}</button>
                 </DialogClose>
                 <button type="button" class="btn-primary" :disabled="!canAttach" data-test="image-search-attach" @click="attach">
                     <ImagePlus :size="14" />
-                    Attach{{ selected.length ? ` ${selected.length}` : '' }}
+                    {{ $t('items.image_search.attach') }}{{ selected.length ? ` ${selected.length}` : '' }}
                 </button>
             </DialogFooter>
         </DialogContent>

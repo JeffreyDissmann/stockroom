@@ -32,23 +32,20 @@ function restore() {
 
 <template>
     <div class="space-y-6">
-        <HeadingSmall
-            title="Backup &amp; restore"
-            description="Download your entire inventory — items, tags and original photos — as a single .zip archive, or restore one. Derived image sizes are rebuilt automatically on restore."
-        />
+        <HeadingSmall :title="$t('household.nav.backup')" :description="$t('household.backup.description')" />
 
         <div class="space-y-4">
             <Button as-child>
                 <a href="/household/backup/export">
                     <Download class="size-4" />
-                    Download backup
+                    {{ $t('household.backup.download') }}
                 </a>
             </Button>
         </div>
 
         <form class="space-y-4 border-t border-neutral-200 pt-6 dark:border-neutral-800" @submit.prevent="restore">
             <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                Restoring updates items, tags and images with matching ids and adds anything new. Other items are left untouched.
+                {{ $t('household.backup.restore_note') }}
             </p>
             <div class="grid gap-2">
                 <input
@@ -64,11 +61,11 @@ function restore() {
 
             <Button :disabled="form.processing || !form.file" variant="destructive">
                 <Upload class="size-4" />
-                Restore backup
+                {{ $t('household.backup.restore') }}
             </Button>
 
             <p v-if="lastImport" class="text-sm text-neutral-600 dark:text-neutral-400" data-test="backup-result">
-                Restored {{ lastImport.items }} item(s), {{ lastImport.tags }} tag(s) and {{ lastImport.images }} image(s).
+                {{ $t('household.backup.result', { items: lastImport.items, tags: lastImport.tags, images: lastImport.images }) }}
             </p>
         </form>
     </div>

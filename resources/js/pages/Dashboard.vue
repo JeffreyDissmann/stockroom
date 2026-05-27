@@ -2,6 +2,7 @@
 import ActivityFeed from '@/components/ActivityFeed.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import { trans } from '@/composables/useTranslations';
 import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { ActivityRow, BreadcrumbItemType, ItemSummary, SharedData, TagSummary } from '@/types';
@@ -38,7 +39,7 @@ const props = defineProps<{
     activity: ActivityRow[];
 }>();
 
-const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Dashboard', href: '/dashboard' }];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.dashboard'), href: '/dashboard' }];
 
 const page = usePage<SharedData>();
 const currency = page.props.currency;
@@ -50,60 +51,60 @@ const valueLabel = computed(() =>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Dashboard" />
+        <Head :title="$t('nav.dashboard')" />
 
         <template #topbar-actions>
             <Link href="/items/create" class="btn-primary">
                 <Plus :size="14" />
-                Add item
+                {{ $t('nav.add_item') }}
             </Link>
         </template>
 
         <div class="page">
             <div class="mb-5">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">Welcome back, {{ firstName }}</h2>
-                <p style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">A snapshot of your stockroom.</p>
+                <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('dashboard.welcome', { name: firstName }) }}</h2>
+                <p style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.subtitle') }}</p>
             </div>
 
             <section class="stats-strip mb-4">
                 <Link href="/search?type=item" class="stat-cell stat-cell-link">
-                    <div class="lbl">Items</div>
+                    <div class="lbl">{{ $t('dashboard.stats.items') }}</div>
                     <div class="val">{{ stats.items.toLocaleString() }}</div>
-                    <div class="delta">Individual things</div>
+                    <div class="delta">{{ $t('dashboard.stats.items_hint') }}</div>
                 </Link>
                 <div class="stat-cell">
-                    <div class="lbl">Estimated value</div>
+                    <div class="lbl">{{ $t('dashboard.stats.value') }}</div>
                     <div class="val">{{ valueLabel }}</div>
-                    <div class="delta">Purchase price of owned items</div>
+                    <div class="delta">{{ $t('dashboard.stats.value_hint') }}</div>
                 </div>
                 <Link href="/search?type=room" class="stat-cell stat-cell-link">
-                    <div class="lbl">Rooms</div>
+                    <div class="lbl">{{ $t('dashboard.stats.rooms') }}</div>
                     <div class="val">{{ stats.rooms }}</div>
-                    <div class="delta">Top-level spaces</div>
+                    <div class="delta">{{ $t('dashboard.stats.rooms_hint') }}</div>
                 </Link>
                 <Link href="/search?type=container" class="stat-cell stat-cell-link">
-                    <div class="lbl">Containers</div>
+                    <div class="lbl">{{ $t('dashboard.stats.containers') }}</div>
                     <div class="val">{{ stats.containers }}</div>
-                    <div class="delta">Boxes, drawers, shelves</div>
+                    <div class="delta">{{ $t('dashboard.stats.containers_hint') }}</div>
                 </Link>
             </section>
 
             <!-- Tags: most-used first; click to open search filtered by that tag. -->
             <section class="card mb-4">
-                <div v-if="tags.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">No tags yet.</div>
+                <div v-if="tags.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_tags') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link v-for="tag in tags" :key="tag.id" :href="`/search?tags[]=${tag.id}`" class="tag-pill shrink-0 whitespace-nowrap">
                         <span v-if="tag.color" class="size-2 rounded-full" :style="{ backgroundColor: tag.color }" />
                         {{ tag.name }}
                         <span class="tag-pill-count mono">{{ tag.items_count }}</span>
                     </Link>
-                    <Link href="/tags" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">More <ChevronRight :size="12" /></Link>
+                    <Link href="/tags" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">{{ $t('common.more') }} <ChevronRight :size="12" /></Link>
                 </div>
             </section>
 
             <!-- Rooms: fullest first; click to open the room. -->
             <section class="card mb-4">
-                <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">No rooms yet.</div>
+                <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_rooms') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link v-for="room in rooms" :key="room.id" :href="`/items/${room.id}`" class="tag-pill shrink-0 whitespace-nowrap">
                         <component :is="itemIconMap[room.icon]" v-if="room.icon && itemIconMap[room.icon]" class="size-3.5" />
@@ -111,26 +112,26 @@ const valueLabel = computed(() =>
                         {{ room.name }}
                         <span class="tag-pill-count mono">{{ room.count }}</span>
                     </Link>
-                    <Link href="/search?type=room" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">More <ChevronRight :size="12" /></Link>
+                    <Link href="/search?type=room" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">{{ $t('common.more') }} <ChevronRight :size="12" /></Link>
                 </div>
             </section>
 
             <div class="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
                 <section class="card">
                     <div class="card-head">
-                        <h3>Recently added</h3>
-                        <Link href="/search?sort=added" class="meta dash-link">View all <ChevronRight :size="12" /></Link>
+                        <h3>{{ $t('dashboard.recently_added') }}</h3>
+                        <Link href="/search?sort=added" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                     </div>
                     <div v-if="recent.length === 0" class="card-pad" style="text-align: center; color: var(--fg-muted)">
-                        Nothing yet.
-                        <Link href="/items/create" style="color: var(--fg); font-weight: 500; text-decoration: underline">Add the first item</Link>.
+                        {{ $t('dashboard.nothing_yet') }}
+                        <Link href="/items/create" style="color: var(--fg); font-weight: 500; text-decoration: underline">{{ $t('dashboard.add_first') }}</Link>.
                     </div>
                     <table v-else class="table">
                         <thead>
                             <tr>
-                                <th>Item</th>
-                                <th>Inside</th>
-                                <th class="num">Added</th>
+                                <th>{{ $t('dashboard.col_item') }}</th>
+                                <th>{{ $t('dashboard.col_inside') }}</th>
+                                <th class="num">{{ $t('dashboard.col_added') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -149,7 +150,7 @@ const valueLabel = computed(() =>
                                         <ItemTypeIcon :type="r.parent.type.value" class="size-3.5" />
                                         {{ r.parent.name }}
                                     </Link>
-                                    <span v-else style="color: var(--fg-subtle); font-size: 12.5px">Top level</span>
+                                    <span v-else style="color: var(--fg-subtle); font-size: 12.5px">{{ $t('common.top_level') }}</span>
                                 </td>
                                 <td class="num mono" style="color: var(--fg-subtle); font-size: 12px">{{ r.created_at_human }}</td>
                             </tr>
@@ -159,11 +160,11 @@ const valueLabel = computed(() =>
 
                 <section class="card">
                     <div class="card-head">
-                        <h3>Recent activity</h3>
-                        <Link href="/activity" class="meta dash-link">View all <ChevronRight :size="12" /></Link>
+                        <h3>{{ $t('dashboard.recent_activity') }}</h3>
+                        <Link href="/activity" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                     </div>
                     <ActivityFeed v-if="activity.length" :rows="activity" flat />
-                    <div v-else class="card-pad" style="text-align: center; color: var(--fg-muted)">No activity yet.</div>
+                    <div v-else class="card-pad" style="text-align: center; color: var(--fg-muted)">{{ $t('dashboard.no_activity') }}</div>
                 </section>
             </div>
         </div>

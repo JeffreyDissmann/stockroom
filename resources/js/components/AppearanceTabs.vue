@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAppearance } from '@/composables/useAppearance';
+import { trans } from '@/composables/useTranslations';
 import { Monitor, Moon, Sun } from 'lucide-vue-next';
 
 interface Props {
@@ -11,9 +12,9 @@ const { class: containerClass = '' } = defineProps<Props>();
 const { appearance, updateAppearance } = useAppearance();
 
 const tabs = [
-    { value: 'light', Icon: Sun, label: 'Light' },
-    { value: 'dark', Icon: Moon, label: 'Dark' },
-    { value: 'system', Icon: Monitor, label: 'System' },
+    { value: 'light', Icon: Sun, label: trans('settings.appearance.light') },
+    { value: 'dark', Icon: Moon, label: trans('settings.appearance.dark') },
+    { value: 'system', Icon: Monitor, label: trans('settings.appearance.system') },
 ] as const;
 </script>
 

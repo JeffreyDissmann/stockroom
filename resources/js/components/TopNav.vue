@@ -3,6 +3,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCommandPalette } from '@/composables/useCommandPalette';
+import { trans } from '@/composables/useTranslations';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
@@ -18,15 +19,15 @@ interface NavLink {
 }
 
 const primary: NavLink[] = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutGrid, matches: (u) => u.startsWith('/dashboard') },
-    { label: 'Inventory', href: '/items', icon: Boxes, matches: (u) => u.startsWith('/items') },
-    { label: 'Search', href: '/search', icon: Search, matches: (u) => u.startsWith('/search') },
-    { label: 'Tags', href: '/tags', icon: TagIcon, matches: (u) => u.startsWith('/tags') },
+    { label: trans('nav.dashboard'), href: '/dashboard', icon: LayoutGrid, matches: (u) => u.startsWith('/dashboard') },
+    { label: trans('nav.inventory'), href: '/items', icon: Boxes, matches: (u) => u.startsWith('/items') },
+    { label: trans('nav.search'), href: '/search', icon: Search, matches: (u) => u.startsWith('/search') },
+    { label: trans('nav.tags'), href: '/tags', icon: TagIcon, matches: (u) => u.startsWith('/tags') },
 ];
 
 const secondary: NavLink[] = [
-    { label: 'Activity', href: '/activity', icon: ActivityIcon, matches: (u) => u.startsWith('/activity') },
-    { label: 'Household', href: '/household/custom-fields', icon: Warehouse, matches: (u) => u.startsWith('/household') },
+    { label: trans('nav.activity'), href: '/activity', icon: ActivityIcon, matches: (u) => u.startsWith('/activity') },
+    { label: trans('nav.household'), href: '/household/custom-fields', icon: Warehouse, matches: (u) => u.startsWith('/household') },
 ];
 
 const page = usePage<SharedData>();
@@ -60,7 +61,7 @@ function initials(name: string): string {
         <div class="topnav-spacer" />
         <button type="button" class="topnav-search" data-test="open-search" @click="open()">
             <Search :size="14" />
-            <span>Search</span>
+            <span>{{ $t('nav.search') }}</span>
             <kbd>⌘K</kbd>
         </button>
         <Link

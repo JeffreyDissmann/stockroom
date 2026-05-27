@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
+import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary, ItemViewMode } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -27,10 +28,10 @@ const filtered = computed(() => {
     );
 });
 
-const pageTitle = computed(() => props.parent?.name ?? 'Inventory');
+const pageTitle = computed(() => props.parent?.name ?? trans('items.inventory'));
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
-    const base: BreadcrumbItemType[] = [{ title: 'Inventory', href: '/items' }];
+    const base: BreadcrumbItemType[] = [{ title: trans('items.inventory'), href: '/items' }];
     for (const item of props.breadcrumb) base.push({ title: item.name, href: `/items/${item.id}` });
     return base;
 });
@@ -50,7 +51,7 @@ watch(
         <template #topbar-actions>
             <Link :href="createHref" class="btn-primary">
                 <Plus :size="14" />
-                Add item
+                {{ $t('nav.add_item') }}
             </Link>
         </template>
 
@@ -66,17 +67,17 @@ watch(
             <div class="filterbar" style="padding: 0; margin-bottom: 14px">
                 <div class="search">
                     <Search :size="14" />
-                    <input v-model="search" type="search" :placeholder="`Search ${items.length} item${items.length === 1 ? '' : 's'}`" />
+                    <input v-model="search" type="search" :placeholder="$tChoice('items.index.search', items.length)" />
                 </div>
-                <span class="section-label" style="margin-left: auto">{{ filtered.length }} shown</span>
+                <span class="section-label" style="margin-left: auto">{{ $t('items.index.shown', { count: filtered.length }) }}</span>
             </div>
 
             <div v-if="filtered.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
                 <p v-if="items.length === 0" style="margin: 0">
-                    Nothing here yet.
-                    <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">Add the first item</Link>.
+                    {{ $t('items.index.empty') }}
+                    <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">{{ $t('items.index.add_first') }}</Link>.
                 </p>
-                <p v-else style="margin: 0">No items match your search.</p>
+                <p v-else style="margin: 0">{{ $t('items.index.no_match') }}</p>
             </div>
 
             <ItemCollection v-else :items="filtered" :view="view" />
@@ -84,7 +85,7 @@ watch(
             <div v-if="parent" class="flex justify-end mt-6">
                 <Link :href="`/items/${parent.id}/edit`" class="btn-ghost">
                     <Pencil :size="14" />
-                    Edit {{ parent.name }}
+                    {{ $t('items.edit_title', { name: parent.name }) }}
                 </Link>
             </div>
         </div>

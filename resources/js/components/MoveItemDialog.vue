@@ -81,13 +81,13 @@ function move() {
         <DialogTrigger as-child>
             <button type="button" class="btn-pill" data-test="move-item">
                 <CornerUpRight :size="14" />
-                Move
+                {{ $t('items.move.trigger') }}
             </button>
         </DialogTrigger>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Move "{{ item.name }}"</DialogTitle>
-                <DialogDescription>Search for where this item should live. Its contents move with it.</DialogDescription>
+                <DialogTitle>{{ $t('items.move.title', { name: item.name }) }}</DialogTitle>
+                <DialogDescription>{{ $t('items.move.description') }}</DialogDescription>
             </DialogHeader>
 
             <input
@@ -95,7 +95,7 @@ function move() {
                 type="search"
                 class="field"
                 style="width: 100%"
-                placeholder="Search rooms and containers…"
+                :placeholder="$t('items.move.search')"
                 autofocus
                 data-test="move-search"
             />
@@ -103,7 +103,7 @@ function move() {
             <ul class="move-list">
                 <li>
                     <button type="button" class="move-row" :class="selectedId === null ? 'is-selected' : ''" @click="selectedId = null">
-                        <span class="grow">— Top level —</span>
+                        <span class="grow">{{ $t('items.form.top_level') }}</span>
                         <Check v-if="selectedId === null" :size="14" />
                     </button>
                 </li>
@@ -120,23 +120,23 @@ function move() {
                         <Check v-if="selectedId === target.id" :size="14" class="ml-auto shrink-0" />
                     </button>
                 </li>
-                <li v-if="!loading && targets.length === 0 && query" class="move-empty">No matching {{ includeAll ? 'items' : 'locations' }}.</li>
+                <li v-if="!loading && targets.length === 0 && query" class="move-empty">{{ includeAll ? $t('items.move.no_match_items') : $t('items.move.no_match_locations') }}</li>
             </ul>
 
             <label class="flex items-center gap-2 text-sm" style="color: var(--fg-muted)">
                 <input v-model="includeAll" type="checkbox" data-test="move-include-all" />
-                Search all items, not just rooms &amp; containers
+                {{ $t('items.move.include_all') }}
             </label>
 
             <InputError :message="error" />
 
             <DialogFooter>
                 <DialogClose as-child>
-                    <button type="button" class="btn-ghost">Cancel</button>
+                    <button type="button" class="btn-ghost">{{ $t('common.cancel') }}</button>
                 </DialogClose>
                 <button type="button" class="btn-primary" :disabled="processing || unchanged" @click="move">
                     <CornerUpRight :size="14" />
-                    Move here
+                    {{ $t('items.move.submit') }}
                 </button>
             </DialogFooter>
         </DialogContent>

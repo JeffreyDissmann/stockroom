@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { trans, transChoice } from '@/composables/useTranslations';
 import type { TagSummary } from '@/types';
 import { Check, ChevronsUpDown, Tag as TagIcon } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -19,12 +20,12 @@ const filtered = computed(() => {
 
 const label = computed(() => {
     if (selected.value.length === 0) {
-        return 'All tags';
+        return trans('tags.filter.all');
     }
     if (selected.value.length === 1) {
-        return props.tags.find((tag) => tag.id === selected.value[0])?.name ?? '1 tag';
+        return props.tags.find((tag) => tag.id === selected.value[0])?.name ?? transChoice('tags.filter.count', 1);
     }
-    return `${selected.value.length} tags`;
+    return transChoice('tags.filter.count', selected.value.length);
 });
 
 function isSelected(id: number): boolean {
@@ -53,10 +54,10 @@ function clear(): void {
         </PopoverTrigger>
         <PopoverContent align="start" class="w-60 p-0">
             <div class="border-b p-2">
-                <Input v-model="search" placeholder="Filter tags…" class="h-8" />
+                <Input v-model="search" :placeholder="$t('tags.filter.search')" class="h-8" />
             </div>
             <div class="max-h-64 overflow-y-auto p-1">
-                <p v-if="filtered.length === 0" class="px-2 py-3 text-center text-sm text-muted-foreground">No tags found.</p>
+                <p v-if="filtered.length === 0" class="px-2 py-3 text-center text-sm text-muted-foreground">{{ $t('tags.filter.none') }}</p>
                 <button
                     v-for="tag in filtered"
                     :key="tag.id"
@@ -72,7 +73,7 @@ function clear(): void {
             <div v-if="selected.length" class="border-t p-1">
                 <button type="button" class="flex w-full items-center justify-center gap-1.5 rounded-sm px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground" @click="clear">
                     <Check class="size-3" />
-                    Clear {{ selected.length }} selected
+                    {{ $t('tags.filter.clear', { count: selected.length }) }}
                 </button>
             </div>
         </PopoverContent>

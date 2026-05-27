@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -17,7 +18,7 @@ interface ReindexStatus {
 
 const props = defineProps<{ status: ReindexStatus | null; total: number; semantic: boolean }>();
 
-const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Search index', href: '/household/search-index' }];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.search_index'), href: '/household/search-index' }];
 
 const form = useForm({});
 
@@ -38,40 +39,37 @@ function rebuild() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Search index" />
+        <Head :title="$t('household.nav.search_index')" />
 
         <HouseholdLayout>
             <div class="space-y-6">
-                <HeadingSmall
-                    title="Search index"
-                    description="Rebuild the full-text search index for all items. Useful after a bulk change, or to (re)generate semantic-search embeddings."
-                />
+                <HeadingSmall :title="$t('household.nav.search_index')" :description="$t('household.search_index.description')" />
 
                 <p style="font-size: 13px; color: var(--fg-muted)">
-                    {{ total }} item{{ total === 1 ? '' : 's' }} to index.
-                    <template v-if="semantic">Semantic search is on — unchanged items reuse cached embeddings, so re-runs are fast.</template>
-                    <template v-else>Semantic search is off (keyword only).</template>
-                    The rebuild runs in the background — a queue worker must be running.
+                    {{ $tChoice('household.search_index.count', total) }}
+                    <template v-if="semantic">{{ $t('household.search_index.semantic_on') }}</template>
+                    <template v-else>{{ $t('household.search_index.semantic_off') }}</template>
+                    {{ $t('household.search_index.worker_note') }}
                 </p>
 
                 <div>
                     <button type="button" class="btn-primary" :disabled="form.processing || running" data-test="rebuild-index" @click="rebuild">
                         <RefreshCw :size="14" />
-                        Rebuild search index
+                        {{ $t('household.search_index.rebuild') }}
                     </button>
                 </div>
 
                 <div v-if="status" data-test="reindex-status" style="border-top: 1px solid var(--border); padding-top: 20px">
                     <template v-if="status.state === 'running'">
-                        <p style="font-size: 13px; margin-bottom: 8px">Indexing… {{ status.done }} / {{ status.total }}</p>
+                        <p style="font-size: 13px; margin-bottom: 8px">{{ $t('household.search_index.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}</p>
                         <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
                             <div :style="{ width: `${percent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
                         </div>
                     </template>
                     <p v-else-if="status.state === 'done'" style="font-size: 13px; color: var(--fg)">
-                        Done — indexed {{ status.indexed ?? status.total }} item{{ (status.indexed ?? status.total) === 1 ? '' : 's' }}.
+                        {{ $tChoice('household.search_index.done', status.indexed ?? status.total ?? 0) }}
                     </p>
-                    <p v-else-if="status.state === 'failed'" style="font-size: 13px; color: var(--neg)">Reindex failed: {{ status.error }}</p>
+                    <p v-else-if="status.state === 'failed'" style="font-size: 13px; color: var(--neg)">{{ $t('household.search_index.failed', { error: status.error ?? '' }) }}</p>
                 </div>
             </div>
         </HouseholdLayout>

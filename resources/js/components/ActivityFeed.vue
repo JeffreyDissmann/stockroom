@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { ActivityRow } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { trans, transChoice } from '@/composables/useTranslations';
+import type { ActivityRow, SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
 
 // `flat` drops the card wrapper so the feed can sit inside another card.
 withDefaults(defineProps<{ rows: ActivityRow[]; showSubject?: boolean; flat?: boolean }>(), { showSubject: true, flat: false });
@@ -18,11 +19,11 @@ function verb(row: ActivityRow): string {
     switch (row.event) {
         case 'created':
         case 'image_added':
-            return 'Added';
+            return trans('activity.verbs.added');
         case 'deleted':
-            return 'Deleted';
+            return trans('activity.verbs.deleted');
         default:
-            return isMove(row) ? 'Moved' : 'Updated';
+            return isMove(row) ? trans('activity.verbs.moved') : trans('activity.verbs.updated');
     }
 }
 
@@ -30,13 +31,13 @@ function when(iso: string | null): string {
     if (!iso) return '';
     const diff = Date.now() - new Date(iso).getTime();
     const mins = Math.round(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return trans('activity.time.just_now');
+    if (mins < 60) return transChoice('activity.time.minutes', mins);
     const hrs = Math.round(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
+    if (hrs < 24) return transChoice('activity.time.hours', hrs);
     const days = Math.round(hrs / 24);
-    if (days < 30) return `${days}d ago`;
-    return new Date(iso).toLocaleDateString();
+    if (days < 30) return transChoice('activity.time.days', days);
+    return new Date(iso).toLocaleDateString(usePage<SharedData>().props.locale);
 }
 </script>
 
@@ -49,32 +50,32 @@ function when(iso: string | null): string {
                     <span class="font-medium" :class="`act-text-${row.event}`">{{ verb(row) }}</span>
 
                     <template v-if="isImageAdd(row)">
-                        <span class="mx-1 font-medium">{{ row.count }} image{{ row.count === 1 ? '' : 's' }}</span>
+                        <span class="mx-1 font-medium">{{ $tChoice('activity.images_count', row.count) }}</span>
                         <template v-if="showSubject">
-                            <span style="color: var(--fg-subtle)">to</span>
+                            <span style="color: var(--fg-subtle)">{{ $t('activity.words.to') }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
                                 class="ml-1 font-medium"
                                 :class="row.subject_url ? 'hover:underline' : ''"
-                            >{{ row.subject_label ?? 'unknown' }}</component>
+                            >{{ row.subject_label ?? $t('activity.words.unknown') }}</component>
                         </template>
                     </template>
 
                     <template v-else>
                         <template v-if="showSubject">
-                            <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type.toLowerCase() }}</span>
+                            <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
                                 class="font-medium"
                                 :class="[isMove(row) ? 'mx-1' : '', row.subject_url ? 'hover:underline' : '']"
-                            >{{ row.subject_label ?? 'unknown' }}</component>
+                            >{{ row.subject_label ?? $t('activity.words.unknown') }}</component>
                         </template>
                         <template v-if="isMove(row)">
-                            <span :class="showSubject ? '' : 'ml-1'" style="color: var(--fg-subtle)">from</span>
+                            <span :class="showSubject ? '' : 'ml-1'" style="color: var(--fg-subtle)">{{ $t('activity.words.from') }}</span>
                             <span class="mx-1 font-medium">{{ row.changes[0].from }}</span>
-                            <span style="color: var(--fg-subtle)">to</span>
+                            <span style="color: var(--fg-subtle)">{{ $t('activity.words.to') }}</span>
                             <span class="ml-1 font-medium">{{ row.changes[0].to }}</span>
                         </template>
                     </template>

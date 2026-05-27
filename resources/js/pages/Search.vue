@@ -2,6 +2,7 @@
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import TagFilter from '@/components/TagFilter.vue';
+import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -24,7 +25,7 @@ const props = defineProps<{
     types: { value: ItemTypeValue; label: string }[];
 }>();
 
-const breadcrumbs: BreadcrumbItemType[] = [{ title: 'Search', href: '/search' }];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.search'), href: '/search' }];
 
 const term = ref(props.query);
 const view = ref<ItemViewMode>('list');
@@ -58,19 +59,19 @@ function searchNow() {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Search" />
+        <Head :title="$t('nav.search')" />
 
         <div class="page">
             <form class="filterbar searchbar" style="padding: 0; margin-bottom: 14px" @submit.prevent>
                 <div class="search" style="flex: 1">
                     <SearchIcon :size="14" />
-                    <input v-model="term" type="search" placeholder="Search all items…" autofocus @search="searchNow" />
+                    <input v-model="term" type="search" :placeholder="$t('search.placeholder')" autofocus @search="searchNow" />
                 </div>
             </form>
 
             <div class="flex flex-wrap items-center gap-2 mb-4">
                 <div class="flex items-center gap-1">
-                    <button type="button" :class="['chip', filters.type === null ? 'active' : '']" @click="apply({ type: null })">All</button>
+                    <button type="button" :class="['chip', filters.type === null ? 'active' : '']" @click="apply({ type: null })">{{ $t('common.all') }}</button>
                     <button
                         v-for="t in types"
                         :key="t.value"
@@ -85,21 +86,21 @@ function searchNow() {
                 <TagFilter :tags="tags" :model-value="filters.tags" @update:model-value="(value) => apply({ tags: value })" />
 
                 <select class="field" style="max-width: 150px" :value="filters.sort" @change="apply({ sort: ($event.target as HTMLSelectElement).value })">
-                    <option value="relevance">Relevance</option>
-                    <option value="name">Name</option>
-                    <option value="added">Recently added</option>
-                    <option value="edited">Recently edited</option>
+                    <option value="relevance">{{ $t('search.sort.relevance') }}</option>
+                    <option value="name">{{ $t('search.sort.name') }}</option>
+                    <option value="added">{{ $t('search.sort.added') }}</option>
+                    <option value="edited">{{ $t('search.sort.edited') }}</option>
                 </select>
 
                 <div class="flex items-center gap-2" style="margin-left: auto">
-                    <span class="section-label">{{ items.total }} result{{ items.total === 1 ? '' : 's' }}</span>
+                    <span class="section-label">{{ $tChoice('search.results', items.total) }}</span>
                     <ItemViewToggle v-model="view" />
                 </div>
             </div>
 
             <div v-if="items.data.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                <p v-if="query === '' && filters.type === null && filters.tags.length === 0" style="margin: 0">Type above to search every item.</p>
-                <p v-else style="margin: 0">No items match.</p>
+                <p v-if="query === '' && filters.type === null && filters.tags.length === 0" style="margin: 0">{{ $t('search.empty_prompt') }}</p>
+                <p v-else style="margin: 0">{{ $t('search.no_match') }}</p>
             </div>
 
             <template v-else>

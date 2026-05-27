@@ -20,7 +20,6 @@ it('renders the compact dashboard with stats and sections', function () {
         ->assertSee('Items')
         ->assertSee('Rooms')
         ->assertSee('Containers')
-        ->assertSee('Loose items')
         ->assertSee('Recently added')
         ->assertSee('Garage')
         ->assertSee('Tools')

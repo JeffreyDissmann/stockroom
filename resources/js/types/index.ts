@@ -34,6 +34,8 @@ export interface SharedData {
     currency: CurrencyConfig;
     features: { imageSearch: boolean; ai: boolean };
     flash: { backup: BackupResult | null };
+    locale: string;
+    translations: Record<string, string>;
     ziggy: {
         location: string;
         url: string;

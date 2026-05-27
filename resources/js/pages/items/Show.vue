@@ -7,6 +7,7 @@ import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import { itemIconMap } from '@/lib/itemIcons';
+import { trans } from '@/composables/useTranslations';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
@@ -53,20 +54,26 @@ const initials = computed(() => {
 
 const { format: fmtMoney } = useCurrency();
 
-const detailRows = computed<[string, string][]>(() => {
+interface DetailRow {
+    label: string;
+    value: string;
+    mono?: boolean;
+}
+
+const detailRows = computed<DetailRow[]>(() => {
     const i = props.item;
-    const rows: [string, string][] = [];
+    const rows: DetailRow[] = [];
     if (i.type.details === false) return rows; // rooms carry no detail fields
-    if (i.quantity != null) rows.push(['Quantity', String(i.quantity)]);
-    if (i.manufacturer) rows.push(['Manufacturer', i.manufacturer]);
-    if (i.model_number) rows.push(['Model', i.model_number]);
-    if (i.serial_number) rows.push(['Serial', i.serial_number]);
-    if (i.purchased_from) rows.push(['Purchased from', i.purchased_from]);
-    if (i.purchase_date) rows.push(['Purchased', i.purchase_date]);
+    if (i.quantity != null) rows.push({ label: trans('items.show.labels.quantity'), value: String(i.quantity) });
+    if (i.manufacturer) rows.push({ label: trans('items.show.labels.manufacturer'), value: i.manufacturer });
+    if (i.model_number) rows.push({ label: trans('items.show.labels.model'), value: i.model_number });
+    if (i.serial_number) rows.push({ label: trans('items.show.labels.serial'), value: i.serial_number, mono: true });
+    if (i.purchased_from) rows.push({ label: trans('items.show.labels.purchased_from'), value: i.purchased_from });
+    if (i.purchase_date) rows.push({ label: trans('items.show.labels.purchased'), value: i.purchase_date });
     const paid = fmtMoney(i.purchase_price);
-    if (paid) rows.push(['Paid', paid]);
-    if (i.lifetime_warranty) rows.push(['Warranty', 'Lifetime']);
-    else if (i.warranty_expires) rows.push(['Warranty until', i.warranty_expires]);
+    if (paid) rows.push({ label: trans('items.show.labels.paid'), value: paid, mono: true });
+    if (i.lifetime_warranty) rows.push({ label: trans('items.show.labels.warranty'), value: trans('items.show.labels.lifetime') });
+    else if (i.warranty_expires) rows.push({ label: trans('items.show.labels.warranty_until'), value: i.warranty_expires });
     return rows;
 });
 
@@ -75,13 +82,13 @@ const isSold = computed(() => {
     return Boolean(i.sold_to || i.sold_price || i.sold_date || i.sold_notes);
 });
 
-const soldRows = computed<[string, string][]>(() => {
+const soldRows = computed<DetailRow[]>(() => {
     const i = props.item;
-    const rows: [string, string][] = [];
-    if (i.sold_to) rows.push(['Sold to', i.sold_to]);
+    const rows: DetailRow[] = [];
+    if (i.sold_to) rows.push({ label: trans('items.show.labels.sold_to'), value: i.sold_to });
     const price = fmtMoney(i.sold_price);
-    if (price) rows.push(['Sold for', price]);
-    if (i.sold_date) rows.push(['Sold on', i.sold_date]);
+    if (price) rows.push({ label: trans('items.show.labels.sold_for'), value: price, mono: true });
+    if (i.sold_date) rows.push({ label: trans('items.show.labels.sold_on'), value: i.sold_date });
     return rows;
 });
 
@@ -90,7 +97,7 @@ const contentsView = ref<ItemViewMode>('grid');
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
 function destroyItem() {
-    if (!confirm(`Delete "${props.item.name}"? Any items inside will become top-level.`)) return;
+    if (!confirm(trans('items.show.delete_confirm', { name: props.item.name }))) return;
     router.delete(`/items/${props.item.id}`);
 }
 </script>
@@ -102,17 +109,17 @@ function destroyItem() {
         <template #topbar-actions>
             <Link :href="`/items/${item.id}/edit`" class="btn-pill">
                 <Pencil :size="14" />
-                Edit
+                {{ $t('common.edit') }}
             </Link>
             <MoveItemDialog :item="item" />
             <SearchImageDialog v-if="page.props.features.imageSearch" :item-id="item.id" :item-name="item.name" />
             <button class="btn-pill btn-danger" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
-                Delete
+                {{ $t('common.delete') }}
             </button>
             <Link :href="`/items/create?parent=${item.id}`" class="btn-primary">
                 <Plus :size="14" />
-                Add child
+                {{ $t('items.show.add_child') }}
             </Link>
         </template>
 
@@ -151,10 +158,10 @@ function destroyItem() {
 
                     <div class="card">
                         <div class="card-head">
-                            <h3>Where</h3>
+                            <h3>{{ $t('items.show.where') }}</h3>
                         </div>
                         <div class="card-pad">
-                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">Top level — not inside anything.</div>
+                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">{{ $t('items.show.top_level_none') }}</div>
                             <div v-else class="flex items-center flex-wrap gap-1.5" style="font-size: 13px">
                                 <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
                                     <ChevronRight v-if="i > 0" :size="12" style="color: var(--fg-subtle)" />
@@ -169,13 +176,13 @@ function destroyItem() {
 
                     <div v-if="detailRows.length" class="card">
                         <div class="card-head">
-                            <h3>Details</h3>
+                            <h3>{{ $t('items.show.details') }}</h3>
                         </div>
                         <div class="card-pad">
                             <dl class="kv">
-                                <template v-for="[label, value] in detailRows" :key="label">
-                                    <dt>{{ label }}</dt>
-                                    <dd :class="{ mono: label === 'Serial' || label === 'Paid' }">{{ value }}</dd>
+                                <template v-for="row in detailRows" :key="row.label">
+                                    <dt>{{ row.label }}</dt>
+                                    <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
                                 </template>
                             </dl>
                             <p v-if="item.warranty_details" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
@@ -186,13 +193,13 @@ function destroyItem() {
 
                     <div v-if="customFields.length" class="card">
                         <div class="card-head">
-                            <h3>Custom fields</h3>
+                            <h3>{{ $t('items.show.custom_fields') }}</h3>
                         </div>
                         <div class="card-pad">
                             <dl class="kv">
                                 <template v-for="field in customFields" :key="field.custom_field_id">
                                     <dt>{{ field.name }}</dt>
-                                    <dd v-if="field.type === 'boolean'">{{ field.value ? 'Yes' : 'No' }}</dd>
+                                    <dd v-if="field.type === 'boolean'">{{ field.value ? $t('common.yes') : $t('common.no') }}</dd>
                                     <dd v-else-if="field.type === 'url'">
                                         <a :href="String(field.value)" target="_blank" rel="noopener noreferrer" style="color: var(--accent)">{{ field.value }}</a>
                                     </dd>
@@ -204,13 +211,13 @@ function destroyItem() {
 
                     <div v-if="isSold" class="card">
                         <div class="card-head">
-                            <h3>Sold</h3>
+                            <h3>{{ $t('items.show.sold') }}</h3>
                         </div>
                         <div class="card-pad">
                             <dl class="kv">
-                                <template v-for="[label, value] in soldRows" :key="label">
-                                    <dt>{{ label }}</dt>
-                                    <dd :class="{ mono: label === 'Sold for' }">{{ value }}</dd>
+                                <template v-for="row in soldRows" :key="row.label">
+                                    <dt>{{ row.label }}</dt>
+                                    <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
                                 </template>
                             </dl>
                             <p v-if="item.sold_notes" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
@@ -223,25 +230,25 @@ function destroyItem() {
 
             <section class="mt-8">
                 <div class="flex items-center justify-between mb-3 gap-3">
-                    <h3 class="section-label" style="margin: 0">Contents</h3>
+                    <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
                     <div class="flex items-center gap-2">
                         <ItemViewToggle v-if="children.length" v-model="contentsView" />
                         <Link :href="`/items/create?parent=${item.id}`" class="btn-pill">
                             <Plus :size="14" />
-                            Add child
+                            {{ $t('items.show.add_child') }}
                         </Link>
                     </div>
                 </div>
 
                 <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                    Nothing inside this {{ item.type.label.toLowerCase() }} yet.
+                    {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
                 </div>
 
                 <ItemCollection v-else :items="children" :view="contentsView" />
             </section>
 
             <section v-if="activities.length" class="mt-8">
-                <h3 class="section-label mb-3" style="margin: 0 0 12px">Activity</h3>
+                <h3 class="section-label mb-3" style="margin: 0 0 12px">{{ $t('activity.title') }}</h3>
                 <ActivityFeed :rows="activities" :show-subject="false" />
             </section>
         </div>

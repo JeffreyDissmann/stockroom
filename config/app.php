@@ -88,6 +88,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | The languages a user can switch the interface to, keyed by locale code.
+    | `label` is the autonym shown in the switcher; `ai` is the English language
+    | name handed to the vision model so it proposes name/description in that
+    | language. Drives the switcher options, the locale validation rule, and the
+    | AI photo analysis language.
+    |
+    */
+
+    'supported_locales' => [
+        'en' => ['label' => 'English', 'ai' => 'English'],
+        'de' => ['label' => 'Deutsch', 'ai' => 'German'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

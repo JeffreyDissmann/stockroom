@@ -6,6 +6,7 @@ import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import { trans, transChoice } from '@/composables/useTranslations';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Check, Loader2, Sparkles } from 'lucide-vue-next';
@@ -89,13 +90,12 @@ const fieldStates = computed<Record<string, AiFieldState>>(() => {
 
 const analyzeHint = computed(() => {
     if (analyzing.value) {
-        return 'The vision model is looking at your photo…';
+        return trans('items.form.ai_hint_analyzing');
     }
     if (aiFilled.value.size > 0) {
-        const n = aiFilled.value.size;
-        return `Filled ${n} field${n === 1 ? '' : 's'} from the photo — review the highlighted fields before saving.`;
+        return transChoice('items.form.ai_hint_filled', aiFilled.value.size);
     }
-    return 'Reads the first photo to pre-fill the fields below — review before saving.';
+    return trans('items.form.ai_hint_idle');
 });
 
 const ANALYZE_TIMEOUT_MS = 130_000; // a touch beyond the server-side agent timeout
@@ -138,8 +138,8 @@ async function analyzeFromPhoto() {
     } catch (error) {
         analyzeError.value =
             error instanceof DOMException && error.name === 'AbortError'
-                ? 'The photo is taking too long to analyse. Please try again or fill the form manually.'
-                : 'Could not read that photo. Fill the form manually, or try another image.';
+                ? trans('items.form.ai_error_timeout')
+                : trans('items.form.ai_error_generic');
     } finally {
         window.clearTimeout(timeout);
         analyzing.value = false;
@@ -209,7 +209,7 @@ function submit() {
 <template>
     <form class="form" @submit.prevent="submit">
         <div class="form-row">
-            <label>Type</label>
+            <label>{{ $t('items.form.type') }}</label>
             <div class="grid grid-cols-3 gap-2">
                 <button
                     v-for="type in types"
@@ -231,13 +231,13 @@ function submit() {
         </div>
 
         <div class="form-row">
-            <label for="name">Name <AiFieldBadge :state="fieldStates.name" /></label>
+            <label for="name">{{ $t('common.name') }} <AiFieldBadge :state="fieldStates.name" /></label>
             <input
                 id="name"
                 v-model="form.name"
                 autofocus
                 required
-                placeholder="e.g. Toolbox"
+                :placeholder="$t('items.form.name_placeholder')"
                 :class="['field', fieldStates.name ? `ai-${fieldStates.name}` : '']"
                 @input="clearAiFlag('name')"
             />
@@ -245,12 +245,12 @@ function submit() {
         </div>
 
         <div class="form-row">
-            <label for="description">Description <AiFieldBadge :state="fieldStates.description" /></label>
+            <label for="description">{{ $t('common.description') }} <AiFieldBadge :state="fieldStates.description" /></label>
             <textarea
                 id="description"
                 v-model="form.description"
                 rows="3"
-                placeholder="Optional notes"
+                :placeholder="$t('items.form.description_placeholder')"
                 :class="['field', fieldStates.description ? `ai-${fieldStates.description}` : '']"
                 @input="clearAiFlag('description')"
             />
@@ -258,8 +258,8 @@ function submit() {
         </div>
 
         <div v-if="isPlace" class="form-row">
-            <label for="icon">Icon</label>
-            <p class="appearance-hint">Rooms and containers rarely have a photo — pick an icon to tell them apart (or leave it on initials).</p>
+            <label for="icon">{{ $t('items.form.icon') }}</label>
+            <p class="appearance-hint">{{ $t('items.form.icon_hint') }}</p>
             <div class="appearance">
                 <span class="appearance-preview">
                     <ItemThumbnail
@@ -273,15 +273,15 @@ function submit() {
         </div>
 
         <div v-if="showDetails" class="form-row" style="max-width: 160px">
-            <label for="quantity">Quantity</label>
+            <label for="quantity">{{ $t('items.form.quantity') }}</label>
             <input id="quantity" v-model.number="form.quantity" type="number" min="0" step="1" class="field" />
             <InputError :message="form.errors.quantity" />
         </div>
 
         <div v-if="mode === 'create'" class="form-row">
-            <label for="parent_id">Inside</label>
+            <label for="parent_id">{{ $t('items.form.inside') }}</label>
             <select id="parent_id" v-model="form.parent_id" class="field">
-                <option :value="null">— Top level —</option>
+                <option :value="null">{{ $t('items.form.top_level') }}</option>
                 <option v-for="candidate in eligibleParents" :key="candidate.id" :value="candidate.id">
                     {{ candidate.type.label }} · {{ candidate.name }}
                 </option>
@@ -302,16 +302,16 @@ function submit() {
             <button type="button" class="btn-pill" :disabled="analyzing" data-test="ai-fill" @click="analyzeFromPhoto">
                 <Loader2 v-if="analyzing" :size="14" class="ai-spin" />
                 <Sparkles v-else :size="14" />
-                {{ analyzing ? 'Reading photo…' : 'Fill details from photo' }}
+                {{ analyzing ? $t('items.form.ai_reading') : $t('items.form.ai_fill') }}
             </button>
             <span v-if="!analyzeError" class="ai-fill-hint">{{ analyzeHint }}</span>
             <p v-if="analyzeError" class="ai-fill-error">{{ analyzeError }}</p>
         </div>
 
         <div class="form-row">
-            <label>Tags</label>
+            <label>{{ $t('items.form.tags') }}</label>
             <div v-if="tags.length === 0" style="color: var(--fg-muted); font-size: 13px">
-                No tags yet. Create one from the Tags page.
+                {{ $t('items.form.no_tags') }}
             </div>
             <div v-else class="flex flex-wrap gap-2">
                 <button
@@ -336,22 +336,22 @@ function submit() {
 
         <template v-if="showDetails">
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-        <p class="section-label">Purchase &amp; identification</p>
+        <p class="section-label">{{ $t('items.form.section_purchase') }}</p>
 
         <div class="form-grid">
             <div class="form-row">
-                <label for="manufacturer">Manufacturer <AiFieldBadge :state="fieldStates.manufacturer" /></label>
+                <label for="manufacturer">{{ $t('items.form.manufacturer') }} <AiFieldBadge :state="fieldStates.manufacturer" /></label>
                 <input
                     id="manufacturer"
                     v-model="form.manufacturer"
-                    placeholder="e.g. DeWalt"
+                    :placeholder="$t('items.form.manufacturer_placeholder')"
                     :class="['field', fieldStates.manufacturer ? `ai-${fieldStates.manufacturer}` : '']"
                     @input="clearAiFlag('manufacturer')"
                 />
                 <InputError :message="form.errors.manufacturer" />
             </div>
             <div class="form-row">
-                <label for="model_number">Model number <AiFieldBadge :state="fieldStates.model_number" /></label>
+                <label for="model_number">{{ $t('items.form.model_number') }} <AiFieldBadge :state="fieldStates.model_number" /></label>
                 <input
                     id="model_number"
                     v-model="form.model_number"
@@ -361,7 +361,7 @@ function submit() {
                 <InputError :message="form.errors.model_number" />
             </div>
             <div class="form-row">
-                <label for="serial_number">Serial number <AiFieldBadge :state="fieldStates.serial_number" /></label>
+                <label for="serial_number">{{ $t('items.form.serial_number') }} <AiFieldBadge :state="fieldStates.serial_number" /></label>
                 <input
                     id="serial_number"
                     v-model="form.serial_number"
@@ -371,70 +371,70 @@ function submit() {
                 <InputError :message="form.errors.serial_number" />
             </div>
             <div class="form-row">
-                <label for="purchased_from">Purchased from</label>
-                <input id="purchased_from" v-model="form.purchased_from" class="field" placeholder="Vendor / store" />
+                <label for="purchased_from">{{ $t('items.form.purchased_from') }}</label>
+                <input id="purchased_from" v-model="form.purchased_from" class="field" :placeholder="$t('items.form.purchased_from_placeholder')" />
                 <InputError :message="form.errors.purchased_from" />
             </div>
             <div class="form-row">
-                <label for="purchase_date">Purchase date</label>
+                <label for="purchase_date">{{ $t('items.form.purchase_date') }}</label>
                 <input id="purchase_date" v-model="form.purchase_date" type="date" class="field" />
                 <InputError :message="form.errors.purchase_date" />
             </div>
             <div class="form-row">
-                <label for="purchase_price">Purchase price ({{ currency.code }})</label>
-                <input id="purchase_price" v-model="form.purchase_price" type="number" min="0" step="0.01" class="field" placeholder="0.00" />
+                <label for="purchase_price">{{ $t('items.form.purchase_price', { code: currency.code }) }}</label>
+                <input id="purchase_price" v-model="form.purchase_price" type="number" min="0" step="0.01" class="field" :placeholder="$t('items.form.price_placeholder')" />
                 <InputError :message="form.errors.purchase_price" />
             </div>
         </div>
 
         <template v-if="customFields.length">
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-            <p class="section-label">Custom fields</p>
+            <p class="section-label">{{ $t('items.form.section_custom') }}</p>
             <CustomFieldsInput v-model="form.custom_fields" :fields="customFields" :errors="form.errors" />
         </template>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-        <p class="section-label">Warranty</p>
+        <p class="section-label">{{ $t('items.form.section_warranty') }}</p>
 
         <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
             <input v-model="form.lifetime_warranty" type="checkbox" />
-            Lifetime warranty
+            {{ $t('items.form.lifetime_warranty') }}
         </label>
         <div class="form-grid">
             <div class="form-row">
-                <label for="warranty_expires">Warranty expires</label>
+                <label for="warranty_expires">{{ $t('items.form.warranty_expires') }}</label>
                 <input id="warranty_expires" v-model="form.warranty_expires" type="date" class="field" :disabled="form.lifetime_warranty" />
                 <InputError :message="form.errors.warranty_expires" />
             </div>
         </div>
         <div class="form-row">
-            <label for="warranty_details">Warranty details</label>
-            <textarea id="warranty_details" v-model="form.warranty_details" rows="2" class="field" placeholder="Coverage notes, claim contact, etc." />
+            <label for="warranty_details">{{ $t('items.form.warranty_details') }}</label>
+            <textarea id="warranty_details" v-model="form.warranty_details" rows="2" class="field" :placeholder="$t('items.form.warranty_details_placeholder')" />
             <InputError :message="form.errors.warranty_details" />
         </div>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-        <p class="section-label">Sold</p>
+        <p class="section-label">{{ $t('items.form.section_sold') }}</p>
 
         <div class="form-grid">
             <div class="form-row">
-                <label for="sold_to">Sold to</label>
-                <input id="sold_to" v-model="form.sold_to" class="field" placeholder="Buyer" />
+                <label for="sold_to">{{ $t('items.form.sold_to') }}</label>
+                <input id="sold_to" v-model="form.sold_to" class="field" :placeholder="$t('items.form.sold_to_placeholder')" />
                 <InputError :message="form.errors.sold_to" />
             </div>
             <div class="form-row">
-                <label for="sold_price">Sold price ({{ currency.code }})</label>
-                <input id="sold_price" v-model="form.sold_price" type="number" min="0" step="0.01" class="field" placeholder="0.00" />
+                <label for="sold_price">{{ $t('items.form.sold_price', { code: currency.code }) }}</label>
+                <input id="sold_price" v-model="form.sold_price" type="number" min="0" step="0.01" class="field" :placeholder="$t('items.form.price_placeholder')" />
                 <InputError :message="form.errors.sold_price" />
             </div>
             <div class="form-row">
-                <label for="sold_date">Sold date</label>
+                <label for="sold_date">{{ $t('items.form.sold_date') }}</label>
                 <input id="sold_date" v-model="form.sold_date" type="date" class="field" />
                 <InputError :message="form.errors.sold_date" />
             </div>
         </div>
         <div class="form-row">
-            <label for="sold_notes">Sold notes</label>
+            <label for="sold_notes">{{ $t('items.form.sold_notes') }}</label>
             <textarea id="sold_notes" v-model="form.sold_notes" rows="2" class="field" />
             <InputError :message="form.errors.sold_notes" />
         </div>
@@ -443,7 +443,7 @@ function submit() {
         <div class="flex justify-end gap-2">
             <button type="submit" :disabled="form.processing" class="btn-primary">
                 <Check :size="14" />
-                {{ submitLabel ?? (mode === 'create' ? 'Create' : 'Save') }}
+                {{ submitLabel ?? (mode === 'create' ? $t('common.create') : $t('common.save')) }}
             </button>
         </div>
     </form>

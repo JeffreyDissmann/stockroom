@@ -96,14 +96,14 @@ defineExpose({ open });
 
 <template>
     <div v-if="isOpen" class="cmdk-overlay" @click.self="close()">
-        <div class="cmdk-panel" role="dialog" aria-label="Search items">
+        <div class="cmdk-panel" role="dialog" :aria-label="$t('search.command.aria')">
             <div class="cmdk-input">
                 <Search :size="16" />
-                <input ref="inputEl" v-model="query" type="text" placeholder="Search all items…" data-test="command-input" />
+                <input ref="inputEl" v-model="query" type="text" :placeholder="$t('search.placeholder')" data-test="command-input" />
             </div>
             <div v-if="hasQuery" class="cmdk-results">
-                <div v-if="loading && !results.length" class="cmdk-empty">Searching…</div>
-                <div v-else-if="!loading && !results.length" class="cmdk-empty">No matches.</div>
+                <div v-if="loading && !results.length" class="cmdk-empty">{{ $t('search.command.searching') }}</div>
+                <div v-else-if="!loading && !results.length" class="cmdk-empty">{{ $t('search.command.no_matches') }}</div>
                 <button
                     v-for="(result, i) in results"
                     :key="result.id"
@@ -117,13 +117,13 @@ defineExpose({ open });
                     </span>
                     <span class="cmdk-text">
                         <span class="cmdk-name">{{ result.name }}</span>
-                        <span class="cmdk-path">{{ result.path || 'Top level' }}</span>
+                        <span class="cmdk-path">{{ result.path || $t('common.top_level') }}</span>
                     </span>
                     <span class="cmdk-type">{{ result.type.label }}</span>
                 </button>
             </div>
             <button v-if="hasQuery" type="button" class="cmdk-footer" data-test="command-view-all" @click="viewAll()">
-                See all results for "{{ query.trim() }}"
+                {{ $t('search.command.see_all', { query: query.trim() }) }}
             </button>
         </div>
     </div>

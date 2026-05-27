@@ -7,6 +7,8 @@ namespace App\Http\Middleware;
 use App\Services\Brave\BraveImageSearchClient;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Lang;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -19,6 +21,17 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /**
+     * Translation groups (lang/<locale>/<group>.php) exposed to the frontend.
+     * Framework files (validation, auth, passwords) are intentionally excluded.
+     *
+     * @var list<string>
+     */
+    private const TRANSLATION_GROUPS = [
+        'common', 'nav', 'dashboard', 'items', 'search',
+        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums',
+    ];
 
     /**
      * Determines the current asset version.
@@ -59,6 +72,37 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'backup' => $request->session()->get('backup'),
             ],
+            'locale' => app()->getLocale(),
+            'translations' => $this->translations(),
         ]);
+    }
+
+    /**
+     * Flattened dot-key map of the active locale's UI strings, with English as
+     * the base so any untranslated key falls back to its English value.
+     *
+     * @return array<string, string>
+     */
+    private function translations(): array
+    {
+        $locale = app()->getLocale();
+        $fallback = config('app.fallback_locale');
+
+        $messages = [];
+
+        foreach (self::TRANSLATION_GROUPS as $group) {
+            $base = Lang::get($group, [], $fallback);
+            $active = $locale === $fallback ? $base : Lang::get($group, [], $locale);
+
+            if (! is_array($base)) {
+                continue;
+            }
+
+            $merged = is_array($active) ? array_replace_recursive($base, $active) : $base;
+
+            $messages += Arr::dot($merged, "{$group}.");
+        }
+
+        return $messages;
     }
 }

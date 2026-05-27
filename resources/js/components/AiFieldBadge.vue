@@ -10,7 +10,7 @@ defineProps<{ state: 'pending' | 'suggested' | null }>();
     <span v-if="state" class="ai-badge" :class="`ai-badge-${state}`">
         <Loader2 v-if="state === 'pending'" :size="10" class="ai-badge-spin" />
         <Sparkles v-else :size="10" />
-        {{ state === 'pending' ? 'Analyzing…' : 'Suggested' }}
+        {{ state === 'pending' ? $t('items.form.badge_analyzing') : $t('items.form.badge_suggested') }}
     </span>
 </template>
 
