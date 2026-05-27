@@ -7,70 +7,15 @@ namespace App\Http\Controllers;
 use App\Enums\ItemType;
 use App\Models\Item;
 use App\Models\Tag;
-use App\Search\ItemEmbedder;
-use Closure;
+use App\Services\InventorySearch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Scout\Builder;
-use Throwable;
 
 class SearchController extends Controller
 {
-    public function __construct(private readonly ItemEmbedder $embedder) {}
-
-    /**
-     * Run a Scout search, applying Meilisearch hybrid (semantic) options when
-     * enabled and transparently falling back to keyword search if the embedder
-     * isn't available — e.g. mid-rebuild or Ollama down — so search never
-     * hard-fails. The $execute callback finalises the builder (->get(), ->keys()…).
-     *
-     * @template TReturn
-     *
-     * @param  callable(Builder): TReturn  $execute
-     * @return TReturn
-     */
-    private function search(string $query, callable $execute): mixed
-    {
-        if (($hybrid = $this->hybrid($query)) !== null) {
-            try {
-                return $execute(Item::search($query, $hybrid));
-            } catch (Throwable $e) {
-                report($e); // keep visibility, then degrade to keyword search
-            }
-        }
-
-        return $execute(Item::search($query));
-    }
-
-    /**
-     * Meilisearch hybrid-search options, or null when semantic search is off,
-     * the driver isn't Meilisearch (e.g. the "collection" driver in tests), or
-     * the query can't be embedded. With a "userProvided" embedder Meilisearch
-     * can't embed the query itself, so we embed it app-side and pass the vector.
-     */
-    private function hybrid(string $query): ?Closure
-    {
-        $embedder = config('scout.meilisearch.hybrid.embedder');
-
-        if (config('scout.driver') !== 'meilisearch' || ! $embedder) {
-            return null;
-        }
-
-        $vector = $this->embedder->embed($query);
-
-        if ($vector === null) {
-            return null;
-        }
-
-        $ratio = (float) config('scout.meilisearch.hybrid.semantic_ratio', 0.5);
-
-        return fn ($index, string $q, array $options) => $index->search($q, $options + [
-            'vector' => $vector,
-            'hybrid' => ['embedder' => $embedder, 'semanticRatio' => $ratio],
-        ]);
-    }
+    public function __construct(private readonly InventorySearch $search) {}
 
     public function __invoke(Request $request): JsonResponse|Response
     {
@@ -90,7 +35,7 @@ class SearchController extends Controller
             return response()->json(['results' => []]);
         }
 
-        $items = $this->search($query, fn ($builder) => $builder
+        $items = $this->search->search($query, fn ($builder) => $builder
             ->query(fn ($q) => $q->with('primaryImage'))
             ->take(20)
             ->get());
@@ -126,7 +71,7 @@ class SearchController extends Controller
             : 'relevance';
 
         // Relevance-ordered matching ids from Meilisearch (null = browse everything).
-        $ids = $query !== '' ? $this->search($query, fn ($b) => $b->take(500)->keys()->all()) : null;
+        $ids = $query !== '' ? $this->search->search($query, fn ($b) => $b->take(500)->keys()->all()) : null;
 
         $items = Item::query()
             ->with(['primaryImage', 'tags'])

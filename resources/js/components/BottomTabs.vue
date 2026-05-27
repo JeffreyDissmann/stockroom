@@ -7,10 +7,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
+import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, Database, Download, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Tag as TagIcon } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, Database, Download, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Sparkles, Tag as TagIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
+
+const { open: openAssistant } = useAssistant();
 
 const tabs = [
     { label: trans('nav.dashboard'), href: '/dashboard', icon: LayoutGrid, matches: (u: string) => u.startsWith('/dashboard') },
@@ -25,7 +29,8 @@ const householdLinks = [
     { label: trans('household.nav.import'), href: '/household/import', icon: Download },
 ];
 
-const page = usePage();
+const page = usePage<SharedData>();
+const aiEnabled = page.props.features.ai;
 const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(page.url));
 </script>
 
@@ -49,6 +54,11 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="end" class="w-56">
+                <DropdownMenuItem v-if="aiEnabled" @click="openAssistant()">
+                    <Sparkles class="mr-2 h-4 w-4" />
+                    {{ $t('nav.assistant') }}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator v-if="aiEnabled" />
                 <DropdownMenuItem as-child>
                     <Link class="flex w-full items-center" href="/tags">
                         <TagIcon class="mr-2 h-4 w-4" />

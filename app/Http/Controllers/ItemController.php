@@ -15,6 +15,7 @@ use App\Models\ItemImage;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
 use App\Services\ItemImageProcessor;
+use App\Services\Items\ItemWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class ItemController extends Controller
     public function __construct(
         private readonly ItemImageProcessor $imageProcessor,
         private readonly ActivityPresenter $activityPresenter,
+        private readonly ItemWriter $writer,
     ) {}
 
     public function index(Request $request): Response
@@ -76,18 +78,15 @@ class ItemController extends Controller
         $customFields = $data['custom_fields'] ?? [];
         $imageFiles = $request->file('images', []);
         unset($data['tags'], $data['images'], $data['custom_fields']);
-        $data = $this->normaliseDetailFields($data);
 
-        $item = Item::create($data);
-        $item->tags()->sync($tagIds);
+        $item = $this->writer->create($data, $tagIds);
         $this->syncCustomFields($item, $customFields);
 
         foreach ($imageFiles as $file) {
             $this->imageProcessor->store($item, $file);
         }
 
-        // Re-index for search now that tags + custom fields are attached
-        // (Item::create only auto-indexed the bare item, before those syncs).
+        // Re-index now that custom fields + images are attached.
         $item->searchable();
 
         return to_route('items.show', $item);
@@ -173,19 +172,11 @@ class ItemController extends Controller
         $tagIds = $data['tags'] ?? [];
         $customFields = $data['custom_fields'] ?? [];
         unset($data['tags'], $data['custom_fields']);
-        $data = $this->normaliseDetailFields($data);
 
-        $item->update($data);
-        $nameChanged = $item->wasChanged('name');
-        $item->tags()->sync($tagIds);
+        $this->writer->update($item, $data, $tagIds);
         $this->syncCustomFields($item, $customFields);
-        // Re-index for search now that tags + custom fields are attached.
+        // Re-index now that custom fields are attached.
         $item->searchable();
-
-        // A rename changes the location_path of everything inside this item.
-        if ($nameChanged) {
-            $item->reindexDescendants();
-        }
 
         return to_route('items.show', $item);
     }
@@ -193,7 +184,7 @@ class ItemController extends Controller
     public function destroy(Item $item): RedirectResponse
     {
         $parentId = $item->parent_id;
-        $item->delete();
+        $this->writer->delete($item);
 
         return $parentId
             ? to_route('items.show', $parentId)
@@ -202,11 +193,7 @@ class ItemController extends Controller
 
     public function move(MoveItemRequest $request, Item $item): RedirectResponse
     {
-        $item->update(['parent_id' => $request->input('parent_id')]);
-
-        // The item itself re-indexes on save; its descendants' location_path
-        // also shifted, so re-index them too.
-        $item->reindexDescendants();
+        $this->writer->move($item, $request->input('parent_id') !== null ? (int) $request->input('parent_id') : null);
 
         return back();
     }
@@ -225,33 +212,6 @@ class ItemController extends Controller
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * Default quantity and, for types that don't carry detail fields (rooms),
-     * blank out the acquisition/warranty/sale fields so they can't be persisted
-     * via a crafted request even though the form hides them.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    private function normaliseDetailFields(array $data): array
-    {
-        $type = isset($data['type']) ? ItemType::from($data['type']) : null;
-
-        if ($type !== null && ! $type->hasDetailFields()) {
-            $data['quantity'] = 1;
-            foreach (['purchased_from', 'purchase_date', 'purchase_price', 'manufacturer', 'model_number', 'serial_number', 'warranty_expires', 'warranty_details', 'sold_to', 'sold_price', 'sold_date', 'sold_notes'] as $field) {
-                $data[$field] = null;
-            }
-            $data['lifetime_warranty'] = false;
-
-            return $data;
-        }
-
-        $data['quantity'] = $data['quantity'] ?? 1;
-
-        return $data;
     }
 
     /**

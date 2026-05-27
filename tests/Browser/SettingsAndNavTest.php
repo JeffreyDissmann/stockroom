@@ -32,3 +32,12 @@ it('shows the bottom tab bar on a mobile viewport', function () {
         ->assertSee('More')
         ->assertNoJavaScriptErrors();
 });
+
+it('opens the assistant from the mobile more menu', function () {
+    $page = visit('/dashboard')->on()->iPhone14Pro();
+
+    $page->click('More')
+        ->click('Assistant')
+        ->assertSee('Ask me where something is') // the panel's empty state
+        ->assertNoJavaScriptErrors();
+});

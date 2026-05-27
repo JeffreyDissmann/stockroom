@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import AssistantPanel from '@/components/AssistantPanel.vue';
 import BottomTabs from '@/components/BottomTabs.vue';
 import CommandPalette from '@/components/CommandPalette.vue';
 import Topbar from '@/components/Topbar.vue';
 import TopNav from '@/components/TopNav.vue';
-import type { BreadcrumbItemType } from '@/types';
+import type { BreadcrumbItemType, SharedData } from '@/types';
+import { usePage } from '@inertiajs/vue3';
+
+const aiEnabled = usePage<SharedData>().props.features.ai;
 
 withDefaults(
     defineProps<{
@@ -28,5 +32,6 @@ withDefaults(
             <BottomTabs />
         </main>
         <CommandPalette />
+        <AssistantPanel v-if="aiEnabled" />
     </div>
 </template>
