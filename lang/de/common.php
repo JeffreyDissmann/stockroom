@@ -32,4 +32,5 @@ return [
     'description' => 'Beschreibung',
     'top_level' => 'Oberste Ebene',
     'breadcrumb' => 'Navigationspfad',
+    'admin_only' => 'Nur Admins können dies verwalten.',
 ];

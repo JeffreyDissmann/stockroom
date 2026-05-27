@@ -6,7 +6,8 @@ use App\Models\Tag;
 use App\Models\User;
 
 beforeEach(function () {
-    $this->actingAs(User::factory()->create());
+    // Tag management (the inline create form) is admin-only.
+    $this->actingAs(User::factory()->admin()->create());
 });
 
 it('creates a tag from the inline form', function () {

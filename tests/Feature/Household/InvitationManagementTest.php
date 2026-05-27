@@ -20,7 +20,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_the_members_page_lists_invites_and_people(): void
     {
-        $user = User::factory()->create(['name' => 'Owner']);
+        $user = User::factory()->admin()->create(['name' => 'Owner']);
         Invitation::factory()->create(['created_by' => $user->id, 'label' => 'For Anna']);
 
         $response = $this->actingAs($user)->get('/household/members');
@@ -40,7 +40,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_the_members_page_only_lists_pending_invites(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         Invitation::factory()->create(['created_by' => $user->id]);          // pending
         Invitation::factory()->expired()->create(['created_by' => $user->id]);
         Invitation::factory()->accepted()->create(['created_by' => $user->id]);
@@ -51,7 +51,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_an_invite_can_be_created(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)->post('/household/invitations', ['label' => 'For Anna'])
             ->assertRedirect();
@@ -70,7 +70,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_an_invite_can_be_created_without_a_label(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)->post('/household/invitations', [])->assertRedirect();
 
@@ -79,7 +79,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_the_label_is_length_limited(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)->post('/household/invitations', ['label' => str_repeat('x', 101)])
             ->assertSessionHasErrors('label');
@@ -96,7 +96,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_a_pending_invite_can_be_revoked(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $invitation = Invitation::factory()->create(['created_by' => $user->id]);
 
         $this->actingAs($user)->delete("/household/invitations/{$invitation->id}")
@@ -107,7 +107,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_an_accepted_invite_cannot_be_revoked(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $invitation = Invitation::factory()->accepted()->create(['created_by' => $user->id]);
 
         $this->actingAs($user)->delete("/household/invitations/{$invitation->id}")
@@ -118,7 +118,7 @@ class InvitationManagementTest extends TestCase
 
     public function test_an_expired_invite_cannot_be_revoked(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $invitation = Invitation::factory()->expired()->create(['created_by' => $user->id]);
 
         $this->actingAs($user)->delete("/household/invitations/{$invitation->id}")

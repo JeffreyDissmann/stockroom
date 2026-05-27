@@ -16,7 +16,7 @@ class TagCrudTest extends TestCase
 
     public function test_store_auto_generates_slug(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)->post('/tags', [
             'name' => 'Power Tools',
@@ -30,7 +30,7 @@ class TagCrudTest extends TestCase
 
     public function test_duplicate_name_is_rejected(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         Tag::factory()->create(['name' => 'Tools']);
 
         $this->actingAs($user)
@@ -41,7 +41,7 @@ class TagCrudTest extends TestCase
 
     public function test_invalid_color_is_rejected(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $this->actingAs($user)
             ->from('/tags')
@@ -51,7 +51,7 @@ class TagCrudTest extends TestCase
 
     public function test_destroy_removes_pivot_rows(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $tag = Tag::factory()->create();
         $item = Item::factory()->create();
         $item->tags()->attach($tag);

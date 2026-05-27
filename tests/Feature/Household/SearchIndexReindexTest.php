@@ -26,7 +26,7 @@ class SearchIndexReindexTest extends TestCase
     {
         Item::withoutSyncingToSearch(fn () => Item::factory()->count(3)->create());
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->get('/household/search-index')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
@@ -39,7 +39,7 @@ class SearchIndexReindexTest extends TestCase
     {
         Queue::fake();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/search-index')
             ->assertRedirect();
 

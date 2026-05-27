@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -8,6 +9,8 @@ import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Check, Copy, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
+
+const isAdmin = useIsAdmin();
 
 interface InvitationRow {
     id: number;
@@ -58,7 +61,7 @@ function revoke(invitation: InvitationRow) {
 
         <HouseholdLayout>
             <div class="space-y-10">
-                <div class="space-y-6">
+                <div v-if="isAdmin" class="space-y-6">
                     <HeadingSmall :title="$t('members.invites_title')" :description="$t('members.invites_desc')" />
 
                     <form class="flex flex-wrap items-center gap-2" data-test="invite-create" @submit.prevent="createInvite">

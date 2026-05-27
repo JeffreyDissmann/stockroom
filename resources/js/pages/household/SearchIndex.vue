@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -19,6 +20,8 @@ interface ReindexStatus {
 const props = defineProps<{ status: ReindexStatus | null; total: number; semantic: boolean }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.search_index'), href: '/household/search-index' }];
+
+const isAdmin = useIsAdmin();
 
 const form = useForm({});
 
@@ -52,12 +55,13 @@ function rebuild() {
                     {{ $t('household.search_index.worker_note') }}
                 </p>
 
-                <div>
+                <div v-if="isAdmin">
                     <button type="button" class="btn-primary" :disabled="form.processing || running" data-test="rebuild-index" @click="rebuild">
                         <RefreshCw :size="14" />
                         {{ $t('household.search_index.rebuild') }}
                     </button>
                 </div>
+                <p v-else class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
 
                 <div v-if="status" data-test="reindex-status" style="border-top: 1px solid var(--border); padding-top: 20px">
                     <template v-if="status.state === 'running'">

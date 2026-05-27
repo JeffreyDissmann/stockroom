@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans, transChoice } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { ref } from 'vue';
+
+const isAdmin = useIsAdmin();
 
 interface TagRow {
     id: number;
@@ -73,7 +76,7 @@ function destroyTag(tag: TagRow) {
                 {{ $t('tags.subtitle') }}
             </p>
 
-            <form class="card card-pad mb-6" @submit.prevent="submitCreate">
+            <form v-if="isAdmin" class="card card-pad mb-6" @submit.prevent="submitCreate">
                 <div class="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">
                     <div class="form-row">
                         <label for="new-name">{{ $t('tags.new_tag') }}</label>
@@ -137,7 +140,7 @@ function destroyTag(tag: TagRow) {
                                 {{ transChoice('tags.items_count', tag.items_count) }}
                             </div>
                         </Link>
-                        <div class="flex gap-1">
+                        <div v-if="isAdmin" class="flex gap-1">
                             <button class="btn-ghost" type="button" @click="startEdit(tag)">
                                 <Pencil :size="14" />
                             </button>

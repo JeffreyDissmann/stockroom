@@ -32,4 +32,5 @@ return [
     'description' => 'Description',
     'top_level' => 'Top level',
     'breadcrumb' => 'Breadcrumb',
+    'admin_only' => 'Only admins can manage this.',
 ];
