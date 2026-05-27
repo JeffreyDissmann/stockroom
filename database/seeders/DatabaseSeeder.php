@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
                 'name' => config('stockroom.admin.name'),
                 'password' => Hash::make(config('stockroom.admin.password')),
                 'email_verified_at' => now(),
+                'is_admin' => true,
             ],
         );
     }

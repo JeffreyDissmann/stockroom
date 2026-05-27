@@ -39,7 +39,7 @@ class BackupTest extends TestCase
 
     public function test_system_page_renders_for_an_authenticated_user(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->get('/household/backup')
             ->assertOk();
     }
@@ -161,7 +161,7 @@ class BackupTest extends TestCase
 
         $upload = new UploadedFile($path, 'backup.zip', 'application/zip', null, true);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/backup/import', ['file' => $upload])
             ->assertRedirect()
             ->assertSessionHas('backup', ['tags' => 1, 'items' => 1, 'images' => 0]);
@@ -171,7 +171,7 @@ class BackupTest extends TestCase
 
     public function test_import_rejects_a_non_zip_upload(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/backup/import', [
                 'file' => UploadedFile::fake()->create('notes.txt', 5, 'text/plain'),
             ])

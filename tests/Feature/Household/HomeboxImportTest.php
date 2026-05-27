@@ -146,7 +146,7 @@ class HomeboxImportTest extends TestCase
     public function test_start_endpoint_signs_in_and_runs_the_import(): void
     {
         $this->fakeHomebox();
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/import', ['url' => 'https://hb.test', 'username' => 'a@b.c', 'password' => 'secret'])
             ->assertRedirect();
 
@@ -158,7 +158,7 @@ class HomeboxImportTest extends TestCase
     {
         Http::fake(['*/users/login' => Http::response(['error' => 'nope'], 401)]);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/import', ['url' => 'https://hb.test', 'username' => 'a@b.c', 'password' => 'wrong'])
             ->assertSessionHasErrors('connection');
 

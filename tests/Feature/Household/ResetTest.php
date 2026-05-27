@@ -42,7 +42,7 @@ class ResetTest extends TestCase
         ItemImageProcessor::default()->store($item, UploadedFile::fake()->image('p.jpg', 100, 100));
         $imageDir = $item->images()->firstOrFail()->directory();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/reset', ['include_tags' => false])
             ->assertRedirect();
 
@@ -62,7 +62,7 @@ class ResetTest extends TestCase
         Tag::factory()->count(2)->create();
         Item::factory()->create(['type' => ItemType::Item]);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/reset', ['include_tags' => true])
             ->assertRedirect();
 
@@ -74,7 +74,7 @@ class ResetTest extends TestCase
     {
         CustomField::factory()->count(2)->create();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/reset', ['include_custom_fields' => false])
             ->assertRedirect();
 
@@ -85,7 +85,7 @@ class ResetTest extends TestCase
     {
         CustomField::factory()->count(2)->create();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/reset', ['include_custom_fields' => true])
             ->assertRedirect();
 

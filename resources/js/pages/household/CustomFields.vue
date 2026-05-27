@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -8,6 +9,8 @@ import type { BreadcrumbItem, CustomFieldDefinition, CustomFieldTypeValue } from
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Check, Lock, Pencil, Plus, Search, SearchX, Trash2, X } from 'lucide-vue-next';
 import { ref } from 'vue';
+
+const isAdmin = useIsAdmin();
 
 defineProps<{ fields: CustomFieldDefinition[] }>();
 
@@ -55,7 +58,7 @@ function typeLabel(type: CustomFieldTypeValue) {
             <div class="space-y-6">
                 <HeadingSmall :title="$t('household.nav.custom_fields')" :description="$t('household.custom_fields.description')" />
 
-                <form class="flex flex-wrap items-center gap-2" data-test="custom-field-create" @submit.prevent="add">
+                <form v-if="isAdmin" class="flex flex-wrap items-center gap-2" data-test="custom-field-create" @submit.prevent="add">
                     <div class="flex-1" style="min-width: 180px">
                         <input v-model="createForm.name" :placeholder="$t('household.custom_fields.name_placeholder')" class="field w-full" data-test="custom-field-name" />
                         <InputError :message="createForm.errors.name" />
@@ -103,7 +106,7 @@ function typeLabel(type: CustomFieldTypeValue) {
                             <span v-if="field.is_system" class="inline-flex items-center gap-1 text-xs" style="color: var(--fg-subtle)">
                                 <Lock :size="12" /> {{ $t('household.custom_fields.system') }}
                             </span>
-                            <template v-else>
+                            <template v-else-if="isAdmin">
                                 <button type="button" class="btn-ghost" @click="startEdit(field)"><Pencil :size="14" /></button>
                                 <button type="button" class="btn-ghost btn-danger" @click="destroy(field)"><Trash2 :size="14" /></button>
                             </template>

@@ -2,10 +2,13 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { type SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Download, Upload } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+
+const isAdmin = useIsAdmin();
 
 const page = usePage<SharedData>();
 const lastImport = computed(() => page.props.flash.backup);
@@ -34,7 +37,9 @@ function restore() {
     <div class="space-y-6">
         <HeadingSmall :title="$t('household.nav.backup')" :description="$t('household.backup.description')" />
 
-        <div class="space-y-4">
+        <p v-if="!isAdmin" class="text-sm text-neutral-600 dark:text-neutral-400">{{ $t('common.admin_only') }}</p>
+
+        <div v-if="isAdmin" class="space-y-4">
             <Button as-child>
                 <a href="/household/backup/export">
                     <Download class="size-4" />
@@ -43,7 +48,7 @@ function restore() {
             </Button>
         </div>
 
-        <form class="space-y-4 border-t border-neutral-200 pt-6 dark:border-neutral-800" @submit.prevent="restore">
+        <form v-if="isAdmin" class="space-y-4 border-t border-neutral-200 pt-6 dark:border-neutral-800" @submit.prevent="restore">
             <p class="text-sm text-neutral-600 dark:text-neutral-400">
                 {{ $t('household.backup.restore_note') }}
             </p>

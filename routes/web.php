@@ -40,7 +40,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('items/{item}/images/{image}', [ItemImageController::class, 'destroy'])->name('items.images.destroy');
     });
 
-    Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
+    // Anyone may browse tags; only admins create/edit/delete them.
+    Route::resource('tags', TagController::class)->only(['index']);
+    Route::resource('tags', TagController::class)->only(['store', 'update', 'destroy'])->middleware('can:admin');
 });
 
 require __DIR__.'/settings.php';

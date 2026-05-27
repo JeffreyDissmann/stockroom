@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -24,6 +25,8 @@ interface ImportStatus {
 const props = defineProps<{ status: ImportStatus | null }>();
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.import'), href: '/household/import' }];
+
+const isAdmin = useIsAdmin();
 
 const form = useForm({ url: '', username: '', password: '' });
 
@@ -52,7 +55,9 @@ function submit() {
             <div class="space-y-6">
                 <HeadingSmall :title="$t('household.nav.import')" :description="$t('household.import.description')" />
 
-                <form class="form" @submit.prevent="submit">
+                <p v-if="!isAdmin" class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
+
+                <form v-if="isAdmin" class="form" @submit.prevent="submit">
                     <div class="form-row">
                         <label for="url">{{ $t('household.import.url') }}</label>
                         <input id="url" v-model="form.url" type="url" class="field" placeholder="https://homebox.example.com" :disabled="running" />

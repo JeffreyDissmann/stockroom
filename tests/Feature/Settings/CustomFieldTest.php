@@ -21,7 +21,7 @@ class CustomFieldTest extends TestCase
 
     public function test_admin_can_create_a_custom_field(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/custom-fields', ['name' => 'Color', 'type' => 'text'])
             ->assertRedirect();
 
@@ -34,7 +34,7 @@ class CustomFieldTest extends TestCase
 
     public function test_create_defaults_to_not_searchable(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/custom-fields', ['name' => 'Color', 'type' => 'text']);
 
         $this->assertFalse(CustomField::firstOrFail()->is_searchable);
@@ -42,7 +42,7 @@ class CustomFieldTest extends TestCase
 
     public function test_admin_can_create_a_searchable_field(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/custom-fields', ['name' => 'Notes', 'type' => 'text', 'searchable' => true]);
 
         $this->assertTrue(CustomField::firstOrFail()->is_searchable);
@@ -53,7 +53,7 @@ class CustomFieldTest extends TestCase
         $field = CustomField::factory()->searchable()->create(['name' => 'Notes']);
         $this->assertTrue($field->is_searchable);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->put("/household/custom-fields/{$field->id}", ['name' => 'Notes', 'type' => 'text', 'searchable' => false])
             ->assertRedirect();
 
@@ -62,7 +62,7 @@ class CustomFieldTest extends TestCase
 
     public function test_create_assigns_unique_keys(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $this->actingAs($user)->post('/household/custom-fields', ['name' => 'Color', 'type' => 'text']);
         $this->actingAs($user)->post('/household/custom-fields', ['name' => 'Color', 'type' => 'number']);
 
@@ -71,7 +71,7 @@ class CustomFieldTest extends TestCase
 
     public function test_type_must_be_valid(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->post('/household/custom-fields', ['name' => 'Bad', 'type' => 'rainbow'])
             ->assertSessionHasErrors('type');
     }
@@ -80,7 +80,7 @@ class CustomFieldTest extends TestCase
     {
         $field = CustomField::factory()->create(['name' => 'Voltage', 'type' => CustomFieldType::Text]);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->put("/household/custom-fields/{$field->id}", ['name' => 'Voltage (V)', 'type' => 'number'])
             ->assertRedirect();
 
@@ -93,7 +93,7 @@ class CustomFieldTest extends TestCase
     {
         $field = CustomField::factory()->create();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->delete("/household/custom-fields/{$field->id}")
             ->assertRedirect();
 
@@ -104,7 +104,7 @@ class CustomFieldTest extends TestCase
     {
         $field = CustomField::factory()->system('homebox_id')->create(['name' => 'Homebox ID']);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->put("/household/custom-fields/{$field->id}", ['name' => 'Hacked', 'type' => 'text'])
             ->assertForbidden();
 
@@ -115,7 +115,7 @@ class CustomFieldTest extends TestCase
     {
         $field = CustomField::factory()->system('homebox_id')->create();
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->admin()->create())
             ->delete("/household/custom-fields/{$field->id}")
             ->assertForbidden();
 

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import { useForm } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
+
+const isAdmin = useIsAdmin();
 
 const form = useForm<{ include_tags: boolean; include_custom_fields: boolean }>({
     include_tags: false,
@@ -21,7 +24,7 @@ function wipe() {
 </script>
 
 <template>
-    <div class="space-y-4" style="border-top: 1px solid var(--border); padding-top: 28px">
+    <div v-if="isAdmin" class="space-y-4" style="border-top: 1px solid var(--border); padding-top: 28px">
         <HeadingSmall :title="$t('household.danger.title')" :description="$t('household.danger.description')" />
 
         <div class="space-y-2">
