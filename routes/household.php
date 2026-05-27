@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Household\BackupController;
 use App\Http\Controllers\Household\CustomFieldController;
 use App\Http\Controllers\Household\ImportController;
+use App\Http\Controllers\Household\InvitationController;
 use App\Http\Controllers\Household\ResetController;
 use App\Http\Controllers\Household\SearchIndexController;
 use Illuminate\Support\Facades\Route;
@@ -28,4 +29,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('household/search-index', [SearchIndexController::class, 'index'])->name('household.search-index.index');
     Route::post('household/search-index', [SearchIndexController::class, 'rebuild'])->name('household.search-index.rebuild');
+
+    Route::get('household/members', [InvitationController::class, 'index'])->name('household.members.index');
+    Route::post('household/invitations', [InvitationController::class, 'store'])->name('household.invitations.store');
+    Route::delete('household/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('household.invitations.destroy');
 });

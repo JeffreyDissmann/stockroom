@@ -22,6 +22,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Search index',
         href: '/household/search-index',
     },
+    {
+        title: 'Members',
+        href: '/household/members',
+    },
 ];
 
 const currentPath = window.location.pathname;
