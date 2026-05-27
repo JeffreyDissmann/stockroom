@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Models\Item;
 use App\Services\Items\ItemWriter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -13,6 +14,8 @@ use Laravel\Ai\Tools\Request;
 
 class UpdateItem implements Tool
 {
+    use FormatsItemLinks;
+
     public function __construct(private readonly ItemWriter $writer) {}
 
     public function description(): string
@@ -55,6 +58,6 @@ class UpdateItem implements Tool
 
         $this->writer->update($item, $data);
 
-        return "Updated #{$item->id} \"{$item->name}\" (".implode(', ', array_keys($data)).').';
+        return "Updated #{$item->id} {$this->itemLink($item)} (".implode(', ', array_keys($data)).').';
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Services\Items\ItemWriter;
@@ -14,6 +15,8 @@ use Laravel\Ai\Tools\Request;
 
 class AssignTags implements Tool
 {
+    use FormatsItemLinks;
+
     public function __construct(private readonly ItemWriter $writer) {}
 
     public function description(): string
@@ -57,7 +60,7 @@ class AssignTags implements Tool
             $this->writer->assignTags($item, $tags->pluck('id')->all());
         }
 
-        $applied = $tags->isNotEmpty() ? 'Tagged "'.$item->name.'" with: '.$tags->pluck('name')->implode(', ').'.' : 'No matching existing tags.';
+        $applied = $tags->isNotEmpty() ? 'Tagged '.$this->itemLink($item).' with: '.$tags->pluck('name')->implode(', ').'.' : 'No matching existing tags.';
         $skipped = $unknown->isNotEmpty() ? ' Unknown (not created): '.$unknown->implode(', ').'.' : '';
 
         return $applied.$skipped;

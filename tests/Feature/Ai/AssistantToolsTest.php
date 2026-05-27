@@ -52,6 +52,27 @@ class AssistantToolsTest extends TestCase
         $this->assertStringContainsString('DeWalt', $result);
     }
 
+    public function test_tools_link_items_rooms_and_containers_by_their_page(): void
+    {
+        // Rooms and containers are Items too, sharing the /items/{id} page.
+        $room = Item::factory()->room()->create(['name' => 'Garage']);
+        $box = Item::factory()->container()->create(['name' => 'Toolbox']);
+        $item = Item::factory()->create(['name' => 'Cordless Drill', 'type' => ItemType::Item]);
+
+        foreach ([$room, $box, $item] as $entry) {
+            $this->assertStringContainsString(
+                "[{$entry->name}](/items/{$entry->id})",
+                (new GetItem)->handle(new Request(['id' => $entry->id])),
+            );
+        }
+
+        // search_items also emits the link the model should reuse.
+        $this->assertStringContainsString(
+            "(/items/{$item->id})",
+            app(SearchItems::class)->handle(new Request(['query' => 'drill'])),
+        );
+    }
+
     public function test_inventory_stats_counts_and_sums(): void
     {
         Item::factory()->create(['type' => ItemType::Item, 'purchase_price' => 100]);

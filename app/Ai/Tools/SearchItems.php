@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Models\Item;
 use App\Services\InventorySearch;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -13,6 +14,8 @@ use Laravel\Ai\Tools\Request;
 
 class SearchItems implements Tool
 {
+    use FormatsItemLinks;
+
     public function __construct(private readonly InventorySearch $search) {}
 
     public function description(): string
@@ -48,7 +51,7 @@ class SearchItems implements Tool
         }
 
         return $items->map(function (Item $item): string {
-            $parts = ["#{$item->id} {$item->name} ({$item->type->value})"];
+            $parts = ["#{$item->id} {$this->itemLink($item)} ({$item->type->value})"];
 
             if (($path = $item->locationPath()) !== '') {
                 $parts[] = "in {$path}";

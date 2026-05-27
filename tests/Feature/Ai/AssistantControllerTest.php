@@ -6,6 +6,7 @@ namespace Tests\Feature\Ai;
 
 use App\Ai\Agents\InventoryAssistant;
 use App\Ai\Agents\ItemPhotoAnalyzer;
+use App\Models\Item;
 use App\Models\User;
 use App\Services\Items\PendingItemImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,6 +82,35 @@ class AssistantControllerTest extends TestCase
         $this->assertStringContainsString('<strong>Drill</strong>', $reply); // markdown rendered
         $this->assertStringContainsString('<li>', $reply);                    // list rendered
         $this->assertStringNotContainsString('<script>', $reply);             // raw HTML stripped
+    }
+
+    public function test_item_links_to_missing_ids_are_stripped(): void
+    {
+        $item = Item::factory()->create(['name' => 'Real Item']);
+        InventoryAssistant::fake(["See [Real Item](/items/{$item->id}) and [Ghost](/items/999999)."]);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'x'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('href="/items/'.$item->id.'"', $reply); // real link kept
+        $this->assertStringNotContainsString('/items/999999', $reply);            // bogus link removed
+        $this->assertStringContainsString('Ghost', $reply);                       // ...degraded to text
+    }
+
+    public function test_a_wrong_id_is_self_healed_to_the_uniquely_named_item(): void
+    {
+        $item = Item::factory()->create(['name' => 'Unique Widget']);
+        InventoryAssistant::fake(['Check [Unique Widget](/items/424242) — got the number wrong.']);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'x'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('href="/items/'.$item->id.'"', $reply); // healed to the real id
+        $this->assertStringNotContainsString('424242', $reply);                    // wrong id gone
     }
 
     public function test_unsafe_links_in_assistant_replies_are_neutralised(): void

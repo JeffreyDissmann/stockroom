@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Models\Item;
 use App\Services\Items\ItemWriter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -13,6 +14,8 @@ use Laravel\Ai\Tools\Request;
 
 class MoveItem implements Tool
 {
+    use FormatsItemLinks;
+
     public function __construct(private readonly ItemWriter $writer) {}
 
     public function description(): string
@@ -54,6 +57,6 @@ class MoveItem implements Tool
 
         $this->writer->move($item, $parentId);
 
-        return "Moved \"{$item->name}\" to ".($parentId ? "\"{$target->name}\"." : 'the top level.');
+        return "Moved {$this->itemLink($item)} to ".($parentId ? "{$this->itemLink($target)}." : 'the top level.');
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\Tag;
@@ -14,6 +15,8 @@ use Laravel\Ai\Tools\Request;
 
 class GetItem implements Tool
 {
+    use FormatsItemLinks;
+
     public function description(): string
     {
         return 'Get the full details of a single inventory item by its id: type, location, quantity, '
@@ -39,7 +42,7 @@ class GetItem implements Tool
         }
 
         $lines = [
-            "#{$item->id} {$item->name} ({$item->type->value})",
+            "#{$item->id} {$this->itemLink($item)} ({$item->type->value})",
             'Location: '.($item->locationPath() ?: 'top level'),
         ];
 

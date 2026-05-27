@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Ai\Tools;
 
 use App\Ai\AssistantContext;
+use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Enums\ItemType;
 use App\Models\Item;
 use App\Services\ItemImageProcessor;
@@ -18,6 +19,8 @@ use Throwable;
 
 class CreateItem implements Tool
 {
+    use FormatsItemLinks;
+
     public function __construct(
         private readonly ItemWriter $writer,
         private readonly PendingItemImage $pendingImage,
@@ -66,7 +69,7 @@ class CreateItem implements Tool
 
         $item = $this->writer->create($data);
 
-        return "Created {$item->type->value} #{$item->id} \"{$item->name}\".".$this->attachPendingImage($item);
+        return "Created {$item->type->value} #{$item->id} {$this->itemLink($item)}.".$this->attachPendingImage($item);
     }
 
     /**

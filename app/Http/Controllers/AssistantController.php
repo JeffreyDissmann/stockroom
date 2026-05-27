@@ -8,6 +8,7 @@ use App\Ai\Agents\InventoryAssistant;
 use App\Ai\Agents\ItemPhotoAnalyzer;
 use App\Ai\AssistantContext;
 use App\Http\Middleware\EnsureAiEnabled;
+use App\Models\Item;
 use App\Models\User;
 use App\Services\ItemImageProcessor;
 use App\Services\Items\PendingItemImage;
@@ -171,13 +172,67 @@ class AssistantController extends Controller
     /**
      * Render an assistant Markdown reply to HTML, stripping any raw HTML and
      * unsafe links so the result is safe to inject with v-html on the client.
+     * Item links the model produced are validated against real ids.
      */
     private function renderAssistantMarkdown(string $text): string
     {
-        return Str::markdown($text, [
+        return $this->validateItemLinks(Str::markdown($text, [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
-        ]);
+        ]));
+    }
+
+    /**
+     * Fix up /items/{id} links the model wrote. A link to a real id is kept; a
+     * link to a missing id is self-healed when its text uniquely names a real
+     * item (the model likely got the number wrong), otherwise it degrades to
+     * plain text — so a hallucinated id can never become a 404 link.
+     */
+    private function validateItemLinks(string $html): string
+    {
+        preg_match_all('#<a\b[^>]*\bhref="/items/(\d+)"[^>]*>(.*?)</a>#is', $html, $matches, PREG_SET_ORDER);
+
+        if ($matches === []) {
+            return $html;
+        }
+
+        $existing = Item::whereIn('id', array_unique(array_map(static fn (array $m): int => (int) $m[1], $matches)))
+            ->pluck('id')
+            ->flip();
+
+        foreach ($matches as [$anchor, $id, $label]) {
+            if ($existing->has((int) $id)) {
+                continue;
+            }
+
+            $healedId = $this->itemIdForLabel($label);
+
+            $html = str_replace(
+                $anchor,
+                $healedId !== null ? str_replace("/items/{$id}", "/items/{$healedId}", $anchor) : $label,
+                $html,
+            );
+        }
+
+        return $html;
+    }
+
+    /**
+     * Resolve a link's visible text to a real item id, but only when exactly one
+     * item bears that name (an ambiguous or unknown name can't be healed safely).
+     */
+    private function itemIdForLabel(string $label): ?int
+    {
+        $name = trim(html_entity_decode(strip_tags($label), ENT_QUOTES));
+
+        if ($name === '') {
+            return null;
+        }
+
+        // Case-insensitive exact match (no wildcards added); heal only when unambiguous.
+        $ids = Item::whereLike('name', $name, caseSensitive: false)->pluck('id');
+
+        return $ids->count() === 1 ? (int) $ids->first() : null;
     }
 
     /**

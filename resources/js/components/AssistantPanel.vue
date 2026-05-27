@@ -2,6 +2,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
+import { router } from '@inertiajs/vue3';
 import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from 'lucide-vue-next';
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -153,6 +154,18 @@ async function send() {
     }
 }
 
+// Item links inside a reply are plain <a> (from v-html); route them through
+// Inertia for SPA navigation and close the panel instead of a full page load.
+function onContentClick(e: MouseEvent) {
+    const anchor = (e.target as HTMLElement | null)?.closest('a');
+    const href = anchor?.getAttribute('href');
+    if (anchor && href && href.startsWith('/items/')) {
+        e.preventDefault();
+        close();
+        router.visit(href);
+    }
+}
+
 // ⌘⇧A / Ctrl+Shift+A toggles the panel from anywhere (mirrors the palette's ⌘K).
 function onShortcut(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
@@ -199,7 +212,7 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
                             <ImagePlus :size="12" /> {{ $t('assistant.image') }}
                         </span>
                         <!-- Assistant replies arrive as server-sanitised Markdown HTML; user text stays plain. -->
-                        <div v-if="m.content && m.role === 'assistant'" class="assistant-md" v-html="m.content" />
+                        <div v-if="m.content && m.role === 'assistant'" class="assistant-md" v-html="m.content" @click="onContentClick" />
                         <span v-else-if="m.content">{{ m.content }}</span>
                     </div>
                 </div>
