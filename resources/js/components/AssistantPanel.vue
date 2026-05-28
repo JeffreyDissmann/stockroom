@@ -1,71 +1,20 @@
 <script setup lang="ts">
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAssistant } from '@/composables/useAssistant';
-import { trans } from '@/composables/useTranslations';
-import { router, usePage } from '@inertiajs/vue3';
+import { useAssistantChat } from '@/composables/useAssistantChat';
+import { useAssistantImageAttach } from '@/composables/useAssistantImageAttach';
+import { router } from '@inertiajs/vue3';
 import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-
-interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
-    image?: string;
-    imageFailed?: boolean;
-}
-
-// Marks that the user reset to a fresh thread but hasn't sent a message yet.
-// Persisted so the clean slate survives a page reload (the server otherwise
-// rehydrates the previous thread, which is still the user's "latest").
-const FRESH_THREAD_KEY = 'assistant:fresh';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const { isOpen, close, toggle } = useAssistant();
-
-// The item the user is viewing — only on its detail page — sent as ambient context.
-const page = usePage();
-const contextItemId = computed<number | null>(() => {
-    if (page.component !== 'items/Show') return null;
-    return (page.props as { item?: { id?: number } }).item?.id ?? null;
+const { fileInput, attachedImage, attachedPreview, pickImage, onImageSelected, clearImage } = useAssistantImageAttach();
+const { messages, conversationId, sending, error, rehydrate, startNewChat: resetChat, send: sendTurn } = useAssistantChat({
+    onMessagesChanged: () => scrollToEnd(),
 });
 
-const messages = ref<ChatMessage[]>([]);
-const conversationId = ref<string | null>(null);
 const input = ref('');
-const sending = ref(false);
-const error = ref<string | null>(null);
 const listEl = ref<HTMLElement>();
-const fileInput = ref<HTMLInputElement>();
-const attachedImage = ref<File | null>(null);
-const attachedPreview = ref<string | null>(null);
-let loaded = false;
-
-function pickImage() {
-    fileInput.value?.click();
-}
-
-function onImageSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    attachedImage.value = file;
-    attachedPreview.value = null;
-    // A data URL keeps the preview self-contained (no object-URL revoke lifecycle).
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            attachedPreview.value = typeof reader.result === 'string' ? reader.result : null;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function clearImage() {
-    attachedImage.value = null;
-    attachedPreview.value = null;
-    if (fileInput.value) fileInput.value.value = '';
-}
-
-function readXsrfToken(): string {
-    const match = document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN='));
-    return match ? decodeURIComponent(match.split('=')[1]) : '';
-}
 
 async function scrollToEnd() {
     await nextTick();
@@ -73,104 +22,28 @@ async function scrollToEnd() {
 }
 
 // Rehydrate the latest conversation the first time the panel opens.
-watch(isOpen, async (open) => {
-    if (!open || loaded) return;
-    loaded = true;
-    // Honour a pending reset: stay empty instead of rehydrating the old thread.
-    if (localStorage.getItem(FRESH_THREAD_KEY) === '1') return;
-    try {
-        const res = await fetch('/assistant/conversation', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-        if (res.ok) {
-            const data = await res.json();
-            conversationId.value = data.conversation_id ?? null;
-            messages.value = data.messages ?? [];
-            scrollToEnd();
-        }
-    } catch {
-        // Non-fatal: start with an empty thread.
-    }
+watch(isOpen, (open) => {
+    if (open) void rehydrate();
 });
 
-// Start a fresh thread: dropping the conversation id makes the next message
-// begin a new conversation. Previous threads stay saved in the database.
 function startNewChat() {
-    if (sending.value) return;
-    messages.value = [];
-    conversationId.value = null;
-    error.value = null;
+    resetChat();
     input.value = '';
     clearImage();
-    localStorage.setItem(FRESH_THREAD_KEY, '1');
 }
 
 async function send() {
     const text = input.value.trim();
-    const image = attachedImage.value;
-    if ((text === '' && !image) || sending.value) return;
+    const file = attachedImage.value;
+    const preview = attachedPreview.value;
 
-    messages.value.push({ role: 'user', content: text, image: attachedPreview.value ?? undefined });
+    // Optimistically reset the input + attachment; the bubble keeps the preview.
     input.value = '';
-    error.value = null;
-    sending.value = true;
-    scrollToEnd();
-
-    // Build the request body: multipart when a photo is attached, JSON otherwise.
-    let body: BodyInit;
-    const headers: Record<string, string> = { Accept: 'application/json', 'X-XSRF-TOKEN': readXsrfToken() };
-    if (image) {
-        const form = new FormData();
-        form.append('message', text);
-        if (conversationId.value) form.append('conversation_id', conversationId.value);
-        if (contextItemId.value) form.append('context_item_id', String(contextItemId.value));
-        form.append('image', image);
-        body = form; // browser sets the multipart Content-Type with boundary
-    } else {
-        headers['Content-Type'] = 'application/json';
-        body = JSON.stringify({ message: text, conversation_id: conversationId.value, context_item_id: contextItemId.value });
-    }
-    // Detach from the input without revoking previewUrl (the bubble still uses it).
     attachedImage.value = null;
     attachedPreview.value = null;
     if (fileInput.value) fileInput.value.value = '';
 
-    const controller = new AbortController();
-    // Analysing a photo runs an extra vision call, so allow longer.
-    const timeout = window.setTimeout(() => controller.abort(), image ? 240_000 : 130_000);
-
-    try {
-        const res = await fetch('/assistant/messages', {
-            method: 'POST',
-            headers,
-            credentials: 'same-origin',
-            body,
-            signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error(String(res.status));
-
-        const data = await res.json();
-        conversationId.value = data.conversation_id ?? conversationId.value;
-        // A real thread now exists, so the reload should rehydrate it again.
-        localStorage.removeItem(FRESH_THREAD_KEY);
-        messages.value.push({ role: 'assistant', content: data.reply ?? '' });
-
-        // If the assistant changed data, refresh whatever the user is looking at.
-        // router.reload() re-fetches the current page's props in place, so the
-        // panel itself (this component) stays mounted with all its state.
-        if (data.mutated) {
-            if (data.redirect_to) {
-                router.visit(data.redirect_to);
-            } else if (page.component === 'items/Show') {
-                router.reload();
-            }
-        }
-    } catch {
-        error.value = trans('assistant.error');
-    } finally {
-        window.clearTimeout(timeout);
-        sending.value = false;
-        scrollToEnd();
-    }
+    await sendTurn(text, file ? { file, preview } : null, close);
 }
 
 // Item links inside a reply are plain <a> (from v-html); route them through
