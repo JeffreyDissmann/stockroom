@@ -23,8 +23,9 @@
     @vite path /build/*
     header @vite Cache-Control "public, max-age=31536000, immutable"
 
-    php_server {
-        # FrankenPHP follows Laravel's index.php → public/* convention.
-        try_files {path} {path}/ /index.php?{query}
-    }
+    # FrankenPHP's `php_server` shortcut already includes the Laravel-style
+    # try_files rewrite ({path} → {path}/index.php → /index.php). Wrapping it
+    # in a block with a custom try_files silently overrides that built-in
+    # rewrite, so every non-file URL 404s before reaching PHP.
+    php_server
 }

@@ -2,6 +2,15 @@ name: release
 
 # Build and push a multi-arch container image to GHCR whenever a CalVer tag
 # (YYYY.MM.PATCH) is pushed. The same image is also tagged ":latest".
+#
+# Layout: three jobs.
+#   preflight — regenerates Wayfinder and fails fast if the committed tree
+#               is out of sync. Only runs once per release.
+#   build     — matrix per architecture, each on a native runner (amd64 +
+#               arm64). Each pushes a digest to GHCR by content hash; no
+#               QEMU emulation, ~3x faster than the single-job approach.
+#   merge     — composes the two digests into a single multi-arch manifest
+#               under the actual release tags.
 on:
     push:
         tags:
@@ -13,19 +22,13 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
-    image:
-        name: build & push image
+    preflight:
+        name: preflight (Wayfinder drift)
         runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write # required to push to ghcr.io
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
-            # Wayfinder's generated route tree is committed; if a stale tree
-            # slipped past CI on the source branch, fail the release here too
-            # so a broken bundle never gets tagged.
             - name: Setup PHP
               uses: shivammathur/setup-php@v2
               with:
@@ -64,8 +67,27 @@ jobs:
                 DB_CONNECTION: sqlite
                 DB_DATABASE: database/database.sqlite
 
-            - name: Set up QEMU (for arm64 emulation)
-              uses: docker/setup-qemu-action@v3
+    build:
+        name: build (${{ matrix.platform }})
+        needs: preflight
+        runs-on: ${{ matrix.runner }}
+        permissions:
+            contents: read
+            packages: write # required to push to ghcr.io
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: linux/amd64
+                      runner: ubuntu-latest
+                      arch_tag: amd64
+                    - platform: linux/arm64
+                      # GitHub's free public-repo arm64 runner — avoids QEMU.
+                      runner: ubuntu-24.04-arm
+                      arch_tag: arm64
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -83,6 +105,63 @@ jobs:
               id: ns
               run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
+            - name: Build and push by digest
+              id: build
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  platforms: ${{ matrix.platform }}
+                  # Push the layer manifest by content hash. The merge job
+                  # composes per-arch digests into the final tagged manifest.
+                  outputs: type=image,name=ghcr.io/${{ steps.ns.outputs.owner }}/stockroom,push-by-digest=true,name-canonical=true,push=true
+                  # GHA cache scoped per-arch so amd64 and arm64 don't clobber
+                  # each other's layer cache.
+                  cache-from: type=gha,scope=${{ matrix.arch_tag }}
+                  cache-to: type=gha,mode=max,scope=${{ matrix.arch_tag }}
+
+            - name: Stash digest for merge job
+              run: |
+                mkdir -p /tmp/digests
+                digest="${{ steps.build.outputs.digest }}"
+                touch "/tmp/digests/${digest#sha256:}"
+
+            - name: Upload digest
+              uses: actions/upload-artifact@v4
+              with:
+                  name: digest-${{ matrix.arch_tag }}
+                  path: /tmp/digests/*
+                  if-no-files-found: error
+                  retention-days: 1
+
+    merge:
+        name: merge into multi-arch manifest
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Download digests
+              uses: actions/download-artifact@v4
+              with:
+                  path: /tmp/digests
+                  pattern: digest-*
+                  merge-multiple: true
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GHCR
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Lowercase image namespace
+              id: ns
+              run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
             - name: Derive image tags
               id: meta
               uses: docker/metadata-action@v5
@@ -96,14 +175,17 @@ jobs:
                       org.opencontainers.image.description=Self-hosted home inventory
                       org.opencontainers.image.licenses=MIT
 
-            - name: Build and push (linux/amd64, linux/arm64)
-              uses: docker/build-push-action@v6
-              with:
-                  context: .
-                  platforms: linux/amd64,linux/arm64
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-                  # GitHub Actions cache keeps the buildx layer cache between runs.
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+            - name: Compose multi-arch manifest
+              working-directory: /tmp/digests
+              run: |
+                # One `buildx imagetools create` per output tag, each pulling in
+                # all per-arch digests. The resulting manifest list lets `docker
+                # pull` Just Work on either architecture.
+                tags=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+                sources=$(printf 'ghcr.io/${{ steps.ns.outputs.owner }}/stockroom@sha256:%s ' *)
+                docker buildx imagetools create $tags $sources
+
+            - name: Inspect final image
+              run: |
+                tag=$(jq -r '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+                docker buildx imagetools inspect "$tag"

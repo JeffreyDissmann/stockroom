@@ -18,7 +18,11 @@ services:
             db:
                 condition: service_healthy
             meilisearch:
-                condition: service_healthy
+                # Meili has no healthcheck (image is FROM scratch — no shell
+                # to run one), so we just wait for it to be started. Search
+                # access is lazy at request time, so a brief unavailability
+                # after boot is acceptable.
+                condition: service_started
         environment:
             STOCKROOM_ROLE: web
         env_file: .env
@@ -29,7 +33,10 @@ services:
             - app-storage:/app/storage/app
             - app-cache:/app/bootstrap/cache
         healthcheck:
-            test: ["CMD", "wget", "-qO-", "http://localhost:8080/up"]
+            # The FrankenPHP base image ships curl but not wget; the latter
+            # makes the healthcheck report "unhealthy" forever even when the
+            # app is fine.
+            test: ["CMD", "curl", "-fsS", "http://localhost:8080/up"]
             interval: 30s
             timeout: 5s
             retries: 5
@@ -85,11 +92,9 @@ services:
             MEILI_NO_ANALYTICS: "true"
         volumes:
             - meili-data:/meili_data
-        healthcheck:
-            test: ["CMD", "wget", "-qO-", "http://localhost:7700/health"]
-            interval: 10s
-            timeout: 5s
-            retries: 10
+        # The Meilisearch image is FROM scratch (no shell, no curl, no wget),
+        # so we rely on the upstream HEALTHCHECK baked into the image rather
+        # than overriding it with a command that would error.
 
 volumes:
     db-data:

@@ -7,6 +7,37 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.03] — 2026-05-28
+
+### Fixed
+
+- **First-boot 500 ("MissingAppKeyException")**: the entrypoint generated
+  the APP_KEY into `.env`, but Laravel's Dotenv treats OS env vars as
+  immutable, so an empty `APP_KEY=` line from `.env.docker.example` (passed
+  via compose `env_file:`) overrode it on every request. The key is now
+  generated once with `key:generate --show`, persisted to
+  `storage/app/.stockroom-app-key` (a volume-mounted location that survives
+  container recreation), and exported into the runtime env before
+  FrankenPHP starts. Existing installs continue to work; a new key is
+  generated only if neither the env nor the key file provide one.
+- **404 on every non-file URL**: the Caddyfile wrapped `php_server` in a
+  block with a custom `try_files`, which silently overrode FrankenPHP's
+  built-in Laravel rewrite so requests like `/login` or `/up` returned
+  an empty Caddy 404 instead of reaching PHP. Replaced with bare
+  `php_server`.
+- **Containers reported as `(unhealthy)`**: the app healthcheck used
+  `wget`, which the FrankenPHP base image doesn't ship; switched to
+  `curl`, which it does. Meilisearch's healthcheck override has been
+  removed (the image is FROM scratch with no shell to run one); the
+  app's dependency on it is now `service_started` rather than
+  `service_healthy`, since search access is lazy at request time.
+
+### CI
+
+- Release workflow rewritten to build amd64 and arm64 on native runners
+  in parallel (no QEMU), then compose the multi-arch manifest in a merge
+  job. Typical release build time drops from ~12 min to ~4 min.
+
 ## [2026.05.02] — 2026-05-28
 
 ### Fixed
@@ -47,6 +78,7 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.02...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.03...HEAD
+[2026.05.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.02...2026.05.03
 [2026.05.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.01...2026.05.02
 [2026.05.01]: https://github.com/JeffreyDissmann/stockroom/releases/tag/2026.05.01

@@ -37,15 +37,34 @@ wait_for_db() {
 # ---------------------------------------------------------------------------
 
 if [ "${STOCKROOM_ROLE:-web}" = "web" ]; then
-    # APP_KEY: generate one in-place if the operator left it blank. Persisted
-    # into .env so subsequent restarts reuse it. Without this, sessions and
-    # encrypted columns invalidate every time the container restarts.
-    if [ -z "${APP_KEY:-}" ] && ! grep -qE '^APP_KEY=base64:' .env 2>/dev/null; then
-        if [ ! -f .env ]; then
-            touch .env
+    # APP_KEY handling. Three things make this finicky:
+    #
+    #   1. Laravel's Dotenv treats OS env vars as immutable, so any APP_KEY
+    #      injected by `environment:` / `env_file:` in compose wins — even if
+    #      it's the empty string. That's the most common footgun on first
+    #      boot: an empty APP_KEY= line in .env.docker.example overrides any
+    #      key we generate, and the app 500s on every request.
+    #   2. `php artisan key:generate` writes to .env but can only REPLACE an
+    #      existing APP_KEY=… line; an empty .env makes it error out.
+    #   3. /app is image-resident, not volume-mounted, so .env doesn't survive
+    #      container recreations. We persist the key under storage/ instead,
+    #      which IS mounted, so the same key is reused across restarts and
+    #      sessions / encrypted columns stay valid.
+    KEY_FILE=/app/storage/app/.stockroom-app-key
+
+    if [ -z "${APP_KEY:-}" ]; then
+        if [ -s "$KEY_FILE" ]; then
+            APP_KEY="$(cat "$KEY_FILE")"
+            export APP_KEY
+            echo "stockroom: loaded persisted APP_KEY from $KEY_FILE"
+        else
+            APP_KEY="$(php artisan key:generate --show --no-interaction)"
+            export APP_KEY
+            mkdir -p "$(dirname "$KEY_FILE")"
+            printf '%s' "$APP_KEY" > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
+            echo "stockroom: generated APP_KEY and persisted to $KEY_FILE"
         fi
-        echo "stockroom: generating APP_KEY"
-        php artisan key:generate --force --no-interaction
     fi
 
     wait_for_db
