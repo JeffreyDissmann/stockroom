@@ -22,6 +22,27 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ### Fixed
 
+- **Backup download button was missing from the consolidated Backup &
+  import screen.** `BackupRestore.vue` called `backup.exportMethod()` on
+  Wayfinder's default-export object, where the key is actually `export`
+  (suffixed only on the *named* exports because `export`/`import` are
+  reserved at module top-level). The expression threw at render time and
+  Vue silently bailed out of the subtree, leaving the rest of the page
+  intact. Now uses the named exports directly.
+- **`/household/import` legacy redirect 404'd.** `Route::redirect`
+  treats a bare path as relative, so from `/household/import` the
+  destination resolved to `/household/household/backup`. Fixed with the
+  leading slash.
+
+### Tests
+
+- New `tests/Browser/HouseholdTest.php` exercises every Household
+  subpage with `assertNoJavaScriptErrors()` plus presence assertions
+  for the backup download button and the wipe-flow checkboxes. Both
+  bugs above were caught by these tests and would not regress silently
+  again. CLAUDE.md now documents the "every screen gets a render
+  canary" + "every action button gets a `data-test`" convention.
+
 - **Queue worker OOM on large photo imports**: PHP's `memory_limit` in
   the Docker image was 256 MB — comfortable for web requests but too
   tight for `intervention/image` (GD) to decode a 12+ MP photo, which

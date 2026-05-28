@@ -3,7 +3,12 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { useIsAdmin } from '@/composables/useIsAdmin';
-import backup from '@/routes/household/backup';
+// Wayfinder's named exports for the backup routes — `exportMethod` and
+// `importMethod` are the function names (suffixed because `export` and
+// `import` are reserved words at module top level). Going through the
+// named exports avoids the default-export object whose keys are unsuffixed
+// (`backup.exportMethod` is undefined, breaking the :href at render time).
+import { exportMethod, importMethod } from '@/routes/household/backup';
 import { type SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Download, Upload } from 'lucide-vue-next';
@@ -23,7 +28,7 @@ function onFileChange(event: Event) {
 }
 
 function restore() {
-    form.post(backup.importMethod().url, {
+    form.post(importMethod().url, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -41,8 +46,8 @@ function restore() {
         <p v-if="!isAdmin" class="text-sm text-neutral-600 dark:text-neutral-400">{{ $t('common.admin_only') }}</p>
 
         <div v-if="isAdmin" class="space-y-4">
-            <Button as-child>
-                <a :href="backup.exportMethod().url">
+            <Button as-child data-test="backup-download">
+                <a :href="exportMethod().url">
                     <Download class="size-4" />
                     {{ $t('household.backup.download') }}
                 </a>

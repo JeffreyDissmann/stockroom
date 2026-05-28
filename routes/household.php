@@ -18,8 +18,11 @@ Route::middleware('auth')->group(function () {
     Route::get('household/custom-fields', [CustomFieldController::class, 'index'])->name('custom-fields.index');
     Route::get('household/backup', [BackupController::class, 'index'])->name('household.backup.index');
     // /household/import used to host the HomeBox flow; it now lives on the
-    // Backup & Import page. Redirect for any stale bookmarks.
-    Route::redirect('household/import', 'household/backup')->name('household.import.index');
+    // Backup & Import page. Redirect for any stale bookmarks. The target
+    // needs the leading slash — Route::redirect treats a bare path as
+    // relative, which from /household/import would resolve to
+    // /household/household/backup.
+    Route::redirect('household/import', '/household/backup')->name('household.import.index');
     Route::get('household/search-index', [SearchIndexController::class, 'index'])->name('household.search-index.index');
     Route::get('household/members', [InvitationController::class, 'index'])->name('household.members.index');
 

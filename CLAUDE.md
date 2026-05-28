@@ -222,7 +222,9 @@ The Boost "Pest" rules above cover unit/feature tests. This section adds the pro
   - Browser tests use `RefreshDatabase`, so the DB starts empty — create data with factories in each test; the demo seeder is NOT present.
   - Use `fill('#selector', 'value')` (not `type()`) for Vue `v-model` inputs so the value syncs to Inertia's `useForm` before submit.
   - Avoid asserting flows gated by native `confirm()` dialogs (item/image/tag delete) — headless Chromium auto-dismisses them; that logic is covered by the feature tests instead.
-  - Use `data-test="..."` attributes for stable selectors; target them with Pest's `@name` selector syntax.
+  - Use `data-test="..."` attributes for stable selectors; target them with Pest's `@name` selector syntax. With shadcn `<Button as-child>` the attribute lands on the child element directly, so the `data-test` selector IS the element (don't add a child-tag selector).
+  - **Render canary on every screen.** Every page-level Inertia route gets at least one browser test that calls `assertNoJavaScriptErrors()` after `visit()`. A single broken template expression — e.g. a Wayfinder call that returns `undefined` — silently bails Vue out of the affected subtree, leaving the page mostly intact but missing the broken section. Only `assertNoJavaScriptErrors()` catches that without anyone noticing.
+  - **Action buttons get a `data-test` and a presence assertion.** Any button that drives a real action (download, submit, destructive op) gets `data-test="<noun>-<verb>"` (e.g. `backup-download`, `wipe-button`) and a browser test that asserts `assertPresent('@<noun>-<verb>')` on the page that renders it. The convention covers both regression checks (the button vanished) and the test selector being stable across refactors.
 
 ## Running tests
 
