@@ -1,0 +1,64 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to file a bug. **Security issues should NOT be reported here** — see [SECURITY.md](../blob/main/SECURITY.md) for the private contact.
+
+    - type: textarea
+      id: what-happened
+      attributes:
+          label: What happened?
+          description: A clear and concise description of the bug. Include screenshots if it's visual.
+          placeholder: "Clicking 'Save' on an item returned a 500 error and the page reloaded blank…"
+      validations:
+          required: true
+
+    - type: textarea
+      id: steps
+      attributes:
+          label: Steps to reproduce
+          description: Numbered list of what you did. The more specific, the faster I can fix it.
+          placeholder: |
+              1. Log in as admin
+              2. Open an existing item
+              3. Add a tag
+              4. Click Save
+      validations:
+          required: true
+
+    - type: textarea
+      id: expected
+      attributes:
+          label: What did you expect to happen instead?
+      validations:
+          required: true
+
+    - type: input
+      id: version
+      attributes:
+          label: Stockroom version
+          description: The CalVer tag you're running (e.g. `2026.05.01`), or `main` if you built from source.
+          placeholder: "2026.05.01"
+      validations:
+          required: true
+
+    - type: dropdown
+      id: deployment
+      attributes:
+          label: How are you running Stockroom?
+          options:
+              - Docker (compose, self-hosted)
+              - Sail (local development)
+              - Other
+      validations:
+          required: true
+
+    - type: textarea
+      id: logs
+      attributes:
+          label: Relevant logs
+          description: Paste anything from `docker logs <container>`, browser console errors, or `storage/logs/laravel.log`. Strip secrets first.
+          render: shell

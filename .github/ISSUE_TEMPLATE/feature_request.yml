@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: ["enhancement"]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Stockroom is a personal side project — features ship based on what I'm interested in working on. Suggestions are welcome but there's no roadmap or SLA.
+
+    - type: textarea
+      id: problem
+      attributes:
+          label: What problem would this solve?
+          description: Describe the situation that prompted the idea. Concrete examples beat abstract feature lists.
+          placeholder: "I have ~50 items in a storage box and need to see them all on one page. The container view only shows direct children, not nested ones…"
+      validations:
+          required: true
+
+    - type: textarea
+      id: proposal
+      attributes:
+          label: What did you have in mind?
+          description: Rough sketch is fine. Don't worry about implementation detail.
+      validations:
+          required: true
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives you considered
+          description: Workarounds you tried, existing features that almost solve it, etc.
+
+    - type: checkboxes
+      id: scope
+      attributes:
+          label: Scope check
+          options:
+              - label: I've searched existing issues to make sure this isn't a duplicate
+                required: true
