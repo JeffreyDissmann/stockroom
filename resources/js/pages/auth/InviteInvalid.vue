@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TextLink from '@/components/TextLink.vue';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { login } from '@/routes';
 import { Head } from '@inertiajs/vue3';
 </script>
 
@@ -13,7 +14,7 @@ import { Head } from '@inertiajs/vue3';
 
         <div class="text-center text-sm text-muted-foreground">
             Already have an account?
-            <TextLink :href="route('login')" class="underline underline-offset-4">Log in</TextLink>
+            <TextLink :href="login().url" class="underline underline-offset-4">Log in</TextLink>
         </div>
     </AuthBase>
 </template>

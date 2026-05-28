@@ -11,12 +11,13 @@ import { Label } from '@/components/ui/label';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import profile from '@/routes/profile';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: trans('settings.profile.breadcrumb'),
-        href: '/settings/profile',
+        href: profile.edit().url,
     },
 ];
 
@@ -29,7 +30,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.patch(route('profile.update'), {
+    form.patch(profile.update().url, {
         preserveScroll: true,
     });
 };
