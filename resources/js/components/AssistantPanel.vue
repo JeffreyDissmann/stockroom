@@ -269,9 +269,10 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
                     <input
                         v-model="input"
                         type="text"
-                        class="field flex-1"
+                        class="field assistant-input flex-1"
                         :placeholder="$t('assistant.placeholder')"
                         :disabled="sending"
+                        enterkeyhint="send"
                         data-test="assistant-input"
                     />
                     <button
@@ -323,6 +324,13 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+/* iOS Safari auto-zooms inputs below 16px. Bump only on touch devices so the
+   desktop input keeps its compact size. */
+@media (pointer: coarse) {
+    .assistant-input {
+        font-size: 16px;
+    }
 }
 .assistant-attach-remove {
     position: absolute;
