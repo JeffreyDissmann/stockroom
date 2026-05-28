@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../wayfinder'
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 export const home = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ home.definition = {
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ home.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -55,7 +55,7 @@ home.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -65,7 +65,7 @@ home.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -75,7 +75,7 @@ home.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -85,7 +85,7 @@ home.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 home.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({

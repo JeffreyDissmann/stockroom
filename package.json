@@ -8,7 +8,7 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
-        "wayfinder:generate": "php artisan wayfinder:generate --no-interaction",
+        "wayfinder:generate": "php artisan wayfinder:generate --no-interaction && node scripts/scrub-nosync.mjs",
         "wayfinder:check": "npm run wayfinder:generate && git diff --exit-code -- resources/js/actions resources/js/routes resources/js/wayfinder"
     },
     "devDependencies": {

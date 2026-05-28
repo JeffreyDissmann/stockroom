@@ -46,6 +46,12 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
+      # Wayfinder consults the DB schema to derive route-binding parameter
+      # types (a missing schema falls back to the broad `string | number`),
+      # so the drift guard needs the migrations applied first.
+      - name: Run Migrations
+        run: php artisan migrate --force
+
       # Drift guard: the generated Wayfinder route tree is committed (see
       # CLAUDE.md). Fail the build if it's out of sync with the PHP routes
       # so a stale tree never ships in an image.

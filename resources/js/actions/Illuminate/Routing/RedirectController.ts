@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 const RedirectController980bb49ee7ae63891f1d891d2fbcf1c9 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.definition = {
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.url = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.get = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.head = (options?: RouteQueryO
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -55,7 +55,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.post = (options?: RouteQueryO
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -65,7 +65,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.put = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -75,7 +75,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.patch = (options?: RouteQuery
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -85,7 +85,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.delete = (options?: RouteQuer
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/'
 */
 RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
@@ -95,7 +95,7 @@ RedirectController980bb49ee7ae63891f1d891d2fbcf1c9.options = (options?: RouteQue
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 const RedirectController4b87d2df7e3aa853f6720faea796e36c = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -110,7 +110,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.definition = {
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.url = (options?: RouteQueryOptions) => {
@@ -119,7 +119,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.url = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -129,7 +129,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.get = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -139,7 +139,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.head = (options?: RouteQueryO
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -149,7 +149,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.post = (options?: RouteQueryO
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -159,7 +159,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.put = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -169,7 +169,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.patch = (options?: RouteQuery
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -179,7 +179,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.delete = (options?: RouteQuer
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/settings'
 */
 RedirectController4b87d2df7e3aa853f6720faea796e36c.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
@@ -189,7 +189,7 @@ RedirectController4b87d2df7e3aa853f6720faea796e36c.options = (options?: RouteQue
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 const RedirectControllera4e2100d8f0eafc607b8e611fcc637d8 = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -204,7 +204,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.definition = {
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.url = (options?: RouteQueryOptions) => {
@@ -213,7 +213,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.url = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -223,7 +223,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.get = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -233,7 +233,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.head = (options?: RouteQueryO
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -243,7 +243,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.post = (options?: RouteQueryO
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -253,7 +253,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.put = (options?: RouteQueryOp
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -263,7 +263,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.patch = (options?: RouteQuery
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -273,7 +273,7 @@ RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.delete = (options?: RouteQuer
 
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor.nosync/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
 * @route '/household'
 */
 RedirectControllera4e2100d8f0eafc607b8e611fcc637d8.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
