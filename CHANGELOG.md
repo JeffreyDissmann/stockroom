@@ -7,6 +7,16 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.02] — 2026-05-28
+
+### Fixed
+
+- **Docker image**: `docker/php/php.ini` used `#` for comments, which PHP's
+  INI parser rejects. The file silently failed to load on every PHP
+  invocation, leaving the production opcache tuning and 32 MB upload limit
+  unapplied (so large image uploads from a phone could 413). Replaced all
+  `#` comments with the canonical `;`. Reported on first UGREEN NAS deploy.
+
 ## [2026.05.01] — 2026-05-28
 
 First public release.
@@ -37,5 +47,6 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.01...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.02...HEAD
+[2026.05.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.01...2026.05.02
 [2026.05.01]: https://github.com/JeffreyDissmann/stockroom/releases/tag/2026.05.01
