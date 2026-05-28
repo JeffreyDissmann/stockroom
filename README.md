@@ -87,6 +87,17 @@ Three volumes hold state — back these up:
 - `app-storage` — item images and other user uploads. **Loss of this
   volume = loss of all uploaded images.**
 
+### Required services
+
+Stockroom needs Postgres and Meilisearch to be reachable. The compose
+file gates the app container behind both services' healthchecks, so the
+app won't start until they're ready.
+
+If Meilisearch goes down at runtime, browsing items / tags / settings
+keeps working but **the search box returns a 500**. Restart the
+`meilisearch` service to recover. There's no LIKE-search fallback today
+— issue / PR welcome.
+
 ### Optional: AI assistant
 
 The AI assistant needs an external Ollama (or any provider the Laravel AI
