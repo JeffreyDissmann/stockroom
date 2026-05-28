@@ -44,6 +44,9 @@ return [
     // if that thread was active within this many hours; older threads start
     // fresh. Set to 0 to always resume the latest thread regardless of age.
     'chat_reset_after_hours' => (int) env('AI_CHAT_RESET_AFTER_HOURS', 3),
+    // Forget (delete) assistant conversations that have been idle longer than
+    // this many days — the scheduled `ai:forget-conversations` command. 0 = off.
+    'chat_retention_days' => (int) env('AI_CHAT_RETENTION_DAYS', 3),
     // bge-m3 is multilingual and prefix-free, which suits mixed-language item
     // data well. If you change this, update AI_EMBEDDINGS_DIMENSIONS to match.
     'embeddings_model' => env('AI_EMBEDDINGS_MODEL', 'bge-m3:567m'),
