@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Ai\Agents\InventoryAssistant;
+use App\Enums\ItemType;
 use App\Models\Item;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +40,8 @@ class BenchmarkAssistant extends Command
 
         $user = User::query()->orderBy('id')->firstOrFail();
         $timeout = (int) $this->option('timeout');
-        $scenarios = $this->scenarios();
+        $truth = $this->gatherGroundTruth();
+        $scenarios = $this->scenarios($truth);
         $outFile = storage_path('app/benchmark/results-'.now()->format('Ymd-His').'.json');
         @mkdir(dirname($outFile), 0777, true);
 
@@ -140,17 +143,25 @@ class BenchmarkAssistant extends Command
     }
 
     /**
+     * Scenarios + auto-scoring driven by ground truth gathered from the live DB,
+     * so the benchmark stays correct as the inventory grows or names change.
+     *
+     * @param  array<string, mixed>  $truth
      * @return array<int, array{key:string,prompts:array<int,string>,checks:callable}>
      */
-    private function scenarios(): array
+    private function scenarios(array $truth): array
     {
+        $locate = $truth['locate'];
+        $tagged = $truth['tag_value'];
+        $move = $truth['move'];
+
         return [
             [
                 'key' => 'locate',
-                'prompts' => ['Where is the AEG Waschtrockner? Give its exact location.'],
+                'prompts' => ["Where is the {$locate['name']}? Give its exact location."],
                 'checks' => fn (array $t): array => [
-                    'location' => str_contains(mb_strtolower($t[0]['text']), 'flur unten'),
-                    'item_link' => (bool) preg_match('#/items/325\b#', $t[0]['text']),
+                    'location' => str_contains(mb_strtolower($t[0]['text']), mb_strtolower($locate['location_keyword'])),
+                    'item_link' => (bool) preg_match("#/items/{$locate['id']}\b#", $t[0]['text']),
                     'used_tool' => $t[0]['tools'] !== [],
                 ],
             ],
@@ -158,30 +169,29 @@ class BenchmarkAssistant extends Command
                 'key' => 'count_items',
                 'prompts' => ['How many items do I own — actual possessions, not rooms or containers?'],
                 'checks' => fn (array $t): array => [
-                    'correct_231' => $this->hasNumber($t[0]['text'], 231),
-                    'not_260' => ! $this->hasNumber($t[0]['text'], 260),
+                    'correct_count' => $this->hasNumber($t[0]['text'], $truth['items_count']),
                 ],
             ],
             [
                 'key' => 'total_value',
                 'prompts' => ['What is the total value of everything I currently own?'],
                 'checks' => fn (array $t): array => [
-                    'value' => $this->hasMoney($t[0]['text'], '25455'),
-                    'currency' => stripos($t[0]['text'], 'eur') !== false || str_contains($t[0]['text'], '€'),
+                    'value' => $this->hasMoney($t[0]['text'], (string) $truth['total_value_int']),
+                    'currency' => stripos($t[0]['text'], $truth['currency']) !== false || str_contains($t[0]['text'], '€'),
                 ],
             ],
             [
                 'key' => 'tag_value',
-                'prompts' => ['How much is everything tagged HomeAssistant worth in total?'],
+                'prompts' => ["How much is everything tagged {$tagged['name']} worth in total?"],
                 'checks' => fn (array $t): array => [
-                    'value' => $this->hasMoney($t[0]['text'], '11447'),
+                    'value' => $this->hasMoney($t[0]['text'], (string) $tagged['value_int']),
                 ],
             ],
             [
                 'key' => 'memory',
-                'prompts' => ['Where is the AEG Waschtrockner?', 'And what is its manufacturer?'],
+                'prompts' => ["Where is the {$locate['name']}?", 'And what is its manufacturer?'],
                 'checks' => fn (array $t): array => [
-                    'remembered' => isset($t[1]) && stripos($t[1]['text'], 'aeg') !== false,
+                    'remembered' => isset($t[1]) && stripos($t[1]['text'], $locate['manufacturer_keyword']) !== false,
                     'no_reask' => isset($t[1]) && ! preg_match('/which item|what item|please (provide|specify|clarify)|which one/i', $t[1]['text']),
                 ],
             ],
@@ -195,11 +205,66 @@ class BenchmarkAssistant extends Command
             ],
             [
                 'key' => 'move_by_name',
-                'prompts' => ['Move the AEG Waschtrockner into Kinderzimmer Tom.', 'Yes, please do it now.'],
+                'prompts' => ["Move the {$move['item_name']} into {$move['room_name']}.", 'Yes, please do it now.'],
                 'checks' => fn (array $t): array => [
                     't1_confirms_no_move' => ! $this->calledTool($t[0]['tools'], 'move'),
-                    't2_moved_correctly' => isset($t[1]) && $this->calledTool($t[1]['tools'], 'move') && Item::find(325)?->parent_id === 305,
+                    't2_moved_correctly' => isset($t[1]) && $this->calledTool($t[1]['tools'], 'move') && Item::find($move['item_id'])?->parent_id === $move['room_id'],
                 ],
+            ],
+        ];
+    }
+
+    /**
+     * Pluck the live numbers and names the scenarios assert against, so the
+     * benchmark doesn't carry stale magic numbers when the inventory shifts.
+     *
+     * @return array<string, mixed>
+     */
+    private function gatherGroundTruth(): array
+    {
+        $items = Item::where('type', ItemType::Item);
+
+        $itemsCount = (clone $items)->count();
+        $totalValue = (int) round((float) (clone $items)->whereNull('sold_date')->sum('purchase_price'));
+
+        /** @var Item $locate */
+        $locate = (clone $items)
+            ->whereNotNull('manufacturer')
+            ->whereNotNull('parent_id')
+            ->orderBy('id')
+            ->firstOrFail();
+        $locationPath = $locate->locationPath();
+
+        /** @var Tag $topTag */
+        $topTag = Tag::query()
+            ->withSum(['items as match_value' => fn ($q) => $q->where('type', ItemType::Item)->whereNull('sold_date')], 'purchase_price')
+            ->get()
+            ->filter(fn (Tag $tag): bool => (float) ($tag->match_value ?? 0) > 0)
+            ->sortByDesc('match_value')
+            ->firstOrFail();
+
+        /** @var Item $room */
+        $room = Item::where('type', ItemType::Room)->orderBy('id')->firstOrFail();
+
+        return [
+            'items_count' => $itemsCount,
+            'total_value_int' => $totalValue,
+            'currency' => (string) config('stockroom.currency.code', 'USD'),
+            'locate' => [
+                'id' => $locate->id,
+                'name' => $locate->name,
+                'manufacturer_keyword' => mb_strtolower(explode(' ', trim((string) $locate->manufacturer))[0]),
+                'location_keyword' => mb_strtolower(($parts = explode(' / ', $locationPath))[count($parts) - 1] ?: 'top level'),
+            ],
+            'tag_value' => [
+                'name' => $topTag->name,
+                'value_int' => (int) round((float) $topTag->match_value),
+            ],
+            'move' => [
+                'item_id' => $locate->id,
+                'item_name' => $locate->name,
+                'room_id' => $room->id,
+                'room_name' => $room->name,
             ],
         ];
     }
