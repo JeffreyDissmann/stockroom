@@ -1,0 +1,195 @@
+# Stockroom — homelab / NAS variant of docker-compose.prod.yml.
+#
+# Differences from docker-compose.prod.yml (which uses named volumes and a
+# separate .env file):
+#
+#   • Bind-mounts to predictable host paths so backups are visible in your
+#     NAS file browser (Synology, UGREEN UGOS, TrueNAS, OMV, …).
+#   • All env inline — paste this directly into UGOS / Portainer / Dockge
+#     without juggling a .env file.
+#   • App port externally configurable via APP_PORT (defaults to 8099 to
+#     avoid clashing with whatever else your NAS runs on 8080).
+#
+# Before starting:
+#
+#   1. Create these folders on the NAS (file browser or SSH):
+#        /volume1/docker/stockroom/db
+#        /volume1/docker/stockroom/meili
+#        /volume1/docker/stockroom/storage
+#        /volume1/docker/stockroom/cache
+#      (Adjust `/volume1` to wherever your Docker volume lives.)
+#
+#   2. Edit the **CHANGE ME** lines below — at minimum:
+#        APP_URL, STOCKROOM_ADMIN_EMAIL, STOCKROOM_ADMIN_PASSWORD,
+#        DB_PASSWORD, MEILISEARCH_KEY.
+#
+#      Generate the two secrets in a terminal:
+#        openssl rand -base64 24      # DB_PASSWORD
+#        openssl rand -base64 32      # MEILISEARCH_KEY
+#
+#   3. `docker compose -f homelab.yaml up -d` (or paste into your NAS UI).
+#
+# Backups: the *only* folders you must back up to preserve every byte of
+# user data are `db/` and `storage/`. `meili/` is rebuildable from the DB
+# (`docker compose exec app php artisan scout:import "App\Models\Item"`).
+# `cache/` is regenerated on every boot.
+
+name: stockroom
+
+services:
+    app:
+        image: ghcr.io/jeffreydissmann/stockroom:latest
+        restart: unless-stopped
+        depends_on:
+            db:
+                condition: service_healthy
+            meilisearch:
+                # Meilisearch's image is FROM scratch and has no shell, so
+                # any healthcheck against it is unreliable. Search access
+                # is lazy at request time anyway, so just wait for start.
+                condition: service_started
+        ports:
+            # host:container — container always listens on 8080 internally.
+            - "8099:8080"
+        environment:
+            STOCKROOM_ROLE: web
+
+            # --- App ---
+            APP_NAME: Stockroom
+            APP_ENV: production
+            APP_DEBUG: "false"
+            APP_URL: http://YOUR-NAS-IP:8099         # CHANGE ME (https:// if behind a proxy)
+            APP_LOCALE: en
+            APP_FALLBACK_LOCALE: en
+            CURRENCY: EUR
+            CURRENCY_LOCALE: de-DE
+
+            # --- First-boot admin (only creates user if none exists) ---
+            # The container persists APP_KEY itself, so a missing/empty
+            # APP_KEY env var is fine — it generates and stores one in
+            # storage/.stockroom-app-key on first boot.
+            STOCKROOM_ADMIN_EMAIL: you@example.com               # CHANGE ME
+            STOCKROOM_ADMIN_PASSWORD: change-me-immediately      # CHANGE ME
+            STOCKROOM_ADMIN_NAME: Admin
+
+            # --- Database ---
+            DB_CONNECTION: pgsql
+            DB_HOST: db
+            DB_PORT: "5432"
+            DB_DATABASE: stockroom
+            DB_USERNAME: stockroom
+            DB_PASSWORD: CHANGE-ME-strong-random-string          # CHANGE ME
+
+            # --- Search ---
+            SCOUT_DRIVER: meilisearch
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: CHANGE-ME-another-strong-string     # CHANGE ME
+
+            # --- Sessions / cache / queue stay on the DB ---
+            SESSION_DRIVER: database
+            QUEUE_CONNECTION: database
+            CACHE_STORE: file
+            LOG_CHANNEL: stderr
+
+            # --- Image search (optional) ---
+            # Set BRAVE_SEARCH_KEY to a Brave Search Image API key to enable
+            # the "search for an image" button on items. Get one (free tier
+            # available) at https://brave.com/search/api/. Leave blank /
+            # commented to hide the feature.
+            # BRAVE_SEARCH_KEY: your-brave-api-key-here
+
+            # --- AI assistant: off by default. ---
+            # Flip AI_ENABLED to "true" only if you run Ollama somewhere
+            # the NAS can reach. Ollama is NOT bundled in this image.
+            AI_ENABLED: "false"
+            # AI_PROVIDER: ollama
+            # OLLAMA_URL: http://192.168.1.100:11434
+            # AI_CHAT_MODEL: ministral-3:8b
+        volumes:
+            # Uploaded images — BACK THIS UP.
+            - /volume1/docker/stockroom/storage:/app/storage/app
+            - /volume1/docker/stockroom/cache:/app/bootstrap/cache
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:8080/up"]
+            interval: 30s
+            timeout: 5s
+            retries: 5
+            start_period: 60s
+
+    queue:
+        image: ghcr.io/jeffreydissmann/stockroom:latest
+        restart: unless-stopped
+        depends_on:
+            app:
+                condition: service_healthy
+        environment:
+            STOCKROOM_ROLE: queue
+            # Workers share the same DB / search / storage as the app.
+            DB_CONNECTION: pgsql
+            DB_HOST: db
+            DB_PORT: "5432"
+            DB_DATABASE: stockroom
+            DB_USERNAME: stockroom
+            DB_PASSWORD: CHANGE-ME-strong-random-string          # same as above
+            SCOUT_DRIVER: meilisearch
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: CHANGE-ME-another-strong-string     # same as above
+            SESSION_DRIVER: database
+            QUEUE_CONNECTION: database
+            CACHE_STORE: file
+            LOG_CHANNEL: stderr
+        volumes:
+            - /volume1/docker/stockroom/storage:/app/storage/app
+            - /volume1/docker/stockroom/cache:/app/bootstrap/cache
+
+    scheduler:
+        image: ghcr.io/jeffreydissmann/stockroom:latest
+        restart: unless-stopped
+        depends_on:
+            app:
+                condition: service_healthy
+        environment:
+            STOCKROOM_ROLE: scheduler
+            DB_CONNECTION: pgsql
+            DB_HOST: db
+            DB_PORT: "5432"
+            DB_DATABASE: stockroom
+            DB_USERNAME: stockroom
+            DB_PASSWORD: CHANGE-ME-strong-random-string          # same as above
+            SCOUT_DRIVER: meilisearch
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: CHANGE-ME-another-strong-string     # same as above
+            SESSION_DRIVER: database
+            QUEUE_CONNECTION: database
+            CACHE_STORE: file
+            LOG_CHANNEL: stderr
+        volumes:
+            - /volume1/docker/stockroom/storage:/app/storage/app
+            - /volume1/docker/stockroom/cache:/app/bootstrap/cache
+
+    db:
+        image: postgres:17-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: stockroom
+            POSTGRES_USER: stockroom
+            POSTGRES_PASSWORD: CHANGE-ME-strong-random-string    # same as DB_PASSWORD
+        volumes:
+            - /volume1/docker/stockroom/db:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U stockroom -d stockroom"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+
+    meilisearch:
+        image: getmeili/meilisearch:v1.13
+        restart: unless-stopped
+        environment:
+            MEILI_ENV: production
+            MEILI_MASTER_KEY: CHANGE-ME-another-strong-string    # same as MEILISEARCH_KEY
+            MEILI_NO_ANALYTICS: "true"
+        volumes:
+            - /volume1/docker/stockroom/meili:/meili_data
+        # No healthcheck override — the image is FROM scratch and has no
+        # shell to run one. The app depends on this as `service_started`.
