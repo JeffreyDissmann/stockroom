@@ -44,8 +44,25 @@ jobs:
             - name: Install npm deps
               run: npm ci --no-audit --no-fund
 
+            # Wayfinder consults the DB schema to derive route-binding parameter
+            # types (a missing schema falls back to the broad `string | number`).
+            # SQLite is enough here — we don't run app tests in this workflow,
+            # we only need the columns to exist so Wayfinder can introspect them.
+            - name: Prepare schema for Wayfinder introspection
+              run: |
+                cp .env.example .env
+                touch database/database.sqlite
+                php artisan key:generate
+                php artisan migrate --force --database=sqlite --no-interaction
+              env:
+                DB_CONNECTION: sqlite
+                DB_DATABASE: database/database.sqlite
+
             - name: Verify Wayfinder tree is in sync with PHP routes
               run: npm run wayfinder:check
+              env:
+                DB_CONNECTION: sqlite
+                DB_DATABASE: database/database.sqlite
 
             - name: Set up QEMU (for arm64 emulation)
               uses: docker/setup-qemu-action@v3
