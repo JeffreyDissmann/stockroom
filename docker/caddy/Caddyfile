@@ -3,29 +3,28 @@
 # SERVER_NAME is set by the container (defaults to :8080). Put a reverse proxy
 # (Caddy / Traefik / nginx / Cloudflare Tunnel) in front for TLS — this config
 # deliberately speaks plain HTTP so it composes cleanly with anything.
-
 {
-    # Stockroom doesn't use Octane / worker mode, so we serve via FrankenPHP's
-    # classic request-per-process mode. No `frankenphp { worker … }` block.
-    frankenphp
-    order php_server before file_server
-    auto_https off
-    admin off
+	# Stockroom doesn't use Octane / worker mode, so we serve via FrankenPHP's
+	# classic request-per-process mode. No `frankenphp { worker … }` block.
+	frankenphp
+	order php_server before file_server
+	auto_https off
+	admin off
 }
 
 {$SERVER_NAME:-:8080} {
-    root * /app/public
+	root * /app/public
 
-    encode zstd br gzip
+	encode zstd br gzip
 
-    # Cache fingerprinted Vite assets aggressively. Everything else stays
-    # default (no-store at the PHP layer).
-    @vite path /build/*
-    header @vite Cache-Control "public, max-age=31536000, immutable"
+	# Cache fingerprinted Vite assets aggressively. Everything else stays
+	# default (no-store at the PHP layer).
+	@vite path /build/*
+	header @vite Cache-Control "public, max-age=31536000, immutable"
 
-    # FrankenPHP's `php_server` shortcut already includes the Laravel-style
-    # try_files rewrite ({path} → {path}/index.php → /index.php). Wrapping it
-    # in a block with a custom try_files silently overrides that built-in
-    # rewrite, so every non-file URL 404s before reaching PHP.
-    php_server
+	# FrankenPHP's `php_server` shortcut already includes the Laravel-style
+	# try_files rewrite ({path} → {path}/index.php → /index.php). Wrapping it
+	# in a block with a custom try_files silently overrides that built-in
+	# rewrite, so every non-file URL 404s before reaching PHP.
+	php_server
 }

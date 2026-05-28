@@ -33,6 +33,10 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
   treats a bare path as relative, so from `/household/import` the
   destination resolved to `/household/household/backup`. Fixed with the
   leading slash.
+- **Caddyfile boot warning ("input is not formatted")** — ran
+  `frankenphp fmt --overwrite` on `docker/caddy/Caddyfile` to switch to
+  the canonical tab-indent style. No semantic change; just removes the
+  warning that printed on every container boot.
 - **Mobile assistant FAB leaked onto desktop.** A scoped `<style>` rule
   set `display: inline-flex` on the button with `.assistant-fab[data-v-…]`
   specificity, which beat Tailwind's `.md\:hidden` and made the floating
