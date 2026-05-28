@@ -17,7 +17,9 @@ Route::middleware('auth')->group(function () {
     // Read-only views — any authenticated user may look at the household settings.
     Route::get('household/custom-fields', [CustomFieldController::class, 'index'])->name('custom-fields.index');
     Route::get('household/backup', [BackupController::class, 'index'])->name('household.backup.index');
-    Route::get('household/import', [ImportController::class, 'index'])->name('household.import.index');
+    // /household/import used to host the HomeBox flow; it now lives on the
+    // Backup & Import page. Redirect for any stale bookmarks.
+    Route::redirect('household/import', 'household/backup')->name('household.import.index');
     Route::get('household/search-index', [SearchIndexController::class, 'index'])->name('household.search-index.index');
     Route::get('household/members', [InvitationController::class, 'index'])->name('household.members.index');
 

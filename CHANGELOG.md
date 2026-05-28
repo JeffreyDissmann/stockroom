@@ -7,6 +7,19 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+### Added
+
+- **HomeBox import is now a documented first-class feature.** The form
+  has moved off its own settings page onto the existing **Household →
+  Backup & import** screen, so all data-movement controls live in one
+  place. Re-runs still update by HomeBox UUID, so it works as a one-shot
+  migration or a recurring sync. See the new "Importing from HomeBox"
+  section in the README.
+- **Wipe inventory can also clear the activity log.** A new checkbox in
+  the danger zone deletes every row from the activity log alongside the
+  inventory — useful when starting fresh after a HomeBox import test
+  run.
+
 ### Fixed
 
 - **Queue worker OOM on large photo imports**: PHP's `memory_limit` in

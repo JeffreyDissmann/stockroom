@@ -33,6 +33,10 @@ about it.
 - **Activity log** — every change is attributed to a user.
 - **Localization** — English and German; per-user locale.
 - **Backup / restore** — a single archive of the household.
+- **HomeBox import** — pull locations, items, photos, tags and custom
+  fields from a running [HomeBox](https://github.com/sysadminsmedia/homebox)
+  instance. Re-runs update existing items instead of duplicating, so the
+  importer doubles as a sync. See [Importing from HomeBox](#importing-from-homebox).
 
 ## Self-host with Docker
 
@@ -144,6 +148,48 @@ Ollama or don't want it at all.
 Set `BRAVE_SEARCH_KEY` to a [Brave Search Image API](https://brave.com/search/api/)
 key to enable the "search for an image" button on items. Leave blank to
 disable.
+
+## Importing from HomeBox
+
+Stockroom can pull a complete inventory from a running
+[HomeBox](https://github.com/sysadminsmedia/homebox) instance — locations,
+items, photos, tags and custom fields are all preserved. Re-running the
+import updates rows that already came over (matched by HomeBox UUID) and
+adds anything new, so it works as a one-shot migration or as an
+occasional resync if you're running both side-by-side.
+
+**To import:**
+
+1. Have a queue worker running (the import runs in the background — the
+   shipped `docker-compose.prod.yml` has a `queue` service for this).
+2. Go to **Household → Backup & import**, sign-in details for your
+   HomeBox at the bottom of the page.
+3. Click **Connect & import**. Stockroom exchanges your password for a
+   short-lived HomeBox token, then dispatches the job. The password is
+   never stored; only the token is handed to the worker.
+4. A progress bar polls the page every 2 seconds. Large libraries with
+   many photos take a few minutes — `intervention/image` decodes each one
+   server-side to generate the thumb / large / original variants.
+
+**What gets imported**
+
+| HomeBox concept | Stockroom equivalent |
+|---|---|
+| Location | Item of type `room` (or `container` if nested) |
+| Item | Item of type `item` |
+| Item attachments (`photo` only) | ItemImage with thumb / large / original |
+| Labels | Tags |
+| Custom fields | Stockroom custom fields, attached per item |
+| HomeBox UUID | Stored in the `homebox_id` custom field for re-run matching |
+
+**Limitations**
+
+- Only `photo`-type attachments are imported. Manuals (`receipt` / `manual`
+  / `warranty`) are skipped today — they'd need a separate file-attachment
+  feature on the item.
+- HomeBox's "Item details → Custom fields" are imported, but its purchase
+  and warranty blocks land in Stockroom's native columns (no duplication).
+- Notes are imported as the item description.
 
 ## Configuration reference
 

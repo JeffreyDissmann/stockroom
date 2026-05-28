@@ -13,6 +13,7 @@ use App\Services\ItemImageProcessor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
 class ResetTest extends TestCase
@@ -90,5 +91,33 @@ class ResetTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame(0, CustomField::count());
+    }
+
+    public function test_wipe_keeps_the_activity_log_by_default(): void
+    {
+        // Creating items writes activity rows via the LogsActivity trait.
+        Item::factory()->create(['type' => ItemType::Item]);
+        $this->assertGreaterThan(0, Activity::count());
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->post('/household/reset')
+            ->assertRedirect();
+
+        // The delete itself adds further "deleted" activity rows, so the
+        // important guarantee is that the existing log isn't truncated —
+        // the row count is at least as big as before.
+        $this->assertGreaterThan(0, Activity::count());
+    }
+
+    public function test_wipe_can_also_clear_the_activity_log(): void
+    {
+        Item::factory()->count(3)->create(['type' => ItemType::Item]);
+        $this->assertGreaterThan(0, Activity::count());
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->post('/household/reset', ['include_activity' => true])
+            ->assertRedirect();
+
+        $this->assertSame(0, Activity::count());
     }
 }

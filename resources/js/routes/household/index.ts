@@ -6,7 +6,7 @@ import members from './members'
 import invitations from './invitations'
 /**
 * @see \App\Http\Controllers\Household\ResetController::reset
-* @see app/Http/Controllers/Household/ResetController.php:23
+* @see app/Http/Controllers/Household/ResetController.php:25
 * @route '/household/reset'
 */
 export const reset = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -21,7 +21,7 @@ reset.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\ResetController::reset
-* @see app/Http/Controllers/Household/ResetController.php:23
+* @see app/Http/Controllers/Household/ResetController.php:25
 * @route '/household/reset'
 */
 reset.url = (options?: RouteQueryOptions) => {
@@ -30,7 +30,7 @@ reset.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\ResetController::reset
-* @see app/Http/Controllers/Household/ResetController.php:23
+* @see app/Http/Controllers/Household/ResetController.php:25
 * @route '/household/reset'
 */
 reset.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

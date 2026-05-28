@@ -16,10 +16,6 @@ const sidebarNavItems: NavItem[] = [
         href: '/household/backup',
     },
     {
-        title: trans('household.nav.import'),
-        href: '/household/import',
-    },
-    {
         title: trans('household.nav.search_index'),
         href: '/household/search-index',
     },

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\ResetController::wipe
-* @see app/Http/Controllers/Household/ResetController.php:23
+* @see app/Http/Controllers/Household/ResetController.php:25
 * @route '/household/reset'
 */
 export const wipe = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ wipe.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\ResetController::wipe
-* @see app/Http/Controllers/Household/ResetController.php:23
+* @see app/Http/Controllers/Household/ResetController.php:25
 * @route '/household/reset'
 */
 wipe.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ wipe.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\ResetController::wipe
-* @see app/Http/Controllers/Household/ResetController.php:23
+* @see app/Http/Controllers/Household/ResetController.php:25
 * @route '/household/reset'
 */
 wipe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

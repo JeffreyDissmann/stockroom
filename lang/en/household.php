@@ -8,13 +8,13 @@ return [
 
     'nav' => [
         'custom_fields' => 'Custom fields',
-        'backup' => 'Backup & restore',
-        'import' => 'Import from Homebox',
+        'backup' => 'Backup & import',
         'search_index' => 'Search index',
         'members' => 'Members',
     ],
 
     'import' => [
+        'title' => 'Import from Homebox',
         'description' => 'Pull locations, items, photos, tags and custom fields from a running Homebox instance. Re-running updates existing items instead of duplicating them.',
         'url' => 'Homebox URL',
         'email' => 'Email',
@@ -52,11 +52,13 @@ return [
         'description' => 'Permanently delete the inventory — every item and photo. Export a backup first; this cannot be undone.',
         'include_tags' => 'Also delete all tags',
         'include_custom_fields' => 'Also delete all custom fields',
+        'include_activity' => 'Also clear the activity log',
         'wipe' => 'Wipe inventory',
         'done' => 'Inventory wiped.',
         'confirm' => 'This permanently deletes every item and photo:tail. This cannot be undone. Continue?',
         'extra_tags' => 'all tags',
         'extra_custom_fields' => 'all custom fields',
+        'extra_activity' => 'the activity log',
         'and' => 'and',
     ],
 

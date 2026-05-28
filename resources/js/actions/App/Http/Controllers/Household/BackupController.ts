@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\BackupController::index
-* @see app/Http/Controllers/Household/BackupController.php:18
+* @see app/Http/Controllers/Household/BackupController.php:27
 * @route '/household/backup'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::index
-* @see app/Http/Controllers/Household/BackupController.php:18
+* @see app/Http/Controllers/Household/BackupController.php:27
 * @route '/household/backup'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::index
-* @see app/Http/Controllers/Household/BackupController.php:18
+* @see app/Http/Controllers/Household/BackupController.php:27
 * @route '/household/backup'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::index
-* @see app/Http/Controllers/Household/BackupController.php:18
+* @see app/Http/Controllers/Household/BackupController.php:27
 * @route '/household/backup'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::exportMethod
-* @see app/Http/Controllers/Household/BackupController.php:23
+* @see app/Http/Controllers/Household/BackupController.php:34
 * @route '/household/backup/export'
 */
 export const exportMethod = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -60,7 +60,7 @@ exportMethod.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::exportMethod
-* @see app/Http/Controllers/Household/BackupController.php:23
+* @see app/Http/Controllers/Household/BackupController.php:34
 * @route '/household/backup/export'
 */
 exportMethod.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ exportMethod.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::exportMethod
-* @see app/Http/Controllers/Household/BackupController.php:23
+* @see app/Http/Controllers/Household/BackupController.php:34
 * @route '/household/backup/export'
 */
 exportMethod.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -79,7 +79,7 @@ exportMethod.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::exportMethod
-* @see app/Http/Controllers/Household/BackupController.php:23
+* @see app/Http/Controllers/Household/BackupController.php:34
 * @route '/household/backup/export'
 */
 exportMethod.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -89,7 +89,7 @@ exportMethod.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::importMethod
-* @see app/Http/Controllers/Household/BackupController.php:33
+* @see app/Http/Controllers/Household/BackupController.php:44
 * @route '/household/backup/import'
 */
 export const importMethod = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -104,7 +104,7 @@ importMethod.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::importMethod
-* @see app/Http/Controllers/Household/BackupController.php:33
+* @see app/Http/Controllers/Household/BackupController.php:44
 * @route '/household/backup/import'
 */
 importMethod.url = (options?: RouteQueryOptions) => {
@@ -113,7 +113,7 @@ importMethod.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\BackupController::importMethod
-* @see app/Http/Controllers/Household/BackupController.php:33
+* @see app/Http/Controllers/Household/BackupController.php:44
 * @route '/household/backup/import'
 */
 importMethod.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

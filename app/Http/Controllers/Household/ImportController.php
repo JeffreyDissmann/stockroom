@@ -12,18 +12,15 @@ use App\Services\Homebox\HomeboxException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class ImportController extends Controller
 {
-    public function index(): Response
-    {
-        return Inertia::render('household/Import', [
-            'status' => Cache::get(ImportFromHomeboxJob::STATUS_KEY),
-        ]);
-    }
-
+    /**
+     * Kicks off a background HomeBox import. The form lives on the Backup
+     * & Import screen (BackupController::index renders it via the
+     * household/Backup Inertia page), so this controller is action-only —
+     * there's no GET counterpart.
+     */
     public function start(StartHomeboxImportRequest $request): RedirectResponse
     {
         // Exchange credentials for a token now; only the token is handed to the

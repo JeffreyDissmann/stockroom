@@ -8,15 +8,17 @@ import { Trash2 } from 'lucide-vue-next';
 
 const isAdmin = useIsAdmin();
 
-const form = useForm<{ include_tags: boolean; include_custom_fields: boolean }>({
+const form = useForm<{ include_tags: boolean; include_custom_fields: boolean; include_activity: boolean }>({
     include_tags: false,
     include_custom_fields: false,
+    include_activity: false,
 });
 
 function wipe() {
     const extras: string[] = [];
     if (form.include_tags) extras.push(trans('household.danger.extra_tags'));
     if (form.include_custom_fields) extras.push(trans('household.danger.extra_custom_fields'));
+    if (form.include_activity) extras.push(trans('household.danger.extra_activity'));
     const and = trans('household.danger.and');
     const tail = extras.length ? ` ${and} ${extras.join(` ${and} `)}` : '';
     if (!confirm(trans('household.danger.confirm', { tail }))) return;
@@ -36,6 +38,10 @@ function wipe() {
             <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
                 <input v-model="form.include_custom_fields" type="checkbox" data-test="wipe-include-custom-fields" />
                 {{ $t('household.danger.include_custom_fields') }}
+            </label>
+            <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+                <input v-model="form.include_activity" type="checkbox" data-test="wipe-include-activity" />
+                {{ $t('household.danger.include_activity') }}
             </label>
         </div>
 

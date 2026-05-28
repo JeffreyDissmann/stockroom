@@ -8,13 +8,13 @@ return [
 
     'nav' => [
         'custom_fields' => 'Eigene Felder',
-        'backup' => 'Sicherung & Wiederherstellung',
-        'import' => 'Aus Homebox importieren',
+        'backup' => 'Sicherung & Import',
         'search_index' => 'Suchindex',
         'members' => 'Mitglieder',
     ],
 
     'import' => [
+        'title' => 'Aus Homebox importieren',
         'description' => 'Hole Orte, Gegenstände, Fotos, Schlagwörter und eigene Felder aus einer laufenden Homebox-Instanz. Ein erneuter Lauf aktualisiert vorhandene Gegenstände, statt sie zu duplizieren.',
         'url' => 'Homebox-URL',
         'email' => 'E-Mail',
@@ -52,11 +52,13 @@ return [
         'description' => 'Lösche das Inventar dauerhaft – jeden Gegenstand und jedes Foto. Erstelle vorher eine Sicherung; dies kann nicht rückgängig gemacht werden.',
         'include_tags' => 'Auch alle Schlagwörter löschen',
         'include_custom_fields' => 'Auch alle eigenen Felder löschen',
+        'include_activity' => 'Auch das Aktivitätsprotokoll leeren',
         'wipe' => 'Inventar leeren',
         'done' => 'Inventar geleert.',
         'confirm' => 'Dies löscht dauerhaft jeden Gegenstand und jedes Foto:tail. Dies kann nicht rückgängig gemacht werden. Fortfahren?',
         'extra_tags' => 'alle Schlagwörter',
         'extra_custom_fields' => 'alle eigenen Felder',
+        'extra_activity' => 'das Aktivitätsprotokoll',
         'and' => 'und',
     ],
 

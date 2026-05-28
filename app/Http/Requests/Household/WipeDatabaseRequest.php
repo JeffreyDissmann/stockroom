@@ -21,6 +21,7 @@ class WipeDatabaseRequest extends FormRequest
         return [
             'include_tags' => ['boolean'],
             'include_custom_fields' => ['boolean'],
+            'include_activity' => ['boolean'],
         ];
     }
 }
