@@ -21,7 +21,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: 8.5
           tools: composer:v2
           coverage: xdebug
 
@@ -46,8 +46,11 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Publish Ziggy Configuration
-        run: php artisan ziggy:generate
+      # Drift guard: the generated Wayfinder route tree is committed (see
+      # CLAUDE.md). Fail the build if it's out of sync with the PHP routes
+      # so a stale tree never ships in an image.
+      - name: Verify Wayfinder routes are in sync
+        run: npm run wayfinder:check
 
       - name: Build Assets
         run: npm run build
