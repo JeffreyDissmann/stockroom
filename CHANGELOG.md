@@ -7,6 +7,8 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.04] — 2026-05-28
+
 ### Added
 
 - **HomeBox import is now a documented first-class feature.** The form
@@ -132,7 +134,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.03...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.04...HEAD
+[2026.05.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.03...2026.05.04
 [2026.05.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.02...2026.05.03
 [2026.05.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.01...2026.05.02
 [2026.05.01]: https://github.com/JeffreyDissmann/stockroom/releases/tag/2026.05.01
