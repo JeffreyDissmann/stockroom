@@ -1,0 +1,65 @@
+# Keep the build context lean. Anything matched here is NOT sent to the
+# Docker daemon (and therefore never lands in a layer, even transiently).
+
+# Source control & editor state
+.git
+.gitattributes
+.gitignore
+.github
+.idea
+.vscode
+.DS_Store
+
+# Local dev environments — never useful in a production image
+.env
+.env.local
+.env.*.local
+.env.testing
+
+# Dependency caches; the Dockerfile rebuilds these from manifests
+node_modules
+vendor
+
+# iCloud-eviction workaround dirs (see CLAUDE.md memory_icloud_nosync)
+**/.nosync
+**/*.nosync
+
+# Build artifacts — Vite rebuilds public/build in the frontend stage
+public/build
+public/hot
+public/storage
+
+# Test / CI / docs that don't ship in the runtime image
+tests
+phpunit.xml
+pest.xml
+playwright.config.*
+.phpunit.cache
+.phpunit.result.cache
+coverage
+.prettierrc*
+.prettierignore
+eslint.config.js
+README.md
+CHANGELOG.md
+SECURITY.md
+LICENSE
+CLAUDE.md
+docs
+
+# Sail's dev compose — runtime uses docker-compose.prod.yml
+compose.yaml
+docker-compose.yml
+docker-compose.override.yml
+
+# Local user storage; the container creates fresh ones at boot
+storage/app/public/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+!storage/app/public/.gitkeep
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/views/.gitkeep
+!storage/logs/.gitkeep
