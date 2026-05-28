@@ -21,9 +21,12 @@ export default defineConfig({
             },
         }),
         // Regenerates resources/js/{actions,routes,wayfinder} from the Laravel
-        // route table during dev (file watch) and build. The generated files
-        // are committed (see CLAUDE.md) and verified in CI via wayfinder:check.
-        wayfinder(),
+        // route table during dev (file watch). The generated files are
+        // committed (see CLAUDE.md) and verified in CI via wayfinder:check —
+        // so we pin this plugin to dev-only (`apply: 'serve'`). Production
+        // builds (including the Docker frontend stage, which has no PHP)
+        // consume the committed tree directly.
+        { ...wayfinder(), apply: 'serve' },
     ],
     resolve: {
         alias: {
