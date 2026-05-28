@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import language from '@/routes/language';
 import { router } from '@inertiajs/vue3';
 import { Languages } from 'lucide-vue-next';
 
@@ -9,7 +10,7 @@ function choose(code: string) {
         return;
     }
     // The redirect-back re-runs shared props, so the whole app re-renders in the new language.
-    router.patch(route('language.update'), { locale: code }, { preserveScroll: true });
+    router.patch(language.update().url, { locale: code }, { preserveScroll: true });
 }
 </script>
 

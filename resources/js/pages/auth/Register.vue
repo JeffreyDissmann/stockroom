@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { login } from '@/routes';
+import register from '@/routes/register';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
@@ -21,7 +23,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('register.store', props.token), {
+    form.post(register.store(props.token).url, {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -84,7 +86,7 @@ const submit = () => {
 
             <div class="text-center text-sm text-muted-foreground">
                 Already have an account?
-                <TextLink :href="route('login')" class="underline underline-offset-4" tabindex="6">Log in</TextLink>
+                <TextLink :href="login().url" class="underline underline-offset-4" tabindex="6">Log in</TextLink>
             </div>
         </form>
     </AuthBase>

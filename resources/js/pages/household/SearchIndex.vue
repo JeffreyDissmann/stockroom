@@ -4,6 +4,7 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
+import searchIndex from '@/routes/household/search-index';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePoll } from '@inertiajs/vue3';
 import { RefreshCw } from 'lucide-vue-next';
@@ -19,7 +20,7 @@ interface ReindexStatus {
 
 const props = defineProps<{ status: ReindexStatus | null; total: number; semantic: boolean }>();
 
-const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.search_index'), href: '/household/search-index' }];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.search_index'), href: searchIndex.index().url }];
 
 const isAdmin = useIsAdmin();
 
@@ -36,7 +37,7 @@ const { start, stop } = usePoll(2000, { only: ['status'] }, { autoStart: false }
 watch(running, (isRunning) => (isRunning ? start() : stop()), { immediate: true });
 
 function rebuild() {
-    form.post('/household/search-index', { preserveScroll: true });
+    form.post(searchIndex.rebuild().url, { preserveScroll: true });
 }
 </script>
 

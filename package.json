@@ -7,10 +7,13 @@
         "dev": "vite",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
-        "lint": "eslint . --fix"
+        "lint": "eslint . --fix",
+        "wayfinder:generate": "php artisan wayfinder:generate --no-interaction",
+        "wayfinder:check": "npm run wayfinder:generate && git diff --exit-code -- resources/js/actions resources/js/routes resources/js/wayfinder"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
+        "@laravel/vite-plugin-wayfinder": "^0.1.7",
         "@vue/eslint-config-typescript": "^14.3.0",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^10.0.1",
@@ -25,7 +28,6 @@
         "@inertiajs/vue3": "^2.0.0-beta.3",
         "@tailwindcss/forms": "^0.5.3",
         "@types/node": "^22.10.2",
-        "@types/ziggy-js": "^1.3.3",
         "@vitejs/plugin-vue": "^5.2.1",
         "@vueuse/core": "^14.3.0",
         "@vueuse/integrations": "^14.3.0",
@@ -47,8 +49,7 @@
         "typescript": "^5.2.2",
         "vite": "^6.0.3",
         "vue": "^3.5.13",
-        "vue-tsc": "^2.2.0",
-        "ziggy-js": "^2.4.2"
+        "vue-tsc": "^2.2.0"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5",

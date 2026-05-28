@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import profile from '@/routes/profile';
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -28,7 +29,7 @@ const form = useForm({
 const deleteUser = (e: Event) => {
     e.preventDefault();
 
-    form.delete(route('profile.destroy'), {
+    form.delete(profile.destroy().url, {
         preserveScroll: true,
         onSuccess: () => closeModal(),
         onError: () => passwordInput.value?.focus(),

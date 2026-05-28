@@ -3,6 +3,8 @@ import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans, transChoice } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { search } from '@/routes';
+import tagRoutes from '@/routes/tags';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
@@ -44,7 +46,7 @@ function cancelEdit() {
 function submitCreate() {
     createForm
         .transform((data) => ({ ...data, color: data.color || null }))
-        .post('/tags', {
+        .post(tagRoutes.store().url, {
             preserveScroll: true,
             onSuccess: () => createForm.reset(),
         });
@@ -54,7 +56,7 @@ function submitEdit() {
     if (!editing.value) return;
     editForm
         .transform((data) => ({ ...data, color: data.color || null }))
-        .put(`/tags/${editing.value.id}`, {
+        .put(tagRoutes.update(editing.value.id).url, {
             preserveScroll: true,
             onSuccess: () => (editing.value = null),
         });
@@ -62,7 +64,7 @@ function submitEdit() {
 
 function destroyTag(tag: TagRow) {
     if (!confirm(trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }))) return;
-    router.delete(`/tags/${tag.id}`, { preserveScroll: true });
+    router.delete(tagRoutes.destroy(tag.id).url, { preserveScroll: true });
 }
 </script>
 
@@ -131,7 +133,7 @@ function destroyTag(tag: TagRow) {
                             :style="{ background: tag.color ?? 'transparent', border: tag.color ? 'none' : '1px solid var(--border)' }"
                         />
                         <Link
-                            :href="`/search?tags[]=${tag.id}`"
+                            :href="search({ query: { 'tags[]': tag.id } }).url"
                             class="group min-w-0 flex-1"
                             :title="trans('tags.show_tagged', { name: tag.name })"
                         >

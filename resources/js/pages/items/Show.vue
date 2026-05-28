@@ -10,6 +10,7 @@ import { itemIconMap } from '@/lib/itemIcons';
 import { trans } from '@/composables/useTranslations';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
+import itemRoutes from '@/routes/items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
@@ -23,9 +24,9 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
-    const base: BreadcrumbItemType[] = [{ title: 'Inventory', href: '/items' }];
-    for (const item of props.breadcrumb) base.push({ title: item.name, href: `/items/${item.id}` });
-    base.push({ title: props.item.name, href: `/items/${props.item.id}` });
+    const base: BreadcrumbItemType[] = [{ title: 'Inventory', href: itemRoutes.index().url }];
+    for (const item of props.breadcrumb) base.push({ title: item.name, href: itemRoutes.show(item.id).url });
+    base.push({ title: props.item.name, href: itemRoutes.show(props.item.id).url });
     return base;
 });
 
@@ -98,7 +99,7 @@ const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) 
 
 function destroyItem() {
     if (!confirm(trans('items.show.delete_confirm', { name: props.item.name }))) return;
-    router.delete(`/items/${props.item.id}`);
+    router.delete(itemRoutes.destroy(props.item.id).url);
 }
 </script>
 
@@ -107,7 +108,7 @@ function destroyItem() {
         <Head :title="item.name" />
 
         <template #topbar-actions>
-            <Link :href="`/items/${item.id}/edit`" class="btn-pill">
+            <Link :href="itemRoutes.edit(item.id).url" class="btn-pill">
                 <Pencil :size="14" />
                 {{ $t('common.edit') }}
             </Link>
@@ -117,7 +118,7 @@ function destroyItem() {
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
             </button>
-            <Link :href="`/items/create?parent=${item.id}`" class="btn-primary">
+            <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-primary">
                 <Plus :size="14" />
                 {{ $t('items.show.add_child') }}
             </Link>
@@ -165,7 +166,7 @@ function destroyItem() {
                             <div v-else class="flex items-center flex-wrap gap-1.5" style="font-size: 13px">
                                 <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
                                     <ChevronRight v-if="i > 0" :size="12" style="color: var(--fg-subtle)" />
-                                    <Link :href="`/items/${crumb.id}`" class="flex items-center gap-1.5">
+                                    <Link :href="itemRoutes.show(crumb.id).url" class="flex items-center gap-1.5">
                                         <ItemTypeIcon :type="crumb.type.value" class="size-3.5" />
                                         <span>{{ crumb.name }}</span>
                                     </Link>
@@ -233,7 +234,7 @@ function destroyItem() {
                     <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
                     <div class="flex items-center gap-2">
                         <ItemViewToggle v-if="children.length" v-model="contentsView" />
-                        <Link :href="`/items/create?parent=${item.id}`" class="btn-pill">
+                        <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
                             <Plus :size="14" />
                             {{ $t('items.show.add_child') }}
                         </Link>

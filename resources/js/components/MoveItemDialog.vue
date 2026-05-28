@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import itemRoutes from '@/routes/items';
 import type { ItemSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
@@ -32,11 +33,8 @@ const unchanged = computed(() => selectedId.value === (props.item.parent_id ?? n
 async function fetchTargets(): Promise<void> {
     loading.value = true;
     try {
-        const params = new URLSearchParams({ q: query.value });
-        if (includeAll.value) {
-            params.set('all', '1');
-        }
-        const response = await fetch(`/items/${props.item.id}/move-targets?${params}`, {
+        const queryParams = { q: query.value, ...(includeAll.value ? { all: '1' } : {}) };
+        const response = await fetch(itemRoutes.moveTargets(props.item.id, { query: queryParams }).url, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
@@ -61,7 +59,7 @@ watch(includeAll, () => fetchTargets());
 function move() {
     processing.value = true;
     router.patch(
-        `/items/${props.item.id}/move`,
+        itemRoutes.move(props.item.id).url,
         { parent_id: selectedId.value },
         {
             preserveScroll: true,

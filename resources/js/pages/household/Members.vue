@@ -5,6 +5,8 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
+import invitationRoutes from '@/routes/household/invitations';
+import memberRoutes from '@/routes/household/members';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Check, Copy, Plus, Trash2 } from 'lucide-vue-next';
@@ -32,11 +34,11 @@ interface MemberRow {
 
 defineProps<{ invitations: InvitationRow[]; members: MemberRow[] }>();
 
-const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.members'), href: '/household/members' }];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.members'), href: memberRoutes.index().url }];
 
 const createForm = useForm<{ label: string }>({ label: '' });
 function createInvite() {
-    createForm.post('/household/invitations', { preserveScroll: true, onSuccess: () => createForm.reset() });
+    createForm.post(invitationRoutes.store().url, { preserveScroll: true, onSuccess: () => createForm.reset() });
 }
 
 const copiedId = ref<number | null>(null);
@@ -52,16 +54,16 @@ async function copyLink(invitation: InvitationRow) {
 
 function revoke(invitation: InvitationRow) {
     if (!confirm(trans('members.revoke_confirm'))) return;
-    router.delete(`/household/invitations/${invitation.id}`, { preserveScroll: true });
+    router.delete(invitationRoutes.destroy(invitation.id).url, { preserveScroll: true });
 }
 
 function toggleAdmin(member: MemberRow) {
-    router.patch(`/household/members/${member.id}`, { is_admin: !member.is_admin }, { preserveScroll: true });
+    router.patch(memberRoutes.update(member.id).url, { is_admin: !member.is_admin }, { preserveScroll: true });
 }
 
 function removeMember(member: MemberRow) {
     if (!confirm(trans('members.remove_confirm', { name: member.name }))) return;
-    router.delete(`/household/members/${member.id}`, { preserveScroll: true });
+    router.delete(memberRoutes.destroy(member.id).url, { preserveScroll: true });
 }
 </script>
 

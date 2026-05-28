@@ -4,6 +4,7 @@ import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import TagFilter from '@/components/TagFilter.vue';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { search } from '@/routes';
 import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Search as SearchIcon } from 'lucide-vue-next';
@@ -25,7 +26,7 @@ const props = defineProps<{
     types: { value: ItemTypeValue; label: string }[];
 }>();
 
-const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.search'), href: '/search' }];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.search'), href: search().url }];
 
 const term = ref(props.query);
 const view = ref<ItemViewMode>('list');
@@ -40,7 +41,7 @@ function apply(overrides: Record<string, string | number | number[] | null>) {
             params[key] = value as string | number;
         }
     }
-    router.get('/search', params, { preserveState: true, preserveScroll: true, replace: true });
+    router.get(search().url, params, { preserveState: true, preserveScroll: true, replace: true });
 }
 
 // Auto-search a short moment after the user stops typing.

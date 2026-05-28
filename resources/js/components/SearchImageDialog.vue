@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import itemRoutes from '@/routes/items';
+import itemImages from '@/routes/items/images';
 import type { ImageSearchResult } from '@/types';
 import { router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
@@ -26,11 +28,8 @@ async function fetchResults(q?: string): Promise<void> {
     loading.value = true;
     failed.value = false;
     try {
-        const params = new URLSearchParams();
-        if (q !== undefined) {
-            params.set('q', q);
-        }
-        const response = await fetch(`/items/${props.itemId}/image-search?${params}`, {
+        const url = itemRoutes.imageSearch(props.itemId, q !== undefined ? { query: { q } } : undefined).url;
+        const response = await fetch(url, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
@@ -80,7 +79,7 @@ function toggle(url: string): void {
 function attach(): void {
     attaching.value = true;
     router.post(
-        `/items/${props.itemId}/images/from-search`,
+        itemImages.fromSearch(props.itemId).url,
         { urls: selected.value },
         {
             preserveScroll: true,

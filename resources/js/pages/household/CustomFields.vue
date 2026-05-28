@@ -5,6 +5,7 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
+import customFields from '@/routes/custom-fields';
 import type { BreadcrumbItem, CustomFieldDefinition, CustomFieldTypeValue } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Check, Lock, Pencil, Plus, Search, SearchX, Trash2, X } from 'lucide-vue-next';
@@ -26,7 +27,7 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.custom_
 
 const createForm = useForm<{ name: string; type: CustomFieldTypeValue; searchable: boolean }>({ name: '', type: 'text', searchable: false });
 function add() {
-    createForm.post('/household/custom-fields', { preserveScroll: true, onSuccess: () => createForm.reset() });
+    createForm.post(customFields.store().url, { preserveScroll: true, onSuccess: () => createForm.reset() });
 }
 
 const editingId = ref<number | null>(null);
@@ -39,11 +40,11 @@ function startEdit(field: CustomFieldDefinition) {
     editForm.clearErrors();
 }
 function saveEdit(id: number) {
-    editForm.put(`/household/custom-fields/${id}`, { preserveScroll: true, onSuccess: () => (editingId.value = null) });
+    editForm.put(customFields.update(id).url, { preserveScroll: true, onSuccess: () => (editingId.value = null) });
 }
 function destroy(field: CustomFieldDefinition) {
     if (!confirm(trans('household.custom_fields.delete_confirm', { name: field.name }))) return;
-    router.delete(`/household/custom-fields/${field.id}`, { preserveScroll: true });
+    router.delete(customFields.destroy(field.id).url, { preserveScroll: true });
 }
 function typeLabel(type: CustomFieldTypeValue) {
     return types.find((t) => t.value === type)?.label ?? type;

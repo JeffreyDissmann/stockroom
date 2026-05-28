@@ -5,6 +5,7 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
+import householdImport from '@/routes/household/import';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePoll } from '@inertiajs/vue3';
 import { Download } from 'lucide-vue-next';
@@ -24,7 +25,7 @@ interface ImportStatus {
 
 const props = defineProps<{ status: ImportStatus | null }>();
 
-const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.import'), href: '/household/import' }];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.import'), href: householdImport.index().url }];
 
 const isAdmin = useIsAdmin();
 
@@ -40,7 +41,7 @@ const { start, stop } = usePoll(2000, { only: ['status'] }, { autoStart: false }
 watch(running, (isRunning) => (isRunning ? start() : stop()), { immediate: true });
 
 function submit() {
-    form.post('/household/import', {
+    form.post(householdImport.start().url, {
         preserveScroll: true,
         onSuccess: () => form.reset('password'),
     });

@@ -2,6 +2,7 @@
 import ItemCardCarousel from '@/components/ItemCardCarousel.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import TagBadge from '@/components/TagBadge.vue';
+import itemRoutes from '@/routes/items';
 import type { ItemSummary, ItemViewMode } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 
@@ -22,7 +23,7 @@ defineProps<{
             </tr>
         </thead>
         <tbody>
-            <tr v-for="item in items" :key="item.id" class="row-clickable" @click="router.visit(`/items/${item.id}`)">
+            <tr v-for="item in items" :key="item.id" class="row-clickable" @click="router.visit(itemRoutes.show(item.id).url)">
                 <td>
                     <div class="row-name">
                         <span class="row-thumb"><ItemThumbnail :item="item" size="sm" /></span>
@@ -50,7 +51,7 @@ defineProps<{
     </table>
 
     <div v-else class="items-grid">
-        <Link v-for="item in items" :key="item.id" :href="`/items/${item.id}`" class="item-card">
+        <Link v-for="item in items" :key="item.id" :href="itemRoutes.show(item.id).url" class="item-card">
             <div class="thumb">
                 <ItemCardCarousel v-if="(item.image_thumbs?.length ?? 0) > 1" :thumbs="item.image_thumbs ?? []" :alt="item.name" />
                 <ItemThumbnail v-else :item="item" size="md" />

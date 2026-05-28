@@ -9,6 +9,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
+import { activity, dashboard, logout, search } from '@/routes';
+import customFields from '@/routes/custom-fields';
+import backup from '@/routes/household/backup';
+import householdImport from '@/routes/household/import';
+import items from '@/routes/items';
+import profile from '@/routes/profile';
+import tags from '@/routes/tags';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Activity as ActivityIcon, Boxes, Database, Download, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Sparkles, Tag as TagIcon } from 'lucide-vue-next';
@@ -17,16 +24,16 @@ import { computed } from 'vue';
 const { open: openAssistant } = useAssistant();
 
 const tabs = [
-    { label: trans('nav.dashboard'), href: '/dashboard', icon: LayoutGrid, matches: (u: string) => u.startsWith('/dashboard') },
-    { label: trans('nav.items'), href: '/items', icon: Boxes, matches: (u: string) => u === '/items' || (u.startsWith('/items') && !u.includes('/create')) },
-    { label: trans('common.add'), href: '/items/create', icon: Plus, matches: (u: string) => u.startsWith('/items/create') },
-    { label: trans('nav.search'), href: '/search', icon: Search, matches: (u: string) => u.startsWith('/search') },
+    { label: trans('nav.dashboard'), href: dashboard().url, icon: LayoutGrid, matches: (u: string) => u.startsWith('/dashboard') },
+    { label: trans('nav.items'), href: items.index().url, icon: Boxes, matches: (u: string) => u === '/items' || (u.startsWith('/items') && !u.includes('/create')) },
+    { label: trans('common.add'), href: items.create().url, icon: Plus, matches: (u: string) => u.startsWith('/items/create') },
+    { label: trans('nav.search'), href: search().url, icon: Search, matches: (u: string) => u.startsWith('/search') },
 ];
 
 const householdLinks = [
-    { label: trans('household.nav.custom_fields'), href: '/household/custom-fields', icon: SlidersHorizontal },
-    { label: trans('household.nav.backup'), href: '/household/backup', icon: Database },
-    { label: trans('household.nav.import'), href: '/household/import', icon: Download },
+    { label: trans('household.nav.custom_fields'), href: customFields.index().url, icon: SlidersHorizontal },
+    { label: trans('household.nav.backup'), href: backup.index().url, icon: Database },
+    { label: trans('household.nav.import'), href: householdImport.index().url, icon: Download },
 ];
 
 const page = usePage<SharedData>();
@@ -60,13 +67,13 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
                 </DropdownMenuItem>
                 <DropdownMenuSeparator v-if="aiEnabled" />
                 <DropdownMenuItem as-child>
-                    <Link class="flex w-full items-center" href="/tags">
+                    <Link class="flex w-full items-center" :href="tags.index().url">
                         <TagIcon class="mr-2 h-4 w-4" />
                         {{ $t('nav.tags') }}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem as-child>
-                    <Link class="flex w-full items-center" href="/activity">
+                    <Link class="flex w-full items-center" :href="activity().url">
                         <ActivityIcon class="mr-2 h-4 w-4" />
                         {{ $t('nav.activity') }}
                     </Link>
@@ -83,13 +90,13 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem as-child>
-                    <Link class="flex w-full items-center" href="/settings/profile">
+                    <Link class="flex w-full items-center" :href="profile.edit().url">
                         <Settings class="mr-2 h-4 w-4" />
                         {{ $t('nav.settings') }}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem as-child>
-                    <Link class="flex w-full items-center" method="post" :href="route('logout')" as="button">
+                    <Link class="flex w-full items-center" method="post" :href="logout().url" as="button">
                         <LogOut class="mr-2 h-4 w-4" />
                         {{ $t('nav.log_out') }}
                     </Link>

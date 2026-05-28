@@ -2,6 +2,7 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
+import household from '@/routes/household';
 import { useForm } from '@inertiajs/vue3';
 import { Trash2 } from 'lucide-vue-next';
 
@@ -19,7 +20,7 @@ function wipe() {
     const and = trans('household.danger.and');
     const tail = extras.length ? ` ${and} ${extras.join(` ${and} `)}` : '';
     if (!confirm(trans('household.danger.confirm', { tail }))) return;
-    form.post('/household/reset', { preserveScroll: true });
+    form.post(household.reset().url, { preserveScroll: true });
 }
 </script>
 

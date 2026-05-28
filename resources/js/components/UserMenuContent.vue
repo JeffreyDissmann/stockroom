@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { logout } from '@/routes';
+import profile from '@/routes/profile';
 import type { User } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
@@ -21,7 +23,7 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="route('profile.edit')" as="button">
+            <Link class="block w-full" :href="profile.edit().url" as="button">
                 <Settings class="mr-2 h-4 w-4" />
                 {{ $t('nav.settings') }}
             </Link>
@@ -29,7 +31,7 @@ defineProps<Props>();
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
-        <Link class="block w-full" method="post" :href="route('logout')" as="button">
+        <Link class="block w-full" method="post" :href="logout().url" as="button">
             <LogOut class="mr-2 h-4 w-4" />
             {{ $t('nav.log_out') }}
         </Link>
