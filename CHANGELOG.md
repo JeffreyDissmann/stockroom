@@ -7,6 +7,16 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Queue worker OOM on large photo imports**: PHP's `memory_limit` in
+  the Docker image was 256 MB — comfortable for web requests but too
+  tight for `intervention/image` (GD) to decode a 12+ MP photo, which
+  needs ~200 MB just to decompress. The HomeBox import job tripped
+  this immediately and bounced every job to `failed_jobs` after
+  `MaxAttemptsExceeded`. Bumped to 512 MB, which handles photos up to
+  ~80 MP with headroom.
+
 ## [2026.05.03] — 2026-05-28
 
 ### Fixed
