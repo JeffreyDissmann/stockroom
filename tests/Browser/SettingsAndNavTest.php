@@ -56,6 +56,16 @@ it('shows a floating assistant button on mobile and opens the panel from it', fu
         ->assertNoJavaScriptErrors();
 });
 
+it('hides the floating assistant button on desktop', function () {
+    // The FAB is mobile-only. A scoped <style> rule used to override Tailwind's
+    // `md:hidden` on specificity, leaking the button onto desktop; this test
+    // pins that behaviour down so a future style edit doesn't reintroduce it.
+    $page = visit('/dashboard');
+
+    $page->assertMissing('@open-assistant-fab')
+        ->assertNoJavaScriptErrors();
+});
+
 it('opens the assistant with the keyboard shortcut', function () {
     $page = visit('/dashboard');
 

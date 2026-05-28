@@ -39,7 +39,7 @@ withDefaults(
         <button
             v-if="aiEnabled"
             type="button"
-            class="assistant-fab md:hidden"
+            class="assistant-fab inline-flex items-center justify-center md:hidden"
             :title="$t('nav.assistant')"
             :aria-label="$t('nav.assistant')"
             data-test="open-assistant-fab"
@@ -51,16 +51,20 @@ withDefaults(
 </template>
 
 <style scoped>
-/* Mobile-only floating shortcut to the assistant. Sits above the bottom tabs. */
+/*
+ * Mobile-only floating shortcut to the assistant. Sits above the bottom tabs.
+ *
+ * We do NOT set `display` here — that's left to the Tailwind utility classes
+ * on the element (`inline-flex md:hidden`). Setting `display` in a scoped
+ * <style> block would create a `.assistant-fab[data-v-xxx]` rule that beats
+ * Tailwind's `.md\:hidden` on specificity, leaking the button onto desktop.
+ */
 .assistant-fab {
     position: fixed;
     right: 16px;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
     width: 48px;
     height: 48px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     padding: 0;
     border: 0;
     border-radius: 999px;

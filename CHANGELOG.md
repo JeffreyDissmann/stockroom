@@ -33,6 +33,12 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
   treats a bare path as relative, so from `/household/import` the
   destination resolved to `/household/household/backup`. Fixed with the
   leading slash.
+- **Mobile assistant FAB leaked onto desktop.** A scoped `<style>` rule
+  set `display: inline-flex` on the button with `.assistant-fab[data-v-…]`
+  specificity, which beat Tailwind's `.md\:hidden` and made the floating
+  shortcut visible at every breakpoint. Moved the `display` declaration
+  to Tailwind utility classes so the breakpoint rule wins. New browser
+  test asserts the FAB is missing on desktop.
 
 ### Tests
 
