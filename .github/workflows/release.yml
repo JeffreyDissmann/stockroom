@@ -1,0 +1,92 @@
+name: release
+
+# Build and push a multi-arch container image to GHCR whenever a CalVer tag
+# (YYYY.MM.PATCH) is pushed. The same image is also tagged ":latest".
+on:
+    push:
+        tags:
+            - "20[0-9][0-9].[0-1][0-9].*"
+
+# Allow only one release at a time so successive tags can't race their pushes.
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    image:
+        name: build & push image
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write # required to push to ghcr.io
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            # Wayfinder's generated route tree is committed; if a stale tree
+            # slipped past CI on the source branch, fail the release here too
+            # so a broken bundle never gets tagged.
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.4"
+                  tools: composer:v2
+
+            - name: Install Composer deps (for artisan wayfinder:generate)
+              run: composer install --no-interaction --no-progress --prefer-dist
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: Install npm deps
+              run: npm ci --no-audit --no-fund
+
+            - name: Verify Wayfinder tree is in sync with PHP routes
+              run: npm run wayfinder:check
+
+            - name: Set up QEMU (for arm64 emulation)
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GHCR
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            # GHCR rejects mixed-case repository names, but github.repository_owner
+            # keeps the original casing. Normalize once and reuse.
+            - name: Lowercase image namespace
+              id: ns
+              run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+            - name: Derive image tags
+              id: meta
+              uses: docker/metadata-action@v5
+              with:
+                  images: ghcr.io/${{ steps.ns.outputs.owner }}/stockroom
+                  tags: |
+                      type=ref,event=tag
+                      type=raw,value=latest
+                  labels: |
+                      org.opencontainers.image.title=Stockroom
+                      org.opencontainers.image.description=Self-hosted home inventory
+                      org.opencontainers.image.licenses=MIT
+
+            - name: Build and push (linux/amd64, linux/arm64)
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  platforms: linux/amd64,linux/arm64
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  # GitHub Actions cache keeps the buildx layer cache between runs.
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
