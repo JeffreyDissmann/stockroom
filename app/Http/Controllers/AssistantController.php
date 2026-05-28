@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Ai\Agents\InventoryAssistant;
 use App\Ai\Agents\ItemPhotoAnalyzer;
 use App\Ai\AssistantContext;
+use App\Ai\ReplyPresenter;
 use App\Http\Middleware\EnsureAiEnabled;
 use App\Models\Item;
 use App\Models\User;
@@ -17,7 +18,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
-use Illuminate\Support\Str;
 use Laravel\Ai\Contracts\ConversationStore;
 use Laravel\Ai\Files\Image;
 use Laravel\Ai\Messages\MessageRole;
@@ -35,6 +35,7 @@ class AssistantController extends Controller
         private readonly ItemImageProcessor $images,
         private readonly PendingItemImage $pendingImage,
         private readonly AssistantContext $context,
+        private readonly ReplyPresenter $presenter,
     ) {}
 
     public function messages(Request $request): JsonResponse
@@ -103,7 +104,7 @@ class AssistantController extends Controller
 
         return response()->json([
             'conversation_id' => $conversationId,
-            'reply' => $this->renderAssistantMarkdown($response->text),
+            'reply' => $this->presenter->render($response->text),
             'mutated' => $mutated,
             'redirect_to' => $redirectTo,
         ]);
@@ -206,99 +207,13 @@ class AssistantController extends Controller
                 'role' => $m->role->value,
                 // Assistant replies are Markdown → render to safe HTML; user text stays verbatim.
                 'content' => $m->role === MessageRole::Assistant
-                    ? $this->renderAssistantMarkdown((string) $m->content)
+                    ? $this->presenter->render((string) $m->content)
                     : (string) $m->content,
             ])
             ->values()
             ->all();
 
         return response()->json(['conversation_id' => $id, 'messages' => $messages]);
-    }
-
-    /**
-     * Render an assistant Markdown reply to HTML, stripping any raw HTML and
-     * unsafe links so the result is safe to inject with v-html on the client.
-     * Item links the model produced are validated against real ids.
-     */
-    private function renderAssistantMarkdown(string $text): string
-    {
-        return $this->validateItemLinks(Str::markdown($this->normaliseItemLinks($text), [
-            'html_input' => 'strip',
-            'allow_unsafe_links' => false,
-        ]));
-    }
-
-    /**
-     * Repair a common model mistake — writing the URL inside the brackets with
-     * no label, e.g. "[/items/557]" — into a proper [Name](/items/557) link so
-     * it renders instead of showing as literal text.
-     */
-    private function normaliseItemLinks(string $text): string
-    {
-        return preg_replace_callback('#\[/items/(\d+)\](?!\()#', function (array $m): string {
-            $item = Item::find((int) $m[1]);
-
-            if ($item === null) {
-                return $m[0];
-            }
-
-            $label = str_replace(['[', ']'], ['\[', '\]'], $item->name);
-
-            return "[{$label}](/items/{$item->id})";
-        }, $text) ?? $text;
-    }
-
-    /**
-     * Fix up /items/{id} links the model wrote. A link to a real id is kept; a
-     * link to a missing id is self-healed when its text uniquely names a real
-     * item (the model likely got the number wrong), otherwise it degrades to
-     * plain text — so a hallucinated id can never become a 404 link.
-     */
-    private function validateItemLinks(string $html): string
-    {
-        preg_match_all('#<a\b[^>]*\bhref="/items/(\d+)"[^>]*>(.*?)</a>#is', $html, $matches, PREG_SET_ORDER);
-
-        if ($matches === []) {
-            return $html;
-        }
-
-        $existing = Item::whereIn('id', array_unique(array_map(static fn (array $m): int => (int) $m[1], $matches)))
-            ->pluck('id')
-            ->flip();
-
-        foreach ($matches as [$anchor, $id, $label]) {
-            if ($existing->has((int) $id)) {
-                continue;
-            }
-
-            $healedId = $this->itemIdForLabel($label);
-
-            $html = str_replace(
-                $anchor,
-                $healedId !== null ? str_replace("/items/{$id}", "/items/{$healedId}", $anchor) : $label,
-                $html,
-            );
-        }
-
-        return $html;
-    }
-
-    /**
-     * Resolve a link's visible text to a real item id, but only when exactly one
-     * item bears that name (an ambiguous or unknown name can't be healed safely).
-     */
-    private function itemIdForLabel(string $label): ?int
-    {
-        $name = trim(html_entity_decode(strip_tags($label), ENT_QUOTES));
-
-        if ($name === '') {
-            return null;
-        }
-
-        // Case-insensitive exact match (no wildcards added); heal only when unambiguous.
-        $ids = Item::whereLike('name', $name, caseSensitive: false)->pluck('id');
-
-        return $ids->count() === 1 ? (int) $ids->first() : null;
     }
 
     /**
