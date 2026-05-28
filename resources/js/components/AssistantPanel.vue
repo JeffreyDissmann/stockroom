@@ -153,6 +153,17 @@ async function send() {
         // A real thread now exists, so the reload should rehydrate it again.
         localStorage.removeItem(FRESH_THREAD_KEY);
         messages.value.push({ role: 'assistant', content: data.reply ?? '' });
+
+        // If the assistant changed data, refresh whatever the user is looking at.
+        // router.reload() re-fetches the current page's props in place, so the
+        // panel itself (this component) stays mounted with all its state.
+        if (data.mutated) {
+            if (data.redirect_to) {
+                router.visit(data.redirect_to);
+            } else if (page.component === 'items/Show') {
+                router.reload();
+            }
+        }
     } catch {
         error.value = trans('assistant.error');
     } finally {

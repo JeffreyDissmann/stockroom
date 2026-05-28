@@ -96,10 +96,49 @@ class AssistantController extends Controller
             $this->pendingImage->put($conversationId, $stashedImage);
         }
 
+        [$mutated, $redirectTo] = $this->detectMutations(
+            $response->toolCalls ?? [],
+            ! empty($validated['context_item_id']) ? (int) $validated['context_item_id'] : null,
+        );
+
         return response()->json([
             'conversation_id' => $conversationId,
             'reply' => $this->renderAssistantMarkdown($response->text),
+            'mutated' => $mutated,
+            'redirect_to' => $redirectTo,
         ]);
+    }
+
+    /**
+     * Inspect the turn's tool calls so the panel can refresh stale page data:
+     * any write tool → mutated=true; deleting the currently viewed item →
+     * redirect_to /items, since the page about to be reloaded is gone.
+     *
+     * @return array{0: bool, 1: ?string}
+     */
+    private function detectMutations(iterable $toolCalls, ?int $contextItemId): array
+    {
+        $writeTools = ['CreateItem', 'UpdateItem', 'MoveItem', 'AssignTags', 'DeleteItem'];
+        $mutated = false;
+        $redirectTo = null;
+
+        foreach ($toolCalls as $call) {
+            $name = is_object($call) ? ($call->name ?? '') : ($call['name'] ?? '');
+
+            if (! in_array($name, $writeTools, true)) {
+                continue;
+            }
+
+            $mutated = true;
+
+            $arguments = is_object($call) ? ($call->arguments ?? []) : ($call['arguments'] ?? []);
+
+            if ($name === 'DeleteItem' && $contextItemId !== null && (int) ($arguments['id'] ?? 0) === $contextItemId) {
+                $redirectTo = '/items';
+            }
+        }
+
+        return [$mutated, $redirectTo];
     }
 
     /**

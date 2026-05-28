@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Ai\Contracts\Conversational;
+use Laravel\Ai\Responses\Data\ToolCall;
 use Tests\TestCase;
 
 class AssistantControllerTest extends TestCase
@@ -326,6 +327,66 @@ class AssistantControllerTest extends TestCase
             ->assertOk();
 
         InventoryAssistant::assertPrompted(fn ($prompt) => ! str_contains($prompt->agent->instructions(), 'currently viewing'));
+    }
+
+    public function test_a_read_only_turn_returns_mutated_false(): void
+    {
+        InventoryAssistant::fake(['Found a few drills.']);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'where are my drills?'])
+            ->assertOk()
+            ->assertJsonPath('mutated', false)
+            ->assertJsonPath('redirect_to', null);
+    }
+
+    public function test_a_write_turn_signals_the_panel_to_reload(): void
+    {
+        // Queue a tool call followed by the final text; the fake gateway will
+        // actually execute the tool, so the response carries a real toolCall.
+        InventoryAssistant::fake([
+            new ToolCall('call_1', 'CreateItem', ['name' => 'Reload Test', 'type' => 'item']),
+            'Done.',
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'create it'])
+            ->assertOk()
+            ->assertJsonPath('mutated', true)
+            ->assertJsonPath('redirect_to', null);
+
+        $this->assertDatabaseHas('items', ['name' => 'Reload Test']);
+    }
+
+    public function test_deleting_the_currently_viewed_item_returns_a_redirect_hint(): void
+    {
+        $item = Item::factory()->create();
+        InventoryAssistant::fake([
+            new ToolCall('call_1', 'DeleteItem', ['id' => $item->id]),
+            'Deleted.',
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'delete this', 'context_item_id' => $item->id])
+            ->assertOk()
+            ->assertJsonPath('mutated', true)
+            ->assertJsonPath('redirect_to', '/items');
+    }
+
+    public function test_deleting_an_unrelated_item_does_not_redirect(): void
+    {
+        $viewed = Item::factory()->create();
+        $other = Item::factory()->create();
+        InventoryAssistant::fake([
+            new ToolCall('call_1', 'DeleteItem', ['id' => $other->id]),
+            'Deleted.',
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'delete the other one', 'context_item_id' => $viewed->id])
+            ->assertOk()
+            ->assertJsonPath('mutated', true)
+            ->assertJsonPath('redirect_to', null);
     }
 
     public function test_a_user_cannot_continue_another_users_conversation(): void
