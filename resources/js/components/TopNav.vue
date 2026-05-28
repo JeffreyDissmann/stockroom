@@ -2,14 +2,16 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAssistant } from '@/composables/useAssistant';
 import { useCommandPalette } from '@/composables/useCommandPalette';
 import { trans } from '@/composables/useTranslations';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Sparkles, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const { open } = useCommandPalette();
+const { open: openAssistant } = useAssistant();
 
 interface NavLink {
     label: string;
@@ -32,6 +34,7 @@ const secondary: NavLink[] = [
 
 const page = usePage<SharedData>();
 const user = computed<User | null>(() => page.props.auth?.user ?? null);
+const aiEnabled = page.props.features.ai;
 
 function initials(name: string): string {
     return name
@@ -63,6 +66,11 @@ function initials(name: string): string {
             <Search :size="14" />
             <span>{{ $t('nav.search') }}</span>
             <kbd>⌘K</kbd>
+        </button>
+        <button v-if="aiEnabled" type="button" class="topnav-item" :title="$t('nav.assistant')" data-test="open-assistant" @click="openAssistant()">
+            <Sparkles :size="16" />
+            <span>{{ $t('nav.assistant') }}</span>
+            <kbd>⌘⇧A</kbd>
         </button>
         <Link
             v-for="link in secondary"
@@ -102,7 +110,8 @@ function initials(name: string): string {
     border-color: var(--border-strong);
     color: var(--fg);
 }
-.topnav-search kbd {
+.topnav-search kbd,
+.topnav-item kbd {
     font-size: 10.5px;
     border: 1px solid var(--border);
     border-radius: 4px;

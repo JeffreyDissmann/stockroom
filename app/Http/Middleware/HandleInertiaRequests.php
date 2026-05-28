@@ -30,7 +30,7 @@ class HandleInertiaRequests extends Middleware
      */
     private const TRANSLATION_GROUPS = [
         'common', 'nav', 'dashboard', 'items', 'search',
-        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums',
+        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums', 'assistant',
     ];
 
     /**

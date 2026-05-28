@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImageSearchController;
 use App\Http\Controllers\ItemController;
@@ -26,6 +27,10 @@ Route::middleware('auth')->group(function () {
 
     // Analyse an uploaded photo into draft item fields (gated by EnsureAiEnabled on the controller).
     Route::post('items/analyze-photo', ItemPhotoAnalysisController::class)->name('items.analyze-photo');
+
+    // Inventory chat assistant (gated by EnsureAiEnabled on the controller).
+    Route::post('assistant/messages', [AssistantController::class, 'messages'])->name('assistant.messages');
+    Route::get('assistant/conversation', [AssistantController::class, 'conversation'])->name('assistant.conversation');
 
     Route::resource('items', ItemController::class);
 

@@ -14,4 +14,5 @@ return [
     'log_out' => 'Abmelden',
     'add_item' => 'Hinzufügen',
     'primary' => 'Hauptnavigation',
+    'assistant' => 'Assistent',
 ];

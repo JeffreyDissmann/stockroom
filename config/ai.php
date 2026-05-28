@@ -36,6 +36,17 @@ return [
 
     'enabled' => env('AI_ENABLED', true),
     'vision_model' => env('AI_VISION_MODEL', 'qwen3-vl:4b'),
+    // Chat/assistant model — must support tool (function) calling. Ministral is a
+    // small, tool-capable model; change to any tool-capable Ollama model you've pulled
+    // (e.g. qwen2.5:7b-instruct, llama3.1:8b). Use the exact tag from `ollama list`.
+    'chat_model' => env('AI_CHAT_MODEL', 'ministral-3:8b'),
+    // When the assistant panel reopens, it resumes the most recent thread only
+    // if that thread was active within this many hours; older threads start
+    // fresh. Set to 0 to always resume the latest thread regardless of age.
+    'chat_reset_after_hours' => (int) env('AI_CHAT_RESET_AFTER_HOURS', 3),
+    // Forget (delete) assistant conversations that have been idle longer than
+    // this many days — the scheduled `ai:forget-conversations` command. 0 = off.
+    'chat_retention_days' => (int) env('AI_CHAT_RETENTION_DAYS', 3),
     // bge-m3 is multilingual and prefix-free, which suits mixed-language item
     // data well. If you change this, update AI_EMBEDDINGS_DIMENSIONS to match.
     'embeddings_model' => env('AI_EMBEDDINGS_MODEL', 'bge-m3:567m'),
