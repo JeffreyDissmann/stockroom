@@ -48,6 +48,14 @@ it('opens the assistant from the mobile more menu', function () {
         ->assertNoJavaScriptErrors();
 });
 
+it('shows a floating assistant button on mobile and opens the panel from it', function () {
+    $page = visit('/dashboard')->on()->iPhone14Pro();
+
+    $page->click('@open-assistant-fab')
+        ->assertSee('Ask me where something is')
+        ->assertNoJavaScriptErrors();
+});
+
 it('opens the assistant with the keyboard shortcut', function () {
     $page = visit('/dashboard');
 
