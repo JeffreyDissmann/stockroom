@@ -4,6 +4,10 @@ A self-hosted home inventory: track every item, container, and room in your
 household, search it (keyword + semantic), and ask a local AI assistant
 about it.
 
+[![Latest release](https://img.shields.io/github/v/release/JeffreyDissmann/stockroom?label=release&color=blue)](https://github.com/JeffreyDissmann/stockroom/releases)
+[![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange)](./CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
 > **Status:** alpha. The data model is stable and the test suite is green,
 > but this is a one-person side project — expect rough edges and read the
 > [CHANGELOG](./CHANGELOG.md) before upgrading.
@@ -56,6 +60,14 @@ exist — change those env vars after first boot, they become inert).
 Open `http://<your-host>:8080` (or whatever you put behind your reverse
 proxy). The image expects to sit behind HTTPS in any real deployment;
 put it behind [Caddy](https://caddyserver.com/), Traefik, or nginx.
+
+### Running on a NAS
+
+If you're deploying to a NAS (Synology, UGREEN UGOS, TrueNAS, OMV…) you
+probably want bind-mounts to predictable paths so your file browser can
+see backups, plus all env inline so you can paste into the UI. Use
+[`docs/compose/homelab.yaml`](./docs/compose/homelab.yaml) instead of
+`docker-compose.prod.yml`.
 
 ### What's in the compose
 

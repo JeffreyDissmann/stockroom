@@ -1,0 +1,110 @@
+name: smoke
+
+# End-to-end smoke test for the production Docker image. Builds the current
+# commit's Dockerfile, brings the prod compose stack up against Postgres +
+# Meilisearch, and asserts the app actually serves traffic.
+#
+# Catches the class of bugs unit tests cannot see — entrypoint scripts,
+# Caddyfile rewrites, base-image binaries (curl vs wget), env wiring. All
+# three failures observed on the first NAS deploy (APP_KEY MissingAppKeyException,
+# Caddy try_files override, wget healthcheck) would have tripped this.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'docker/**'
+      - 'docker-compose.prod.yml'
+      - '.env.docker.example'
+      - '.github/workflows/smoke.yml'
+
+# Don't pile up parallel smoke runs on rapid-fire pushes.
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prod-image:
+    name: prod compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build amd64 locally and tag it as the image the compose file expects.
+      # No multi-arch here — we just need one runnable layer for the smoke.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ghcr.io/jeffreydissmann/stockroom:latest
+          cache-from: type=gha,scope=smoke
+          cache-to: type=gha,mode=max,scope=smoke
+
+      - name: Prepare env
+        run: |
+          cp .env.docker.example .env
+          # Fill the required placeholders with throwaway CI values.
+          sed -i \
+            -e 's|^DB_PASSWORD=.*|DB_PASSWORD=ci-only-db-password|' \
+            -e 's|^MEILISEARCH_KEY=.*|MEILISEARCH_KEY=ci-only-meili-master-key|' \
+            -e 's|^STOCKROOM_ADMIN_PASSWORD=.*|STOCKROOM_ADMIN_PASSWORD=ci-only-admin-pw|' \
+            -e 's|^STOCKROOM_ADMIN_EMAIL=.*|STOCKROOM_ADMIN_EMAIL=ci@example.test|' \
+            -e 's|^APP_PORT=.*|APP_PORT=8080|' \
+            -e 's|^APP_URL=.*|APP_URL=http://localhost:8080|' \
+            .env
+
+      - name: Start prod stack
+        run: docker compose -f docker-compose.prod.yml up -d
+
+      # Poll /up rather than waiting on Docker's healthcheck — gives us better
+      # logs on failure and doesn't hide errors behind start_period.
+      - name: Wait for app to respond
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:8080/up >/dev/null; then
+              echo "ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::App did not become ready within 90s"
+          docker compose -f docker-compose.prod.yml ps
+          docker compose -f docker-compose.prod.yml logs app | tail -100
+          exit 1
+
+      - name: Probe key endpoints
+        run: |
+          set -e
+          # /up — Laravel's built-in health endpoint
+          test "$(curl -sf -o /dev/null -w '%{http_code}' http://localhost:8080/up)" = "200"
+          # /login — a real Inertia/Vue page; proves the Caddy → PHP rewrite is wired
+          test "$(curl -sf -o /dev/null -w '%{http_code}' http://localhost:8080/login)" = "200"
+
+      - name: Confirm admin was seeded by stockroom:install
+        run: |
+          docker compose -f docker-compose.prod.yml exec -T db \
+            psql -U stockroom -d stockroom -tAc \
+            "SELECT email FROM users WHERE is_admin = true LIMIT 1" \
+            | grep -q ci@example.test
+
+      - name: Dump logs on failure
+        if: failure()
+        run: |
+          echo '=== app ==='
+          docker compose -f docker-compose.prod.yml logs app
+          echo '=== db ==='
+          docker compose -f docker-compose.prod.yml logs db
+          echo '=== meili ==='
+          docker compose -f docker-compose.prod.yml logs meilisearch
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker-compose.prod.yml down -v
