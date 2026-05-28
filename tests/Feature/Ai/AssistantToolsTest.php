@@ -73,13 +73,21 @@ class AssistantToolsTest extends TestCase
         );
     }
 
-    public function test_inventory_stats_counts_and_sums(): void
+    public function test_inventory_stats_defaults_to_possessions_and_supports_all(): void
     {
+        // Two possessions + one room → default count must be 2 (the gap the
+        // benchmark surfaced: every model failed to remember type=item).
         Item::factory()->create(['type' => ItemType::Item, 'purchase_price' => 100]);
         Item::factory()->create(['type' => ItemType::Item, 'purchase_price' => 50]);
         Item::factory()->room()->create();
 
-        $this->assertStringContainsString('3', (new InventoryStats)->handle(new Request(['metric' => 'count'])));
+        $default = (new InventoryStats)->handle(new Request(['metric' => 'count']));
+        $this->assertStringContainsString('Total items: 2', $default);
+
+        // Explicit "all" opts back in to counting rooms/containers too.
+        $allCount = (new InventoryStats)->handle(new Request(['metric' => 'count', 'type' => 'all']));
+        $this->assertStringContainsString('Total entries: 3', $allCount);
+
         $this->assertStringContainsString('150', (new InventoryStats)->handle(new Request(['metric' => 'value'])));
     }
 

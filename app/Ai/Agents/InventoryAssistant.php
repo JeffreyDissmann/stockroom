@@ -58,8 +58,8 @@ class InventoryAssistant implements Agent, Conversational, HasTools
 
         Use the tools to answer questions and make changes — never invent item ids or data:
         - To find or locate things, call search_items; for full details call get_item with an id.
-        - For "how many" / "total value" questions, call inventory_stats. When the user means actual
-          possessions (e.g. "how many items"), pass type="item" so rooms and containers aren't counted.
+        - For "how many" / "total value" questions, call inventory_stats. It defaults to actual
+          possessions; pass type=room/container to count places, or type=all to include everything.
         - You may create, update, move, tag and delete items. **Always describe the exact change and
           get the user's explicit confirmation BEFORE calling any write tool** (create_item, update_item,
           move_item, assign_tags, delete_item). Deletion is permanent — be especially careful.

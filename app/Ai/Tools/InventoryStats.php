@@ -16,11 +16,10 @@ class InventoryStats implements Tool
 {
     public function description(): string
     {
-        return 'Aggregate the inventory: count entries or sum their value (purchase price of owned, unsold items), '
-            .'optionally restricted to one type and/or grouped by type or tag. Use for "how many…" and '
-            .'"what did I spend / total value" questions. Types are: room (a place), container (holds things), '
-            .'item (an actual possession). NOTE: an unfiltered count includes rooms and containers, so for '
-            .'"how many items do I own" pass type="item".';
+        return 'Aggregate the inventory: count or sum value (purchase price of owned, unsold items). '
+            .'By DEFAULT this counts actual possessions only (type=item) — what users mean by "how many '
+            .'items / what did I spend". Pass type=room or type=container to count those instead, or '
+            .'type=all to include every entry. group_by=type or group_by=tag returns a breakdown.';
     }
 
     /**
@@ -30,8 +29,8 @@ class InventoryStats implements Tool
     {
         return [
             'metric' => $schema->string()->enum(['count', 'value'])->description('"count" of entries, or "value" = sum of purchase prices of unsold items.')->required(),
-            'type' => $schema->string()->enum(['room', 'container', 'item'])->description('Optional: restrict to a single type. Use "item" for actual possessions (excludes rooms and containers).')->nullable(),
-            'group_by' => $schema->string()->enum(['type', 'tag'])->description('Optional grouping: by type or by tag. Omit for an overall total.')->nullable(),
+            'type' => $schema->string()->enum(['item', 'room', 'container', 'all'])->description('Defaults to "item" (possessions). Use "room"/"container" for places, "all" to include everything.')->nullable(),
+            'group_by' => $schema->string()->enum(['type', 'tag'])->description('Optional grouping: by type or by tag (overrides any type filter for the grouping).')->nullable(),
         ];
     }
 
@@ -39,7 +38,7 @@ class InventoryStats implements Tool
     {
         $metric = ($request['metric'] ?? 'count') === 'value' ? 'value' : 'count';
         $groupBy = in_array($request['group_by'] ?? null, ['type', 'tag'], true) ? $request['group_by'] : null;
-        $type = ItemType::tryFrom((string) ($request['type'] ?? ''));
+        $type = $this->resolveType($request['type'] ?? null, $groupBy);
 
         if ($groupBy === 'type') {
             $rows = Item::query()
@@ -70,6 +69,7 @@ class InventoryStats implements Tool
             return $tags->map(fn (Tag $tag): string => "{$tag->name}: ".($metric === 'value' ? $this->money($tag->match_value ?? 0) : $tag->match_count))->implode("\n") ?: 'No tagged items.';
         }
 
+        // $type is set (default "item" or explicit room/container) — null only means "all".
         $label = $type ? "{$type->value}s" : 'entries';
 
         if ($metric === 'value') {
@@ -81,6 +81,28 @@ class InventoryStats implements Tool
         }
 
         return "Total {$label}: ".Item::query()->when($type, fn ($q) => $q->where('type', $type))->count();
+    }
+
+    /**
+     * Default to counting possessions when no type or grouping is requested —
+     * that's what "how many items / total value" colloquially means. "all"
+     * (sentinel string) is the opt-in for "include rooms and containers".
+     */
+    private function resolveType(mixed $raw, ?string $groupBy): ?ItemType
+    {
+        $value = is_string($raw) ? trim($raw) : '';
+
+        if ($value === 'all') {
+            return null;
+        }
+
+        if (($type = ItemType::tryFrom($value)) !== null) {
+            return $type;
+        }
+
+        // No (or invalid) type given: default for overall totals; for groupings,
+        // leave null so the breakdown covers every type.
+        return $groupBy === null ? ItemType::Item : null;
     }
 
     /**
