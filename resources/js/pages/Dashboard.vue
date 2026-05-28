@@ -5,6 +5,9 @@ import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import { trans } from '@/composables/useTranslations';
 import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { activity as activityRoute, search } from '@/routes';
+import itemRoutes from '@/routes/items';
+import tagRoutes from '@/routes/tags';
 import type { ActivityRow, BreadcrumbItemType, ItemSummary, SharedData, TagSummary } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ChevronRight, Plus } from 'lucide-vue-next';
@@ -54,7 +57,7 @@ const valueLabel = computed(() =>
         <Head :title="$t('nav.dashboard')" />
 
         <template #topbar-actions>
-            <Link href="/items/create" class="btn-primary">
+            <Link :href="itemRoutes.create().url" class="btn-primary">
                 <Plus :size="14" />
                 {{ $t('nav.add_item') }}
             </Link>
@@ -67,7 +70,7 @@ const valueLabel = computed(() =>
             </div>
 
             <section class="stats-strip mb-4">
-                <Link href="/search?type=item" class="stat-cell stat-cell-link">
+                <Link :href="search({ query: { type: 'item' } }).url" class="stat-cell stat-cell-link">
                     <div class="lbl">{{ $t('dashboard.stats.items') }}</div>
                     <div class="val">{{ stats.items.toLocaleString() }}</div>
                     <div class="delta">{{ $t('dashboard.stats.items_hint') }}</div>
@@ -77,12 +80,12 @@ const valueLabel = computed(() =>
                     <div class="val">{{ valueLabel }}</div>
                     <div class="delta">{{ $t('dashboard.stats.value_hint') }}</div>
                 </div>
-                <Link href="/search?type=room" class="stat-cell stat-cell-link">
+                <Link :href="search({ query: { type: 'room' } }).url" class="stat-cell stat-cell-link">
                     <div class="lbl">{{ $t('dashboard.stats.rooms') }}</div>
                     <div class="val">{{ stats.rooms }}</div>
                     <div class="delta">{{ $t('dashboard.stats.rooms_hint') }}</div>
                 </Link>
-                <Link href="/search?type=container" class="stat-cell stat-cell-link">
+                <Link :href="search({ query: { type: 'container' } }).url" class="stat-cell stat-cell-link">
                     <div class="lbl">{{ $t('dashboard.stats.containers') }}</div>
                     <div class="val">{{ stats.containers }}</div>
                     <div class="delta">{{ $t('dashboard.stats.containers_hint') }}</div>
@@ -93,12 +96,12 @@ const valueLabel = computed(() =>
             <section class="card mb-4">
                 <div v-if="tags.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_tags') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
-                    <Link v-for="tag in tags" :key="tag.id" :href="`/search?tags[]=${tag.id}`" class="tag-pill shrink-0 whitespace-nowrap">
+                    <Link v-for="tag in tags" :key="tag.id" :href="search({ query: { 'tags[]': tag.id } }).url" class="tag-pill shrink-0 whitespace-nowrap">
                         <span v-if="tag.color" class="size-2 rounded-full" :style="{ backgroundColor: tag.color }" />
                         {{ tag.name }}
                         <span class="tag-pill-count mono">{{ tag.items_count }}</span>
                     </Link>
-                    <Link href="/tags" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">{{ $t('common.more') }} <ChevronRight :size="12" /></Link>
+                    <Link :href="tagRoutes.index().url" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">{{ $t('common.more') }} <ChevronRight :size="12" /></Link>
                 </div>
             </section>
 
@@ -106,13 +109,13 @@ const valueLabel = computed(() =>
             <section class="card mb-4">
                 <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_rooms') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
-                    <Link v-for="room in rooms" :key="room.id" :href="`/items/${room.id}`" class="tag-pill shrink-0 whitespace-nowrap">
+                    <Link v-for="room in rooms" :key="room.id" :href="itemRoutes.show(room.id).url" class="tag-pill shrink-0 whitespace-nowrap">
                         <component :is="itemIconMap[room.icon]" v-if="room.icon && itemIconMap[room.icon]" class="size-3.5" />
                         <ItemTypeIcon v-else type="room" class="size-3.5" />
                         {{ room.name }}
                         <span class="tag-pill-count mono">{{ room.count }}</span>
                     </Link>
-                    <Link href="/search?type=room" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">{{ $t('common.more') }} <ChevronRight :size="12" /></Link>
+                    <Link :href="search({ query: { type: 'room' } }).url" class="tag-pill tag-pill-more shrink-0 whitespace-nowrap">{{ $t('common.more') }} <ChevronRight :size="12" /></Link>
                 </div>
             </section>
 
@@ -120,11 +123,11 @@ const valueLabel = computed(() =>
                 <section class="card">
                     <div class="card-head">
                         <h3>{{ $t('dashboard.recently_added') }}</h3>
-                        <Link href="/search?sort=added" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
+                        <Link :href="search({ query: { sort: 'added' } }).url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                     </div>
                     <div v-if="recent.length === 0" class="card-pad" style="text-align: center; color: var(--fg-muted)">
                         {{ $t('dashboard.nothing_yet') }}
-                        <Link href="/items/create" style="color: var(--fg); font-weight: 500; text-decoration: underline">{{ $t('dashboard.add_first') }}</Link>.
+                        <Link :href="itemRoutes.create().url" style="color: var(--fg); font-weight: 500; text-decoration: underline">{{ $t('dashboard.add_first') }}</Link>.
                     </div>
                     <table v-else class="table">
                         <thead>
@@ -146,7 +149,7 @@ const valueLabel = computed(() =>
                                     </div>
                                 </td>
                                 <td>
-                                    <Link v-if="r.parent" :href="`/items/${r.parent.id}`" class="flex items-center gap-1.5" style="font-size: 12.5px; color: var(--fg-muted)">
+                                    <Link v-if="r.parent" :href="itemRoutes.show(r.parent.id).url" class="flex items-center gap-1.5" style="font-size: 12.5px; color: var(--fg-muted)">
                                         <ItemTypeIcon :type="r.parent.type.value" class="size-3.5" />
                                         {{ r.parent.name }}
                                     </Link>
@@ -161,7 +164,7 @@ const valueLabel = computed(() =>
                 <section class="card">
                     <div class="card-head">
                         <h3>{{ $t('dashboard.recent_activity') }}</h3>
-                        <Link href="/activity" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
+                        <Link :href="activityRoute().url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                     </div>
                     <ActivityFeed v-if="activity.length" :rows="activity" flat />
                     <div v-else class="card-pad" style="text-align: center; color: var(--fg-muted)">{{ $t('dashboard.no_activity') }}</div>

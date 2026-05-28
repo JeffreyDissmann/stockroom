@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import { trans } from '@/composables/useTranslations';
+import itemImages from '@/routes/items/images';
 import type { ItemImageSummary, SharedData } from '@/types';
 import { useSortable } from '@vueuse/integrations/useSortable';
 import { router, usePage } from '@inertiajs/vue3';
@@ -83,7 +84,7 @@ function addFiles(fileList: FileList | File[]) {
     } else if (props.itemId) {
         const fd = new FormData();
         incoming.forEach((f) => fd.append('images[]', f));
-        router.post(`/items/${props.itemId}/images`, fd, { preserveScroll: true, forceFormData: true });
+        router.post(itemImages.store(props.itemId).url, fd, { preserveScroll: true, forceFormData: true });
     }
 }
 
@@ -109,13 +110,13 @@ function handlePick(e: Event) {
 // ── Edit-mode operations on saved images ────────────────────────────────
 function makePrimary(image: ItemImageSummary) {
     if (!props.itemId) return;
-    router.patch(`/items/${props.itemId}/images/${image.id}`, { is_primary: true }, { preserveScroll: true });
+    router.patch(itemImages.update({ item: props.itemId, image: image.id }).url, { is_primary: true }, { preserveScroll: true });
 }
 
 function destroyImage(image: ItemImageSummary) {
     if (!props.itemId) return;
     if (!confirm(trans('items.images.delete_confirm'))) return;
-    router.delete(`/items/${props.itemId}/images/${image.id}`, { preserveScroll: true });
+    router.delete(itemImages.destroy({ item: props.itemId, image: image.id }).url, { preserveScroll: true });
 }
 
 // Drag-and-drop reorder of existing images
@@ -136,11 +137,7 @@ useSortable(sortableList, sortableExisting, {
     onEnd: () => {
         if (!props.itemId) return;
         const ids = sortableExisting.value.map((i) => i.id);
-        router.patch(
-            `/items/${props.itemId}/images/order`,
-            { ids },
-            { preserveScroll: true },
-        );
+        router.patch(itemImages.reorder(props.itemId).url, { ids }, { preserveScroll: true });
     },
 });
 

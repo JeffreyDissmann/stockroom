@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useCommandPalette } from '@/composables/useCommandPalette';
+import { search } from '@/routes';
+import items from '@/routes/items';
 import { router } from '@inertiajs/vue3';
 import { Search } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -58,13 +60,13 @@ watch(query, (q) => {
 
 function goTo(result: Result) {
     close();
-    router.visit(`/items/${result.id}`);
+    router.visit(items.show(result.id).url);
 }
 
 function viewAll() {
     const term = query.value.trim();
     close();
-    router.visit(term ? `/search?q=${encodeURIComponent(term)}` : '/search');
+    router.visit(search({ query: term ? { q: term } : undefined }).url);
 }
 
 function onKeydown(e: KeyboardEvent) {

@@ -7,6 +7,7 @@ import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import { trans, transChoice } from '@/composables/useTranslations';
+import itemRoutes from '@/routes/items';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Check, Loader2, Sparkles } from 'lucide-vue-next';
@@ -121,7 +122,7 @@ async function analyzeFromPhoto() {
         const body = new FormData();
         body.append('photo', photo);
 
-        const response = await fetch('/items/analyze-photo', {
+        const response = await fetch(itemRoutes.analyzePhoto().url, {
             method: 'POST',
             headers: { Accept: 'application/json', 'X-XSRF-TOKEN': readXsrfToken() },
             credentials: 'same-origin',
@@ -199,9 +200,9 @@ function submit() {
         // No forceFormData: Inertia auto-detects a File in form.images and switches
         // to multipart only when needed. Forcing it serialised an empty multipart
         // body (dropping name/type) when no image was queued.
-        form.post('/items');
+        form.post(itemRoutes.store().url);
     } else if (props.item) {
-        form.put(`/items/${props.item.id}`);
+        form.put(itemRoutes.update(props.item.id).url);
     }
 }
 </script>

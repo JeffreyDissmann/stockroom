@@ -3,6 +3,7 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import backup from '@/routes/household/backup';
 import { type SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Download, Upload } from 'lucide-vue-next';
@@ -22,7 +23,7 @@ function onFileChange(event: Event) {
 }
 
 function restore() {
-    form.post('/household/backup/import', {
+    form.post(backup.importMethod().url, {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
@@ -41,7 +42,7 @@ function restore() {
 
         <div v-if="isAdmin" class="space-y-4">
             <Button as-child>
-                <a href="/household/backup/export">
+                <a :href="backup.exportMethod().url">
                     <Download class="size-4" />
                     {{ $t('household.backup.download') }}
                 </a>
