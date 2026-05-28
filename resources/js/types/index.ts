@@ -36,13 +36,6 @@ export interface SharedData {
     flash: { backup: BackupResult | null };
     locale: string;
     translations: Record<string, string>;
-    ziggy: {
-        location: string;
-        url: string;
-        port: null | number;
-        defaults: Record<string, unknown>;
-        routes: Record<string, string>;
-    };
 }
 
 export interface User {
