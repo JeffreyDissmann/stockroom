@@ -14,6 +14,31 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    # Stockroom uses Postgres-specific SQL (e.g. array_position(?::int[], id))
+    # so CI must run against Postgres — SQLite would reject those statements.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: stockroom_test
+          POSTGRES_USER: stockroom
+          POSTGRES_PASSWORD: stockroom
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U stockroom -d stockroom_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: stockroom_test
+      DB_USERNAME: stockroom
+      DB_PASSWORD: stockroom
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,9 +58,6 @@ jobs:
 
       - name: Install Node Dependencies
         run: npm ci
-
-      - name: Create SQLite Database
-        run: touch database/database.sqlite
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
