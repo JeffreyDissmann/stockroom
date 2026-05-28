@@ -57,12 +57,32 @@ Open `http://<your-host>:8080` (or whatever you put behind your reverse
 proxy). The image expects to sit behind HTTPS in any real deployment;
 put it behind [Caddy](https://caddyserver.com/), Traefik, or nginx.
 
+### What's in the compose
+
+For orientation; the authoritative file is
+[`docker-compose.prod.yml`](./docker-compose.prod.yml) in this repo:
+
+```yaml
+services:
+    app:          # Stockroom (FrankenPHP), listens on :8080
+    queue:        # php artisan queue:work — image processing, embeddings
+    scheduler:    # php artisan schedule:work — retention, cleanups
+    db:           # postgres:17-alpine
+    meilisearch:  # search index
+
+volumes:
+    db-data:       # Postgres
+    meili-data:    # Meilisearch index
+    app-storage:   # uploaded images — back this up!
+    app-cache:     # bootstrap/cache (regenerable)
+```
+
 ### Persistence
 
 Three volumes hold state — back these up:
 
-- `db` — Postgres data.
-- `meili` — Meilisearch index (rebuildable from the DB with
+- `db-data` — Postgres data.
+- `meili-data` — Meilisearch index (rebuildable from the DB with
   `scout:import`, but slow).
 - `app-storage` — item images and other user uploads. **Loss of this
   volume = loss of all uploaded images.**

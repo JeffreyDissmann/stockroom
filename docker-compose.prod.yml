@@ -1,0 +1,98 @@
+# Stockroom — production self-host compose.
+#
+# Quickstart:
+#   cp .env.docker.example .env
+#   $EDITOR .env                                 # set APP_URL, admin seed, secrets
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Put a reverse proxy in front of this stack for TLS. The app container
+# speaks plain HTTP on port 8080; map it to whatever your proxy expects.
+
+name: stockroom
+
+services:
+    app:
+        image: ghcr.io/jeffreydissmann/stockroom:latest
+        restart: unless-stopped
+        depends_on:
+            db:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+        environment:
+            STOCKROOM_ROLE: web
+        env_file: .env
+        ports:
+            # Host-side port is configurable; container always listens on 8080.
+            - "${APP_PORT:-8080}:8080"
+        volumes:
+            - app-storage:/app/storage/app
+            - app-cache:/app/bootstrap/cache
+        healthcheck:
+            test: ["CMD", "wget", "-qO-", "http://localhost:8080/up"]
+            interval: 30s
+            timeout: 5s
+            retries: 5
+            start_period: 60s
+
+    queue:
+        image: ghcr.io/jeffreydissmann/stockroom:latest
+        restart: unless-stopped
+        depends_on:
+            app:
+                condition: service_healthy
+        environment:
+            STOCKROOM_ROLE: queue
+        env_file: .env
+        volumes:
+            - app-storage:/app/storage/app
+            - app-cache:/app/bootstrap/cache
+
+    scheduler:
+        image: ghcr.io/jeffreydissmann/stockroom:latest
+        restart: unless-stopped
+        depends_on:
+            app:
+                condition: service_healthy
+        environment:
+            STOCKROOM_ROLE: scheduler
+        env_file: .env
+        volumes:
+            - app-storage:/app/storage/app
+            - app-cache:/app/bootstrap/cache
+
+    db:
+        image: postgres:17-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:-stockroom}
+            POSTGRES_USER: ${DB_USERNAME:-stockroom}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-stockroom} -d ${DB_DATABASE:-stockroom}"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+
+    meilisearch:
+        image: getmeili/meilisearch:v1.13
+        restart: unless-stopped
+        environment:
+            MEILI_ENV: production
+            MEILI_MASTER_KEY: ${MEILISEARCH_KEY:?MEILISEARCH_KEY must be set in .env}
+            MEILI_NO_ANALYTICS: "true"
+        volumes:
+            - meili-data:/meili_data
+        healthcheck:
+            test: ["CMD", "wget", "-qO-", "http://localhost:7700/health"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+
+volumes:
+    db-data:
+    meili-data:
+    app-storage:
+    app-cache:
