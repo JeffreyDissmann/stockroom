@@ -40,47 +40,79 @@ class InventoryStats implements Tool
         $groupBy = in_array($request['group_by'] ?? null, ['type', 'tag'], true) ? $request['group_by'] : null;
         $type = $this->resolveType($request['type'] ?? null, $groupBy);
 
-        if ($groupBy === 'type') {
-            $rows = Item::query()
-                ->when($type, fn ($q) => $q->where('type', $type))
-                ->when($metric === 'value', fn ($q) => $q->whereNull('sold_date'))
-                ->get(['type', 'purchase_price'])
-                ->groupBy(fn (Item $item): string => $item->type->value)
-                ->sortKeys()
-                ->map(fn ($group): string => $metric === 'value' ? $this->money($group->sum('purchase_price')) : (string) $group->count());
+        return match ($groupBy) {
+            'type' => $this->groupedByType($type, $metric),
+            'tag' => $this->groupedByTag($type, $metric),
+            default => $this->total($type, $metric),
+        };
+    }
 
-            return $rows->map(fn (string $stat, string $type): string => "{$type}: {$stat}")->implode("\n") ?: 'No items.';
-        }
+    /**
+     * Per-type breakdown of count or summed value.
+     */
+    private function groupedByType(?ItemType $type, string $metric): string
+    {
+        $rows = Item::query()
+            ->when($type, fn ($q) => $q->where('type', $type))
+            ->when($metric === 'value', fn ($q) => $q->whereNull('sold_date'))
+            ->get(['type', 'purchase_price'])
+            ->groupBy(fn (Item $item): string => $item->type->value)
+            ->sortKeys()
+            ->map(fn ($group): string => $metric === 'value' ? $this->money($group->sum('purchase_price')) : (string) $group->count());
 
-        if ($groupBy === 'tag') {
-            // Aggregate over the items relationship with subqueries (withCount/withSum)
-            // so Eloquent walks the item_tag pivot for us — no explicit join, no raw SQL.
-            $constrain = function ($query) use ($type, $metric): void {
-                $query->when($type, fn ($q) => $q->where('type', $type))
-                    ->when($metric === 'value', fn ($q) => $q->whereNull('sold_date'));
-            };
+        return $rows->map(fn (string $stat, string $type): string => "{$type}: {$stat}")->implode("\n") ?: 'No items.';
+    }
 
-            $tags = Tag::query()
-                ->withCount(['items as match_count' => $constrain])
-                ->when($metric === 'value', fn ($q) => $q->withSum(['items as match_value' => $constrain], 'purchase_price'))
-                ->orderBy('name')->get()
-                ->filter(fn (Tag $tag): bool => $tag->match_count > 0);
+    /**
+     * Per-tag breakdown via relationship subqueries (withCount/withSum) — no
+     * join, no raw SQL. Empty tags are filtered out to match the old behaviour.
+     */
+    private function groupedByTag(?ItemType $type, string $metric): string
+    {
+        $constrain = function ($query) use ($type, $metric): void {
+            $query->when($type, fn ($q) => $q->where('type', $type))
+                ->when($metric === 'value', fn ($q) => $q->whereNull('sold_date'));
+        };
 
-            return $tags->map(fn (Tag $tag): string => "{$tag->name}: ".($metric === 'value' ? $this->money($tag->match_value ?? 0) : $tag->match_count))->implode("\n") ?: 'No tagged items.';
-        }
+        $tags = Tag::query()
+            ->withCount(['items as match_count' => $constrain])
+            ->when($metric === 'value', fn ($q) => $q->withSum(['items as match_value' => $constrain], 'purchase_price'))
+            ->orderBy('name')->get()
+            ->filter(fn (Tag $tag): bool => $tag->match_count > 0);
 
-        // $type is set (default "item" or explicit room/container) — null only means "all".
-        $label = $type ? "{$type->value}s" : 'entries';
+        return $tags->map(fn (Tag $tag): string => "{$tag->name}: ".($metric === 'value' ? $this->money($tag->match_value ?? 0) : $tag->match_count))->implode("\n") ?: 'No tagged items.';
+    }
+
+    /**
+     * Overall total (no breakdown), optionally restricted to one type.
+     */
+    private function total(?ItemType $type, string $metric): string
+    {
+        $label = $this->label($type);
 
         if ($metric === 'value') {
             $total = Item::query()
                 ->when($type, fn ($q) => $q->where('type', $type))
-                ->whereNull('sold_date')->sum('purchase_price');
+                ->whereNull('sold_date')
+                ->sum('purchase_price');
 
             return "Total value of owned {$label}: ".$this->money($total);
         }
 
-        return "Total {$label}: ".Item::query()->when($type, fn ($q) => $q->where('type', $type))->count();
+        $count = Item::query()
+            ->when($type, fn ($q) => $q->where('type', $type))
+            ->count();
+
+        return "Total {$label}: {$count}";
+    }
+
+    /**
+     * Plural label for the row: "items"/"rooms"/"containers", or "entries" when
+     * no type filter is applied (i.e. counting everything).
+     */
+    private function label(?ItemType $type): string
+    {
+        return $type ? "{$type->value}s" : 'entries';
     }
 
     /**
