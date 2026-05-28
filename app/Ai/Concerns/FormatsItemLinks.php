@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Ai\Tools\Concerns;
+namespace App\Ai\Concerns;
 
 use App\Models\Item;
 
@@ -15,9 +15,14 @@ trait FormatsItemLinks
 {
     protected function itemLink(Item $item): string
     {
-        // Escape brackets so a name like "Box [A]" can't break the link label.
-        $label = str_replace(['[', ']'], ['\[', '\]'], $item->name);
+        return "[{$this->itemLinkLabel($item->name)}](/items/{$item->id})";
+    }
 
-        return "[{$label}](/items/{$item->id})";
+    /**
+     * Escape brackets in the link label so a name like "Box [A]" can't break it.
+     */
+    protected function itemLinkLabel(string $name): string
+    {
+        return str_replace(['[', ']'], ['\[', '\]'], $name);
     }
 }

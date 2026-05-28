@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Tools;
 
-use App\Ai\Tools\Concerns\FormatsItemLinks;
+use App\Ai\Concerns\FormatsItemLinks;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Services\Items\ItemWriter;

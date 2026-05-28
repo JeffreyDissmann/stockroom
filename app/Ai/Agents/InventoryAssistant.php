@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\FormatsItemLinks;
 use App\Ai\Tools\AssignTags;
-use App\Ai\Tools\Concerns\FormatsItemLinks;
 use App\Ai\Tools\CreateItem;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
