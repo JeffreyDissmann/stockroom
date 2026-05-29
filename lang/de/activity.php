@@ -12,11 +12,15 @@ return [
         'updated' => 'Aktualisiert',
         'deleted' => 'Gelöscht',
         'moved' => 'Verschoben',
+        'linked' => 'Verknüpft',
+        'unlinked' => 'Verknüpfung gelöst',
     ],
 
     'words' => [
         'to' => 'nach',
         'from' => 'von',
+        'with' => 'mit',
+        'on' => 'bei',
         'unknown' => 'unbekannt',
     ],
 

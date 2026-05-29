@@ -15,6 +15,10 @@ function isImageAdd(row: ActivityRow): boolean {
     return row.event === 'image_added';
 }
 
+function isLink(row: ActivityRow): boolean {
+    return row.event === 'link_added' || row.event === 'link_removed';
+}
+
 function verb(row: ActivityRow): string {
     switch (row.event) {
         case 'created':
@@ -22,6 +26,10 @@ function verb(row: ActivityRow): string {
             return trans('activity.verbs.added');
         case 'deleted':
             return trans('activity.verbs.deleted');
+        case 'link_added':
+            return trans('activity.verbs.linked');
+        case 'link_removed':
+            return trans('activity.verbs.unlinked');
         default:
             return isMove(row) ? trans('activity.verbs.moved') : trans('activity.verbs.updated');
     }
@@ -57,6 +65,31 @@ function when(iso: string | null): string {
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
                                 class="ml-1 font-medium"
+                                :class="row.subject_url ? 'hover:underline' : ''"
+                            >{{ row.subject_label ?? $t('activity.words.unknown') }}</component>
+                        </template>
+                    </template>
+
+                    <template v-else-if="isLink(row)">
+                        <!-- "Linked with X" / "Unlinked from X". The connector
+                             word reads naturally in German too — `with` maps
+                             to `mit`, which is the right preposition for
+                             "verknüpft mit". -->
+                        <span class="mx-1" style="color: var(--fg-subtle)">{{
+                            row.event === 'link_added' ? $t('activity.words.with') : $t('activity.words.from')
+                        }}</span>
+                        <component
+                            :is="row.related_url ? Link : 'span'"
+                            :href="row.related_url ?? undefined"
+                            class="font-medium"
+                            :class="row.related_url ? 'hover:underline' : ''"
+                        >{{ row.related_label ?? $t('activity.words.unknown') }}</component>
+                        <template v-if="showSubject">
+                            <span class="mx-1" style="color: var(--fg-subtle)">{{ $t('activity.words.on') }}</span>
+                            <component
+                                :is="row.subject_url ? Link : 'span'"
+                                :href="row.subject_url ?? undefined"
+                                class="font-medium"
                                 :class="row.subject_url ? 'hover:underline' : ''"
                             >{{ row.subject_label ?? $t('activity.words.unknown') }}</component>
                         </template>
@@ -109,7 +142,9 @@ function when(iso: string | null): string {
 .act-image_added {
     background: #16a34a;
 }
-.act-updated {
+.act-updated,
+.act-link_added,
+.act-link_removed {
     background: #d97706;
 }
 .act-deleted {
@@ -122,11 +157,17 @@ function when(iso: string | null): string {
 .act-text-deleted {
     color: #dc2626;
 }
+.act-text-link_added,
+.act-text-link_removed {
+    color: #d97706;
+}
 .dark .act-created,
 .dark .act-image_added {
     background: #4ade80;
 }
-.dark .act-updated {
+.dark .act-updated,
+.dark .act-link_added,
+.dark .act-link_removed {
     background: #fbbf24;
 }
 .dark .act-deleted {
@@ -138,6 +179,10 @@ function when(iso: string | null): string {
 }
 .dark .act-text-deleted {
     color: #f87171;
+}
+.dark .act-text-link_added,
+.dark .act-text-link_removed {
+    color: #fbbf24;
 }
 .divide-y > li + li {
     border-top: 1px solid var(--border);

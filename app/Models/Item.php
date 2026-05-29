@@ -165,8 +165,19 @@ class Item extends Model
         }
 
         DB::transaction(function () use ($other): void {
+            $existed = $this->relatedItems()->where('related_item_id', $other->id)->exists();
+
             $this->relatedItems()->syncWithoutDetaching([$other->id]);
             $other->relatedItems()->syncWithoutDetaching([$this->id]);
+
+            // Log the link as activity on BOTH items — it's a symmetric fact,
+            // so each item's history surfaces "linked to X" on its own page.
+            // Skip when the pair was already linked (idempotent path) so
+            // re-saving doesn't spam the feed.
+            if (! $existed) {
+                $this->logRelatedLinkActivity($other, 'link_added');
+                $other->logRelatedLinkActivity($this, 'link_added');
+            }
         });
     }
 
@@ -177,9 +188,36 @@ class Item extends Model
     public function unlinkRelated(self $other): void
     {
         DB::transaction(function () use ($other): void {
+            $existed = $this->relatedItems()->where('related_item_id', $other->id)->exists();
+
             $this->relatedItems()->detach($other->id);
             $other->relatedItems()->detach($this->id);
+
+            // Symmetric — log on both ends, but only when something actually
+            // changed so unlinking an already-unlinked pair is a true no-op.
+            if ($existed) {
+                $this->logRelatedLinkActivity($other, 'link_removed');
+                $other->logRelatedLinkActivity($this, 'link_removed');
+            }
         });
+    }
+
+    /**
+     * Internal helper for the link/unlink activity log entries. Mirrors the
+     * shape of logImagesAdded so the ActivityPresenter / ActivityFeed pair
+     * can pick up the related id & name from the properties bag.
+     */
+    private function logRelatedLinkActivity(self $other, string $event): void
+    {
+        activity()
+            ->useLog('item')
+            ->performedOn($this)
+            ->event($event)
+            ->withProperties([
+                'related_id' => $other->id,
+                'related_name' => $other->name,
+            ])
+            ->log($event);
     }
 
     /**

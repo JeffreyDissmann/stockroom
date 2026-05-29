@@ -144,13 +144,16 @@ export interface ActivityChange {
 
 export interface ActivityRow {
     id: number;
-    event: 'created' | 'updated' | 'deleted' | 'image_added' | string;
+    event: 'created' | 'updated' | 'deleted' | 'image_added' | 'link_added' | 'link_removed' | string;
     subject_type: string;
     subject_label: string | null;
     subject_url: string | null;
     causer: string | null;
     changes: ActivityChange[];
     count: number;
+    // For link_added / link_removed: the partner item's name + url.
+    related_label: string | null;
+    related_url: string | null;
     at: string | null;
 }
 
