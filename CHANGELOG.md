@@ -7,6 +7,42 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.05] — 2026-05-29
+
+### Fixed
+
+- **Login appeared broken behind a reverse proxy.** On any deployment
+  behind a TLS-terminating proxy (Caddy / Traefik / nginx / Cloudflare
+  Tunnel — i.e. every realistic self-hosted setup) submitting the
+  login form silently failed: no flash, no validation, no banner — the
+  user just stayed on `/login`. Root cause: `bootstrap/app.php` never
+  called `->trustProxies(at: '*')`, so Laravel ignored
+  `X-Forwarded-Proto` from the proxy and saw every request as plain
+  HTTP. `route()` and `redirect()->intended()` therefore generated
+  `http://…` URLs, the POST `/login` redirect target became
+  `http://…/dashboard`, and the browser refused that cross-scheme XHR
+  from an `https://` origin as mixed content. Inertia surfaced only an
+  unhelpful "AxiosError: Network Error" in the console. Identical
+  pattern would have broken every other authenticated redirect
+  (logout, post-create flows, etc.). Trusts any proxy by default since
+  the proxy IP range is unknown in self-hosted deployments.
+- **Stale "Import" entry in the mobile More menu.** When the HomeBox
+  import was consolidated into the Backup screen in 2026.05.04 the
+  `household.nav.import` lang key was deleted, but `BottomTabs.vue`
+  kept a menu item pointing at the `/household/import` redirect — so
+  the mobile dropdown rendered the raw key `household.nav.import`
+  instead of a translated label.
+
+### Tests
+
+- New `AuthenticationTest::test_redirects_respect_x_forwarded_proto_…`
+  issues a request with `X-Forwarded-Proto: https` and asserts
+  `request()->isSecure()` is true and `url()->current()` starts with
+  `https://` — locks the trust-proxies setup down so a future
+  middleware refactor cannot silently regress login.
+- Browser test asserts no raw `household.nav.*` translation keys leak
+  in the mobile More dropdown.
+
 ## [2026.05.04] — 2026-05-28
 
 ### Added
@@ -134,7 +170,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.04...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.05...HEAD
+[2026.05.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.04...2026.05.05
 [2026.05.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.03...2026.05.04
 [2026.05.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.02...2026.05.03
 [2026.05.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.01...2026.05.02
