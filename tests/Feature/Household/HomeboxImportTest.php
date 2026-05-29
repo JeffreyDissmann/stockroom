@@ -7,6 +7,7 @@ namespace Tests\Feature\Household;
 use App\Enums\CustomFieldType;
 use App\Enums\ItemType;
 use App\Http\Controllers\Household\ImportController;
+use App\Jobs\ImportFromHomeboxJob;
 use App\Models\CustomField;
 use App\Models\Item;
 use App\Models\User;
@@ -16,6 +17,8 @@ use App\Services\ItemImageProcessor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -155,6 +158,32 @@ class HomeboxImportTest extends TestCase
 
         // Queue is sync in tests, so the job has already run.
         $this->assertSame(2, Item::count());
+
+        // The final cached status must report success — the polling UI on
+        // /household/backup reads this same key, so the user sees the green
+        // summary card instead of being stuck on 'discovering' / 'running'.
+        $status = Cache::get(ImportFromHomeboxJob::STATUS_KEY);
+        $this->assertIsArray($status);
+        $this->assertSame('done', $status['state']);
+        $this->assertSame(2, $status['entities']);
+    }
+
+    public function test_controller_seeds_discovering_status_before_dispatching_the_job(): void
+    {
+        // The job dispatch is normally synchronous in tests; intercept it
+        // here so the controller's Cache::put is the last write — that way
+        // we can verify the user-visible initial state is 'discovering',
+        // not the stale 'running 0/0' that made the page look hung during
+        // the importer's silent tree+entities bootstrap on big instances.
+        Bus::fake();
+        Http::fake(['*/users/login' => Http::response(['token' => 'tok'])]);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->post('/household/import', ['url' => 'https://hb.test', 'username' => 'a@b.c', 'password' => 'secret'])
+            ->assertRedirect();
+
+        $this->assertSame(['state' => 'discovering'], Cache::get(ImportFromHomeboxJob::STATUS_KEY));
+        Bus::assertDispatched(ImportFromHomeboxJob::class);
     }
 
     public function test_post_household_import_resolves_to_the_controller_not_the_legacy_redirect(): void

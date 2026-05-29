@@ -35,7 +35,12 @@ class ImportController extends Controller
             throw ValidationException::withMessages(['connection' => $e->getMessage()]);
         }
 
-        Cache::put(ImportFromHomeboxJob::STATUS_KEY, ['state' => 'running', 'done' => 0, 'total' => 0], now()->addHour());
+        // Stamp 'discovering' as the initial state so the page banner appears
+        // immediately on the redirect-back render — without it the user sees
+        // the form reset to empty and assumes nothing happened. The job will
+        // re-stamp this on handle() too as a belt-and-braces in case the cache
+        // entry got evicted before the worker picked the job up.
+        Cache::put(ImportFromHomeboxJob::STATUS_KEY, ['state' => 'discovering'], now()->addHour());
 
         ImportFromHomeboxJob::dispatch($client->baseUrl(), $client->token());
 

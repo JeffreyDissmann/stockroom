@@ -21,10 +21,12 @@ return [
         'password' => 'Password',
         'note' => 'Your credentials are used once to obtain a token and are never stored. The import runs in the background — a queue worker must be running.',
         'submit' => 'Connect & import',
+        'discovering' => 'Connecting to Homebox and discovering items… This can take a minute on large instances.',
         'progress' => 'Importing… :done / :total',
         'done' => 'Imported :entities entities (:created new, :updated updated) and :images photos',
         'skipped' => ' (:count unsupported photo(s) skipped)',
-        'failed' => 'Import failed: :error',
+        'failed_title' => 'Import failed',
+        'failed' => ':error',
     ],
 
     'search_index' => [
