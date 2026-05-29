@@ -7,6 +7,26 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.07] — 2026-05-29
+
+### Fixed
+
+- **Queue OOM when HomeBox import processed large photos.** With
+  2026.05.06 the import job actually ran for the first time on the
+  NAS, but it died on the first ~6000×4000 phone photo with
+  `Allowed memory size of 536870912 bytes exhausted` inside GD's
+  image cloner. `ItemImageProcessor::writeVariants` had cloned the
+  decoded source three times — once per variant
+  (original/large/thumb) — and each clone duplicated the full GD
+  pixel buffer (~200 MB for that resolution). Source + clone +
+  transient resize buffer briefly coexisted, pushing peak memory
+  past the 512 MB limit. Since the variants are emitted in
+  monotonic-shrink order, the source can be mutated in place — no
+  clones, peak memory drops from ~3× the decoded source to ~1×.
+  The 2026.05.04 `memory_limit` bump to 512 MB stays as headroom,
+  but the algorithm is now the durable fix and should handle phone
+  photos up to ~50 MP comfortably.
+
 ## [2026.05.06] — 2026-05-29
 
 ### Fixed
@@ -201,7 +221,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.06...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.07...HEAD
+[2026.05.07]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.06...2026.05.07
 [2026.05.06]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.05...2026.05.06
 [2026.05.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.04...2026.05.05
 [2026.05.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.03...2026.05.04
