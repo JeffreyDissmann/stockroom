@@ -1,7 +1,6 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see routes/household.php:28
 * @route '/household/import'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -10,13 +9,12 @@ export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 
 index.definition = {
-    methods: ["get","head","post","put","patch","delete","options"],
+    methods: ["get","head"],
     url: '/household/import',
-} satisfies RouteDefinition<["get","head","post","put","patch","delete","options"]>
+} satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see routes/household.php:28
 * @route '/household/import'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -24,8 +22,7 @@ index.url = (options?: RouteQueryOptions) => {
 }
 
 /**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see routes/household.php:28
 * @route '/household/import'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,63 +31,12 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 
 /**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
+* @see routes/household.php:28
 * @route '/household/import'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: index.url(options),
     method: 'head',
-})
-
-/**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
-* @route '/household/import'
-*/
-index.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
-    url: index.url(options),
-    method: 'post',
-})
-
-/**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
-* @route '/household/import'
-*/
-index.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
-    url: index.url(options),
-    method: 'put',
-})
-
-/**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
-* @route '/household/import'
-*/
-index.patch = (options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
-    url: index.url(options),
-    method: 'patch',
-})
-
-/**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
-* @route '/household/import'
-*/
-index.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
-    url: index.url(options),
-    method: 'delete',
-})
-
-/**
-* @see \Illuminate\Routing\RedirectController::__invoke
-* @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
-* @route '/household/import'
-*/
-index.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
-    url: index.url(options),
-    method: 'options',
 })
 
 /**

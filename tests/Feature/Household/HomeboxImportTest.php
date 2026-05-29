@@ -6,6 +6,7 @@ namespace Tests\Feature\Household;
 
 use App\Enums\CustomFieldType;
 use App\Enums\ItemType;
+use App\Http\Controllers\Household\ImportController;
 use App\Models\CustomField;
 use App\Models\Item;
 use App\Models\User;
@@ -13,8 +14,10 @@ use App\Services\Homebox\HomeboxClient;
 use App\Services\Homebox\HomeboxImporter;
 use App\Services\ItemImageProcessor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -152,6 +155,24 @@ class HomeboxImportTest extends TestCase
 
         // Queue is sync in tests, so the job has already run.
         $this->assertSame(2, Item::count());
+    }
+
+    public function test_post_household_import_resolves_to_the_controller_not_the_legacy_redirect(): void
+    {
+        // 2026.05.04 added a `Route::redirect('household/import', …)` next
+        // to the `Route::post('household/import', …)`. Route::redirect is
+        // internally Route::any(), so under cached routes (which is how
+        // production runs — `php artisan route:cache` is in the Docker
+        // entrypoint) the redirect catches POST too and the form silently
+        // does nothing. Pin the resolution down: POST /household/import
+        // MUST hit ImportController::start, not RedirectController.
+        $route = Route::getRoutes()
+            ->match(Request::create('/household/import', 'POST'));
+
+        $this->assertSame(
+            ImportController::class.'@start',
+            $route->getActionName(),
+        );
     }
 
     public function test_start_endpoint_reports_bad_credentials(): void
