@@ -85,3 +85,17 @@ jobs:
 
       - name: Tests
         run: ./vendor/bin/phpunit
+
+      # Production runs `php artisan route:cache` (see docker/entrypoint.sh)
+      # which uses a different route matcher than fresh routes. A 2026.05.04
+      # regression slipped through CI because the existing controller test
+      # passed with fresh routes but would have failed under cache: a
+      # Route::redirect() registered ANY and silently shadowed a sibling
+      # Route::post() under the compiled matcher, breaking HomeBox import
+      # on every prod deploy. Re-run with cached routes so any future
+      # "works fresh, fails cached" divergence is caught here, not by users.
+      - name: Tests (with cached routes — mirrors production)
+        run: |
+          php artisan route:cache
+          ./vendor/bin/phpunit
+          php artisan route:clear

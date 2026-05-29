@@ -18,11 +18,14 @@ Route::middleware('auth')->group(function () {
     Route::get('household/custom-fields', [CustomFieldController::class, 'index'])->name('custom-fields.index');
     Route::get('household/backup', [BackupController::class, 'index'])->name('household.backup.index');
     // /household/import used to host the HomeBox flow; it now lives on the
-    // Backup & Import page. Redirect for any stale bookmarks. The target
-    // needs the leading slash — Route::redirect treats a bare path as
-    // relative, which from /household/import would resolve to
-    // /household/household/backup.
-    Route::redirect('household/import', '/household/backup')->name('household.import.index');
+    // Backup & Import page. Redirect for any stale bookmarks. Must be a
+    // GET-only redirect — Route::redirect() is internally Route::any(), so
+    // using it here would also swallow the POST from the import form at
+    // line ~40 below (since routes match in registration order). That made
+    // submitting the form silently do nothing on every NAS install: the
+    // POST hit this redirect, returned 302 → /household/backup, and the
+    // controller never ran.
+    Route::get('household/import', fn () => redirect('/household/backup'))->name('household.import.index');
     Route::get('household/search-index', [SearchIndexController::class, 'index'])->name('household.search-index.index');
     Route::get('household/members', [InvitationController::class, 'index'])->name('household.members.index');
 
