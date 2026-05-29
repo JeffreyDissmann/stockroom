@@ -114,12 +114,14 @@ it('allows multiple boxes per item (nested packaging)', function () {
     expect(Item::query()->where('parent_id', $item->id)->count())->toBe(2);
 });
 
-it('redirects to the newly created box show page', function () {
+it('redirects to the newly created box show page with focus=images and a success flash', function () {
     $admin = User::factory()->admin()->create();
     $item = Item::factory()->create(['name' => 'Drill']);
 
     $response = $this->actingAs($admin)->post("/items/{$item->id}/box");
     $box = Item::query()->where('parent_id', $item->id)->firstOrFail();
 
-    $response->assertRedirect("/items/{$box->id}");
+    $response
+        ->assertRedirect("/items/{$box->id}?focus=images")
+        ->assertSessionHas('box_created_for', 'Drill');
 });

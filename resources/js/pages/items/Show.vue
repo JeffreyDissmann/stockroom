@@ -14,7 +14,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -32,6 +32,27 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
 });
 
 const page = usePage<SharedData>();
+
+// Auto-open SearchImageDialog when the URL says so. The "Create a box for
+// this item" action redirects here with ?focus=images because picking a
+// photo for the freshly-created box is the natural next step.
+//
+// Reading from page.url (Inertia's reactive URL incl. query string) rather
+// than window.location.search, because the latter isn't guaranteed to be
+// updated by the time the script setup runs after a programmatic redirect —
+// usePage().url is fed straight from the server response and is reliable
+// at component mount.
+const focusImages = computed(() => {
+    const queryString = page.url.split('?')[1] ?? '';
+    return new URLSearchParams(queryString).get('focus') === 'images';
+});
+
+// One-shot success banner after the new box was created — Inertia's flash
+// payload carries the source item's name so the message can name the thing
+// the box was made for. The banner is dismissible and disappears on the
+// next navigation regardless.
+const boxCreatedFor = computed(() => page.props.flash?.box_created_for ?? null);
+const boxBannerDismissed = ref(false);
 
 const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
 const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
@@ -115,7 +136,12 @@ function destroyItem() {
             </Link>
             <MoveItemDialog :item="item" />
             <CreateBoxDialog :item="item" />
-            <SearchImageDialog v-if="page.props.features.imageSearch" :item-id="item.id" :item-name="item.name" />
+            <SearchImageDialog
+                v-if="page.props.features.imageSearch"
+                :item-id="item.id"
+                :item-name="item.name"
+                :auto-open="focusImages"
+            />
             <button class="btn-pill btn-danger" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
@@ -127,6 +153,31 @@ function destroyItem() {
         </template>
 
         <div class="page">
+            <!-- One-shot banner after creating this record via "Create a box
+                 for <item>". Names the source item so the success message
+                 reads like a sentence. Dismissible; gone on next nav. -->
+            <div
+                v-if="boxCreatedFor && !boxBannerDismissed"
+                data-test="box-created-banner"
+                role="status"
+                style="display: flex; gap: 10px; padding: 12px 14px; margin-bottom: 16px; border-radius: 8px; background: color-mix(in srgb, var(--pos) 12%, transparent); color: var(--pos)"
+            >
+                <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
+                <p style="font-size: 13px; line-height: 1.5; margin: 0; flex: 1; color: var(--fg)">
+                    {{ $t('items.box.created_for', { name: boxCreatedFor }) }}
+                </p>
+                <button
+                    type="button"
+                    class="btn-ghost"
+                    style="padding: 2px 6px; font-size: 12px"
+                    data-test="box-created-banner-dismiss"
+                    :aria-label="$t('common.close')"
+                    @click="boxBannerDismissed = true"
+                >
+                    <X :size="14" />
+                </button>
+            </div>
+
             <div class="detail-grid">
                 <div class="gallery">
                     <div class="main-img" :class="{ 'is-empty': !activeImage }">

@@ -71,6 +71,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'backup' => $request->session()->get('backup'),
+                // Surfaced as a one-shot banner on the new box's Show page —
+                // the value is the source item's name (or null if not
+                // arriving from a fresh box creation).
+                'box_created_for' => $request->session()->get('box_created_for'),
             ],
             'locale' => app()->getLocale(),
             'translations' => $this->translations(),

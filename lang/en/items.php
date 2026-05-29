@@ -105,6 +105,7 @@ return [
         'title' => 'Box for ":name"',
         'description' => 'Spawn a container record for this item\'s original packaging. It\'s created as a child of the item and inherits its serial, manufacturer and description.',
         'submit' => 'Create box',
+        'created_for' => 'Box created for ":name". Pick a photo of the box so you can spot it later.',
         'field' => [
             'name' => 'Name',
             'serial_number' => 'Serial number',

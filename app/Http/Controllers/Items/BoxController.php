@@ -42,7 +42,16 @@ class BoxController extends Controller
             'quantity' => $request->integer('quantity') ?: ($item->quantity ?? 1),
         ], $this->boxTagIds());
 
-        return redirect()->route('items.show', $box);
+        // Redirect to the new box's show page with two pieces of one-shot UX:
+        //  - flash `box_created_for` so a green confirmation banner renders
+        //    above the page until the next navigation (HandleInertiaRequests
+        //    exposes it as a prop).
+        //  - `?focus=images` so the existing SearchImageDialog auto-opens —
+        //    picking a photo is the natural next step once the metadata is
+        //    saved, and the box obviously hasn't got one yet.
+        return redirect()
+            ->route('items.show', ['item' => $box->id, 'focus' => 'images'])
+            ->with('box_created_for', $item->name);
     }
 
     /**

@@ -8,9 +8,24 @@ import { watchDebounced } from '@vueuse/core';
 import { Check, ImagePlus } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
-const props = defineProps<{ itemId: number; itemName?: string }>();
+const props = defineProps<{ itemId: number; itemName?: string; autoOpen?: boolean }>();
 
 const open = ref(false);
+
+// `autoOpen` is set by the parent when it knows the user just landed here to
+// pick a photo — currently after creating a box via /items/{item}/box, which
+// redirects with ?focus=images. The dialog's existing trigger button is
+// still the normal way in; this just removes the extra click in that one
+// natural flow.
+watch(
+    () => props.autoOpen,
+    (yes) => {
+        if (yes) {
+            open.value = true;
+        }
+    },
+    { immediate: true },
+);
 const query = ref('');
 const results = ref<ImageSearchResult[]>([]);
 const selected = ref<string[]>([]);

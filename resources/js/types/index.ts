@@ -33,7 +33,7 @@ export interface SharedData {
     auth: Auth;
     currency: CurrencyConfig;
     features: { imageSearch: boolean; ai: boolean };
-    flash: { backup: BackupResult | null };
+    flash: { backup: BackupResult | null; box_created_for: string | null };
     locale: string;
     translations: Record<string, string>;
 }
