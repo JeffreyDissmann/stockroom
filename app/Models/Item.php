@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use Laravel\Scout\Searchable;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -88,6 +90,19 @@ class Item extends Model
         return $this->hasMany(self::class, 'parent_id')->orderBy('name');
     }
 
+    /**
+     * Symmetric "related items" pivot — distinct from parent/child. Both
+     * directions are persisted as separate rows so this single
+     * BelongsToMany answers "what's linked to me?" without UNIONs. Use
+     * `linkRelated()` / `unlinkRelated()` to mutate — they keep both
+     * directions in sync in a transaction.
+     */
+    public function relatedItems(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'item_relations', 'item_id', 'related_item_id')
+            ->orderBy('name');
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
@@ -133,6 +148,38 @@ class Item extends Model
     public function isDescendantOf(self $other): bool
     {
         return $this->ancestors()->contains(fn (self $ancestor) => $ancestor->is($other));
+    }
+
+    /**
+     * Establish a symmetric link with another item. Both directions are
+     * inserted (A→B and B→A) in a single transaction; either side then sees
+     * the other via $item->relatedItems. Idempotent — re-linking the same
+     * pair is a no-op via syncWithoutDetaching.
+     *
+     * Throws on self-link, which is never meaningful in this domain.
+     */
+    public function linkRelated(self $other): void
+    {
+        if ($this->is($other)) {
+            throw new InvalidArgumentException('An item cannot be related to itself.');
+        }
+
+        DB::transaction(function () use ($other): void {
+            $this->relatedItems()->syncWithoutDetaching([$other->id]);
+            $other->relatedItems()->syncWithoutDetaching([$this->id]);
+        });
+    }
+
+    /**
+     * Remove a symmetric link. Both directions are detached. Idempotent on
+     * an already-unlinked pair.
+     */
+    public function unlinkRelated(self $other): void
+    {
+        DB::transaction(function () use ($other): void {
+            $this->relatedItems()->detach($other->id);
+            $other->relatedItems()->detach($this->id);
+        });
     }
 
     /**
