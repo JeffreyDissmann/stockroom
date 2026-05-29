@@ -37,6 +37,18 @@ it('shows the bottom tab bar on a mobile viewport', function () {
         ->assertNoJavaScriptErrors();
 });
 
+it('does not leak raw translation keys in the mobile more menu', function () {
+    // The HomeBox import was consolidated into the Backup screen; the legacy
+    // "household.nav.import" lang key was deleted, but the BottomTabs menu kept
+    // an entry pointing at the redirect — so the dropdown rendered the raw key.
+    $page = visit('/dashboard')->on()->iPhone14Pro();
+
+    $page->click('More')
+        ->assertDontSee('household.nav.import')
+        ->assertDontSee('nav.import')
+        ->assertNoJavaScriptErrors();
+});
+
 it('opens the assistant from the mobile more menu', function () {
     $page = visit('/dashboard')->on()->iPhone14Pro();
 
