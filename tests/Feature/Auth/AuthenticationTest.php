@@ -44,6 +44,23 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_redirects_respect_x_forwarded_proto_from_reverse_proxy(): void
+    {
+        // Stockroom is deployed behind a reverse proxy that terminates TLS;
+        // without trustProxies the request looks HTTP to Laravel, so route()
+        // generates http:// URLs and the browser blocks cross-scheme XHRs.
+        // Pin this down: an HTTP request with X-Forwarded-Proto: https must
+        // produce https:// absolute URLs (here via url()->current()).
+        $response = $this->withServerVariables([
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+            'HTTP_X_FORWARDED_HOST' => 'stockroom.example.com',
+        ])->get('/login');
+
+        $response->assertOk();
+        $this->assertTrue(request()->isSecure(), 'request()->isSecure() must be true behind a TLS-terminating proxy.');
+        $this->assertStringStartsWith('https://', url()->current());
+    }
+
     public function test_users_can_logout()
     {
         $user = User::factory()->create();
