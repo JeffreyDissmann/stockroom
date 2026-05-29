@@ -1,6 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../wayfinder'
 import images from './images'
 import box from './box'
+import relatedItems from './related-items'
 /**
 * @see \App\Http\Controllers\ItemController::moveTargets
 * @see app/Http/Controllers/ItemController.php:124
@@ -627,6 +628,7 @@ const items = {
     imageSearch: Object.assign(imageSearch, imageSearch),
     images: Object.assign(images, images),
     box: Object.assign(box, box),
+    relatedItems: Object.assign(relatedItems, relatedItems),
 }
 
 export default items

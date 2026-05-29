@@ -43,6 +43,12 @@ class BoxController extends Controller
             'quantity' => $request->integer('quantity') ?: ($item->quantity ?? 1),
         ], $this->boxTagIds());
 
+        // Establish the symmetric related-items link so it survives the box
+        // being moved away from the item later (e.g. box → basement, item →
+        // bedroom). The parent_id is just the *current* physical location;
+        // related_items is the durable "these belong together" fact.
+        $item->linkRelated($box);
+
         // Redirect to the new box's show page with two pieces of one-shot UX:
         //  - flash `box_created_for` so a green confirmation banner renders
         //    above the page until the next navigation (HandleInertiaRequests
