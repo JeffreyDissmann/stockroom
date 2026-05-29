@@ -12,13 +12,12 @@ import { trans } from '@/composables/useTranslations';
 import { activity, dashboard, logout, search } from '@/routes';
 import customFields from '@/routes/custom-fields';
 import backup from '@/routes/household/backup';
-import householdImport from '@/routes/household/import';
 import items from '@/routes/items';
 import profile from '@/routes/profile';
 import tags from '@/routes/tags';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, Database, Download, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Sparkles, Tag as TagIcon } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, Database, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Sparkles, Tag as TagIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const { open: openAssistant } = useAssistant();
@@ -33,7 +32,6 @@ const tabs = [
 const householdLinks = [
     { label: trans('household.nav.custom_fields'), href: customFields.index().url, icon: SlidersHorizontal },
     { label: trans('household.nav.backup'), href: backup.index().url, icon: Database },
-    { label: trans('household.nav.import'), href: householdImport.index().url, icon: Download },
 ];
 
 const page = usePage<SharedData>();
