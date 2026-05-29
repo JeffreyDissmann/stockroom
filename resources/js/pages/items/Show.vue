@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import ActivityFeed from '@/components/ActivityFeed.vue';
+import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
-import { itemIconMap } from '@/lib/itemIcons';
-import { trans } from '@/composables/useTranslations';
 import { useCurrency } from '@/composables/useCurrency';
+import { trans } from '@/composables/useTranslations';
+import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
@@ -113,6 +114,7 @@ function destroyItem() {
                 {{ $t('common.edit') }}
             </Link>
             <MoveItemDialog :item="item" />
+            <CreateBoxDialog :item="item" />
             <SearchImageDialog v-if="page.props.features.imageSearch" :item-id="item.id" :item-name="item.name" />
             <button class="btn-pill btn-danger" type="button" @click="destroyItem">
                 <Trash2 :size="14" />

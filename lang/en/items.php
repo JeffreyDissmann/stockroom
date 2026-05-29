@@ -100,6 +100,20 @@ return [
         'submit' => 'Move here',
     ],
 
+    'box' => [
+        'trigger' => 'Create box',
+        'title' => 'Box for ":name"',
+        'description' => 'Spawn a container record for this item\'s original packaging. It\'s created as a child of the item and inherits its serial, manufacturer and description.',
+        'submit' => 'Create box',
+        'field' => [
+            'name' => 'Name',
+            'serial_number' => 'Serial number',
+            'manufacturer' => 'Manufacturer',
+            'description' => 'Description',
+            'quantity' => 'Quantity',
+        ],
+    ],
+
     'image_search' => [
         'trigger' => 'Find image',
         'title' => 'Find an image',

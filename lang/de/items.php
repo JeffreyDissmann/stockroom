@@ -100,6 +100,20 @@ return [
         'submit' => 'Hierher verschieben',
     ],
 
+    'box' => [
+        'trigger' => 'Karton anlegen',
+        'title' => 'Karton für „:name"',
+        'description' => 'Lege einen Container für die Originalverpackung dieses Gegenstands an. Der Karton wird als Kind des Gegenstands erstellt und übernimmt Seriennummer, Hersteller und Beschreibung.',
+        'submit' => 'Karton anlegen',
+        'field' => [
+            'name' => 'Name',
+            'serial_number' => 'Seriennummer',
+            'manufacturer' => 'Hersteller',
+            'description' => 'Beschreibung',
+            'quantity' => 'Anzahl',
+        ],
+    ],
+
     'image_search' => [
         'trigger' => 'Bild finden',
         'title' => 'Ein Bild finden',
