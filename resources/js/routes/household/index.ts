@@ -3,6 +3,7 @@ import backup from './backup'
 import importMethod from './import'
 import searchIndex from './search-index'
 import members from './members'
+import preferences from './preferences'
 import invitations from './invitations'
 /**
 * @see \App\Http\Controllers\Household\ResetController::reset
@@ -43,6 +44,7 @@ const household = {
     import: Object.assign(importMethod, importMethod),
     searchIndex: Object.assign(searchIndex, searchIndex),
     members: Object.assign(members, members),
+    preferences: Object.assign(preferences, preferences),
     reset: Object.assign(reset, reset),
     invitations: Object.assign(invitations, invitations),
 }

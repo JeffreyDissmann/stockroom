@@ -13,6 +13,8 @@ return [
     'items_count' => ':count Gegenstand|:count Gegenstände',
     'show_tagged' => 'Gegenstände mit „:name“ anzeigen',
     'delete_confirm' => 'Schlagwort „:name“ löschen? Es wird von :count Gegenstand/Gegenständen entfernt.',
+    'cannot_delete_box_tag' => 'Dieses Schlagwort ist derzeit als Karton-Schlagwort in den Haushalts-Einstellungen festgelegt.',
+    'cannot_delete_box_tag_cta' => 'Einstellung ändern.',
 
     'filter' => [
         'all' => 'Alle Schlagwörter',

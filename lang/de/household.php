@@ -11,6 +11,14 @@ return [
         'backup' => 'Sicherung & Import',
         'search_index' => 'Suchindex',
         'members' => 'Mitglieder',
+        'preferences' => 'Einstellungen',
+    ],
+
+    'preferences' => [
+        'description' => 'Haushaltsweite Einstellungen, die das Verhalten von Stockroom beeinflussen.',
+        'box_tag' => 'Karton-Schlagwort',
+        'box_tag_none' => '(keines – Kartons nicht automatisch markieren)',
+        'box_tag_help' => 'Wenn du über „Karton für diesen Gegenstand erstellen" ein Verpackungs-Inventar anlegst, wird dieses Schlagwort automatisch zugewiesen. So findest du alle aufbewahrten Originalverpackungen an einer Stelle.',
     ],
 
     'import' => [

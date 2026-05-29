@@ -11,6 +11,14 @@ return [
         'backup' => 'Backup & import',
         'search_index' => 'Search index',
         'members' => 'Members',
+        'preferences' => 'Preferences',
+    ],
+
+    'preferences' => [
+        'description' => 'Household-wide settings that affect how Stockroom behaves.',
+        'box_tag' => 'Box tag',
+        'box_tag_none' => '(none — don\'t auto-tag boxes)',
+        'box_tag_help' => 'When you create a packaging record via "Create a box for this item", this tag is attached automatically. Lets you filter the household\'s kept packaging in one place.',
     ],
 
     'import' => [

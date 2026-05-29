@@ -4,10 +4,11 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans, transChoice } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
+import householdPreferences from '@/routes/household/preferences';
 import tagRoutes from '@/routes/tags';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Check, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { AlertTriangle, Check, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const isAdmin = useIsAdmin();
@@ -62,9 +63,21 @@ function submitEdit() {
         });
 }
 
+// Sticky banner for server-side delete rejections (e.g. the "tag is the
+// configured Box tag" guard). Cleared when the user navigates or successfully
+// deletes another tag. Plain text would have worked, but the CTA to fix the
+// preference is most useful as a real link to /household/preferences.
+const deleteError = ref<string | null>(null);
+
 function destroyTag(tag: TagRow) {
     if (!confirm(trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }))) return;
-    router.delete(tagRoutes.destroy(tag.id).url, { preserveScroll: true });
+    router.delete(tagRoutes.destroy(tag.id).url, {
+        preserveScroll: true,
+        onSuccess: () => (deleteError.value = null),
+        onError: (errors: Record<string, string>) => {
+            deleteError.value = errors.tag ?? null;
+        },
+    });
 }
 </script>
 
@@ -77,6 +90,28 @@ function destroyTag(tag: TagRow) {
             <p class="sub" style="color: var(--fg-muted); font-size: 13px; margin: 0 0 20px">
                 {{ $t('tags.subtitle') }}
             </p>
+
+            <!-- Sticky error banner for delete rejections (e.g. the box-tag
+                 guard). The CTA is a real Link to /household/preferences. -->
+            <div
+                v-if="deleteError"
+                data-test="tag-delete-error"
+                role="alert"
+                class="mb-6"
+                style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--neg) 12%, transparent); color: var(--neg)"
+            >
+                <AlertTriangle :size="18" style="flex-shrink: 0; margin-top: 1px" />
+                <p style="font-size: 13px; line-height: 1.5; margin: 0; color: var(--fg)">
+                    {{ deleteError }}
+                    <Link
+                        :href="householdPreferences.edit().url"
+                        style="color: var(--accent); text-decoration: underline"
+                        data-test="tag-delete-error-cta"
+                    >
+                        {{ $t('tags.cannot_delete_box_tag_cta') }}
+                    </Link>
+                </p>
+            </div>
 
             <form v-if="isAdmin" class="card card-pad mb-6" @submit.prevent="submitCreate">
                 <div class="grid gap-3 sm:grid-cols-[1fr_140px_auto] sm:items-end">

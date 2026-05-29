@@ -12,12 +12,15 @@ import { trans } from '@/composables/useTranslations';
 import { activity, dashboard, logout, search } from '@/routes';
 import customFields from '@/routes/custom-fields';
 import backup from '@/routes/household/backup';
+import members from '@/routes/household/members';
+import householdPreferences from '@/routes/household/preferences';
+import searchIndex from '@/routes/household/search-index';
 import items from '@/routes/items';
 import profile from '@/routes/profile';
 import tags from '@/routes/tags';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, Database, LayoutGrid, LogOut, MoreHorizontal, Plus, Search, Settings, SlidersHorizontal, Sparkles, Tag as TagIcon } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, Database, LayoutGrid, LogOut, MoreHorizontal, Plus, RefreshCw, Search, Settings, Settings2, SlidersHorizontal, Sparkles, Tag as TagIcon, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const { open: openAssistant } = useAssistant();
@@ -29,9 +32,15 @@ const tabs = [
     { label: trans('nav.search'), href: search().url, icon: Search, matches: (u: string) => u.startsWith('/search') },
 ];
 
+// Mobile More menu mirrors the desktop sidebar in resources/js/layouts/household/Layout.vue
+// — keep them in sync so a user navigating the same household section sees the same options
+// on either viewport.
 const householdLinks = [
     { label: trans('household.nav.custom_fields'), href: customFields.index().url, icon: SlidersHorizontal },
     { label: trans('household.nav.backup'), href: backup.index().url, icon: Database },
+    { label: trans('household.nav.search_index'), href: searchIndex.index().url, icon: RefreshCw },
+    { label: trans('household.nav.members'), href: members.index().url, icon: Users },
+    { label: trans('household.nav.preferences'), href: householdPreferences.edit().url, icon: Settings2 },
 ];
 
 const page = usePage<SharedData>();

@@ -23,6 +23,10 @@ const sidebarNavItems: NavItem[] = [
         title: trans('household.nav.members'),
         href: '/household/members',
     },
+    {
+        title: trans('household.nav.preferences'),
+        href: '/household/preferences',
+    },
 ];
 
 const currentPath = window.location.pathname;

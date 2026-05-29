@@ -13,6 +13,8 @@ return [
     'items_count' => ':count item|:count items',
     'show_tagged' => 'Show items tagged “:name”',
     'delete_confirm' => 'Delete tag ":name"? It will be removed from :count item(s).',
+    'cannot_delete_box_tag' => 'This tag is currently configured as the Box tag in household preferences.',
+    'cannot_delete_box_tag_cta' => 'Change the preference first.',
 
     'filter' => [
         'all' => 'All tags',
