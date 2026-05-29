@@ -8,9 +8,25 @@ import { watchDebounced } from '@vueuse/core';
 import { Check, ImagePlus } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
-const props = defineProps<{ itemId: number; itemName?: string; autoOpen?: boolean }>();
+const props = defineProps<{
+    itemId: number;
+    itemName?: string;
+    autoOpen?: boolean;
+    // Tailwind class on the inline trigger button — lets the parent hide it
+    // on a given breakpoint (e.g. `hidden md:inline-flex`) while still being
+    // able to open the dialog programmatically via the exposed openDialog().
+    triggerClass?: string;
+}>();
 
 const open = ref(false);
+
+// Lets a parent open the dialog from outside (e.g. a mobile More-menu item)
+// without having to model the dialog's open state at parent level.
+defineExpose({
+    openDialog: () => {
+        open.value = true;
+    },
+});
 
 // `autoOpen` is set by the parent when it knows the user just landed here to
 // pick a photo — currently after creating a box via /items/{item}/box, which
@@ -112,7 +128,7 @@ function attach(): void {
 <template>
     <Dialog v-model:open="open">
         <DialogTrigger as-child>
-            <button type="button" class="btn-pill" data-test="image-search">
+            <button type="button" :class="['btn-pill', triggerClass]" data-test="image-search">
                 <ImagePlus :size="14" />
                 {{ $t('items.image_search.trigger') }}
             </button>

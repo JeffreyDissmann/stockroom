@@ -38,6 +38,7 @@ class BoxController extends Controller
             'parent_id' => $item->id,
             'serial_number' => $request->input('serial_number') ?? $item->serial_number,
             'manufacturer' => $request->input('manufacturer') ?? $item->manufacturer,
+            'model_number' => $request->input('model_number') ?? $item->model_number,
             'description' => $request->input('description') ?? $item->description,
             'quantity' => $request->integer('quantity') ?: ($item->quantity ?? 1),
         ], $this->boxTagIds());

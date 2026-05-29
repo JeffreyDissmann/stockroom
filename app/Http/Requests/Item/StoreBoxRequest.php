@@ -32,6 +32,7 @@ class StoreBoxRequest extends FormRequest
             'name' => ['nullable', 'string', 'max:255'],
             'serial_number' => ['nullable', 'string', 'max:255'],
             'manufacturer' => ['nullable', 'string', 'max:255'],
+            'model_number' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'quantity' => ['nullable', 'integer', 'min:1'],
         ];

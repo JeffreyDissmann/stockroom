@@ -37,6 +37,7 @@ it('creates a child container with prefixed name and copied metadata', function 
         'parent_id' => $room->id,
         'serial_number' => 'SN-12345',
         'manufacturer' => 'Apple',
+        'model_number' => 'A2890',
         'description' => 'Titanium, 256 GB.',
         'quantity' => 1,
     ]);
@@ -52,6 +53,7 @@ it('creates a child container with prefixed name and copied metadata', function 
         ->and($box->parent_id)->toBe($phone->id)
         ->and($box->serial_number)->toBe('SN-12345')
         ->and($box->manufacturer)->toBe('Apple')
+        ->and($box->model_number)->toBe('A2890')
         ->and($box->description)->toBe('Titanium, 256 GB.')
         ->and($box->quantity)->toBe(1);
 });

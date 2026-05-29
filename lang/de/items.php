@@ -106,13 +106,6 @@ return [
         'description' => 'Lege einen Container für die Originalverpackung dieses Gegenstands an. Der Karton wird als Kind des Gegenstands erstellt und übernimmt Seriennummer, Hersteller und Beschreibung.',
         'submit' => 'Karton anlegen',
         'created_for' => 'Karton für „:name" angelegt. Such ein Foto vom Karton aus, damit du ihn später wiederfindest.',
-        'field' => [
-            'name' => 'Name',
-            'serial_number' => 'Seriennummer',
-            'manufacturer' => 'Hersteller',
-            'description' => 'Beschreibung',
-            'quantity' => 'Anzahl',
-        ],
     ],
 
     'image_search' => [

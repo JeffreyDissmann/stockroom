@@ -7,6 +7,7 @@ import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCurrency } from '@/composables/useCurrency';
 import { trans } from '@/composables/useTranslations';
 import { itemIconMap } from '@/lib/itemIcons';
@@ -14,7 +15,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckCircle2, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, ImagePlus, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -53,6 +54,11 @@ const focusImages = computed(() => {
 // next navigation regardless.
 const boxCreatedFor = computed(() => page.props.flash?.box_created_for ?? null);
 const boxBannerDismissed = ref(false);
+
+// Refs into the two dialog components so the mobile More-menu items can open
+// them imperatively (the inline trigger button is CSS-hidden below md).
+const createBoxDialog = ref<InstanceType<typeof CreateBoxDialog> | null>(null);
+const searchImageDialog = ref<InstanceType<typeof SearchImageDialog> | null>(null);
 
 const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
 const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
@@ -135,21 +141,81 @@ function destroyItem() {
                 {{ $t('common.edit') }}
             </Link>
             <MoveItemDialog :item="item" />
-            <CreateBoxDialog :item="item" />
+
+            <!-- Secondary actions: visible inline on desktop, hidden on mobile
+                 and reachable via the More dropdown below. The dialogs stay
+                 mounted on both breakpoints; only their inline triggers are
+                 hidden — the mobile menu opens them via the exposed
+                 openDialog() method on each component. -->
+            <!-- `!`-prefixed utilities so .btn-pill's `display: inline-flex`
+                 in app.css (loaded after Tailwind) doesn't override the
+                 mobile-hide. The `!` adds !important which wins regardless
+                 of stylesheet order. -->
+            <CreateBoxDialog ref="createBoxDialog" :item="item" trigger-class="!hidden md:!inline-flex" />
             <SearchImageDialog
                 v-if="page.props.features.imageSearch"
+                ref="searchImageDialog"
                 :item-id="item.id"
                 :item-name="item.name"
                 :auto-open="focusImages"
+                trigger-class="!hidden md:!inline-flex"
             />
-            <button class="btn-pill btn-danger" type="button" @click="destroyItem">
+            <button class="btn-pill btn-danger !hidden md:!inline-flex" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
             </button>
+
             <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-primary">
                 <Plus :size="14" />
                 {{ $t('items.show.add_child') }}
             </Link>
+
+            <!-- Mobile-only More menu: surfaces Create box / Find image /
+                 Delete in a single tap target so the topbar doesn't wrap on a
+                 phone. Move and Edit are deliberately kept inline because
+                 they're the everyday actions when reorganising inventory.
+                 Right-alignment of the whole row is handled by
+                 .topbar-actions { justify-content: flex-end }. -->
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <!-- Icon-only ⋮ button: deliberately no "More" text so the
+                         tap target stays compact next to "Add child". Square-
+                         ish padding overrides .btn-pill's wider horizontal
+                         padding. -->
+                    <button
+                        type="button"
+                        class="btn-pill md:!hidden"
+                        style="padding: 5px 8px"
+                        data-test="item-actions-more"
+                        :aria-label="$t('common.more')"
+                    >
+                        <MoreVertical :size="16" />
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem data-test="item-actions-more-create-box" @click="createBoxDialog?.openDialog()">
+                        <PackageOpen class="mr-2 h-4 w-4" />
+                        {{ $t('items.box.trigger') }}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        v-if="page.props.features.imageSearch"
+                        data-test="item-actions-more-find-image"
+                        @click="searchImageDialog?.openDialog()"
+                    >
+                        <ImagePlus class="mr-2 h-4 w-4" />
+                        {{ $t('items.image_search.trigger') }}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        data-test="item-actions-more-delete"
+                        class="text-destructive focus:text-destructive"
+                        @click="destroyItem"
+                    >
+                        <Trash2 class="mr-2 h-4 w-4" />
+                        {{ $t('common.delete') }}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </template>
 
         <div class="page">
