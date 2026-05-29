@@ -96,6 +96,10 @@ class ItemController extends Controller
     {
         $item->load(['tags', 'images', 'customFieldValues.field']);
         $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
+        // Related items survive moves around the tree, so they're a separate
+        // edge from `children`. Eager-load enough for the same card layout
+        // the Contents section uses.
+        $relatedItems = $item->relatedItems()->withCount('children')->with(['tags', 'images'])->get();
 
         $activities = Activity::query()
             ->whereMorphedTo('subject', $item)
@@ -111,6 +115,7 @@ class ItemController extends Controller
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            'relatedItems' => $relatedItems->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
             'activities' => $activities,
         ]);
     }
@@ -147,6 +152,47 @@ class ItemController extends Controller
                 'id' => $target->id,
                 'name' => $target->name,
                 // Ancestor path only ("Garage / Workbench"); empty for top-level.
+                'path' => $target->locationPath(),
+            ])
+            ->all();
+
+        return response()->json(['targets' => $targets]);
+    }
+
+    /**
+     * Candidate items to link as a related-item. Excludes self and any item
+     * already linked to this one (re-linking is idempotent server-side, but
+     * showing them in the picker would be confusing). Unlike moveTargets,
+     * cycles aren't a concern, so descendants and ancestors are eligible.
+     *
+     * Search-only — the dialog never calls this without a query, so an
+     * empty `q` returns an empty list rather than dumping every item.
+     */
+    public function relatedItemTargets(Request $request, Item $item): JsonResponse
+    {
+        $query = trim((string) $request->query('q', ''));
+
+        if ($query === '') {
+            return response()->json(['targets' => []]);
+        }
+
+        $excluded = array_fill_keys(
+            [$item->id, ...$item->relatedItems()->pluck('items.id')->all()],
+            true,
+        );
+
+        // Lean on Scout directly — it already orders by relevance, so no
+        // back-and-forth between Scout for ids and Eloquent for ordering.
+        // 25 is plenty for a search-as-you-type picker; if all the top
+        // results happened to be excluded the user can refine the query.
+        $targets = Item::search($query)
+            ->take(25)
+            ->get()
+            ->reject(fn (Item $candidate): bool => isset($excluded[$candidate->id]))
+            ->values()
+            ->map(fn (Item $target): array => [
+                'id' => $target->id,
+                'name' => $target->name,
                 'path' => $target->locationPath(),
             ])
             ->all();

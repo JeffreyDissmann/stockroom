@@ -4,6 +4,7 @@ import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
+import LinkRelatedItemDialog from '@/components/LinkRelatedItemDialog.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
@@ -13,6 +14,7 @@ import { trans } from '@/composables/useTranslations';
 import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
+import relatedItemsRoutes from '@/routes/items/related-items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, ChevronRight, ImagePlus, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
@@ -22,6 +24,7 @@ const props = defineProps<{
     item: ItemSummary;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
+    relatedItems: ItemSummary[];
     activities: ActivityRow[];
 }>();
 
@@ -122,6 +125,14 @@ const soldRows = computed<DetailRow[]>(() => {
 });
 
 const contentsView = ref<ItemViewMode>('grid');
+const relatedView = ref<ItemViewMode>('grid');
+
+// "Related items" section actions. Unlink uses Inertia router so the page
+// refreshes the relatedItems prop on success — no manual list pruning here.
+function unlinkRelated(related: ItemSummary) {
+    if (!confirm(trans('items.related.unlink_confirm', { name: related.name }))) return;
+    router.delete(relatedItemsRoutes.destroy([props.item.id, related.id]).url, { preserveScroll: true });
+}
 
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
@@ -365,6 +376,33 @@ function destroyItem() {
                 </div>
 
                 <ItemCollection v-else :items="children" :view="contentsView" />
+            </section>
+
+            <!-- Related items: the durable many-to-many edge (separate from
+                 the parent/child tree). Auto-populated when you create a box
+                 for an item; can also be linked manually via the dialog.
+                 Matches the Contents section's grid/list toggle so the two
+                 sibling lists feel like the same UI element. -->
+            <section class="mt-8" data-test="related-items-section">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
+                    <div class="flex items-center gap-2">
+                        <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
+                        <LinkRelatedItemDialog :item="item" />
+                    </div>
+                </div>
+
+                <div v-if="relatedItems.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+                    {{ $t('items.related.empty') }}
+                </div>
+
+                <ItemCollection
+                    v-else
+                    :items="relatedItems"
+                    :view="relatedView"
+                    removable
+                    @remove="unlinkRelated"
+                />
             </section>
 
             <section v-if="activities.length" class="mt-8">

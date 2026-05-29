@@ -36,6 +36,10 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('items', ItemController::class);
 
+    // JSON-only endpoints used by item dialogs (search-as-you-type pickers).
+    // Sit outside the resource because they're not REST verbs on the item itself.
+    Route::get('items/{item}/related-item-targets', [ItemController::class, 'relatedItemTargets'])->name('items.related-item-targets');
+
     // Gated by the EnsureImageSearchEnabled middleware declared on the controller.
     Route::get('items/{item}/image-search', [ImageSearchController::class, 'search'])->name('items.image-search');
     Route::post('items/{item}/images/from-search', [ImageSearchController::class, 'attach'])->name('items.images.from-search');

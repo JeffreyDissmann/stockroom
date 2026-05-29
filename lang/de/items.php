@@ -100,6 +100,20 @@ return [
         'submit' => 'Hierher verschieben',
     ],
 
+    'related' => [
+        'section_title' => 'Verknüpfte Gegenstände',
+        'empty' => 'Noch keine verknüpften Gegenstände.',
+        'trigger' => 'Verknüpfen',
+        'title' => '„:name" mit einem Gegenstand verknüpfen',
+        'description' => 'Wähle einen anderen Gegenstand zur Verknüpfung. Die Verbindung ist beidseitig – beide Gegenstände erscheinen auf den jeweiligen Seiten des anderen, und die Verknüpfung bleibt bestehen, auch wenn einer von beiden in einen anderen Raum oder Behälter verschoben wird.',
+        'search' => 'Gegenstände suchen…',
+        'type_to_search' => 'Tippe los, um einen Gegenstand zu finden.',
+        'no_match' => 'Keine passenden Gegenstände.',
+        'submit' => 'Verknüpfen',
+        'unlink' => 'Verknüpfung lösen',
+        'unlink_confirm' => 'Verknüpfung zu „:name" lösen?',
+    ],
+
     'box' => [
         'trigger' => 'Karton anlegen',
         'title' => 'Karton für „:name"',

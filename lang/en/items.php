@@ -100,6 +100,20 @@ return [
         'submit' => 'Move here',
     ],
 
+    'related' => [
+        'section_title' => 'Related items',
+        'empty' => 'No related items linked yet.',
+        'trigger' => 'Link item',
+        'title' => 'Link a related item to ":name"',
+        'description' => 'Pick another item to link as related. The connection is symmetric — both items will list each other on their pages, and it survives moving either side to a different room or container.',
+        'search' => 'Search items…',
+        'type_to_search' => 'Start typing to find an item.',
+        'no_match' => 'No matching items.',
+        'submit' => 'Link',
+        'unlink' => 'Unlink',
+        'unlink_confirm' => 'Unlink ":name" from this item?',
+    ],
+
     'box' => [
         'trigger' => 'Create box',
         'title' => 'Box for ":name"',
