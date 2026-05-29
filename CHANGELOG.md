@@ -7,6 +7,37 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.06] — 2026-05-29
+
+### Fixed
+
+- **HomeBox import silently did nothing on every production deploy.**
+  `routes/household.php` registered a legacy `Route::redirect('household/import', …)`
+  in 2026.05.04 to catch stale bookmarks, sitting next to the
+  `Route::post('household/import', …)` that hosts the import form.
+  `Route::redirect()` is internally `Route::any()` — it matches every
+  HTTP method, including POST. Under cached routes (which production
+  runs — `php artisan route:cache` is in the Docker entrypoint) the
+  compiled matcher picks the first-registered route, so POST hit the
+  redirect and returned 302 → `/household/backup` without ever
+  reaching the controller. No cache write, no job dispatch, no log,
+  no error — the form just looked like nothing happened. The
+  existing controller test didn't catch it because tests run with
+  fresh routes, where the per-method route table makes
+  `Route::post` overwrite the ANY entry. Switched the legacy
+  redirect to `Route::get()` so POST falls through.
+
+### CI
+
+- Tests now run a **second time with `php artisan route:cache`
+  applied**, mirroring production. The 2026.05.06 bug above slipped
+  through CI because the first pass uses fresh routes; the second
+  pass would have caught the divergence. Any future
+  "works fresh, fails cached" regression now fails the build.
+- New `test_post_household_import_resolves_to_the_controller_not_the_legacy_redirect`
+  asserts the POST resolves to `ImportController::start`, not
+  `RedirectController`, under either matcher.
+
 ## [2026.05.05] — 2026-05-29
 
 ### Fixed
@@ -170,7 +201,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.05...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.06...HEAD
+[2026.05.06]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.05...2026.05.06
 [2026.05.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.04...2026.05.05
 [2026.05.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.03...2026.05.04
 [2026.05.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.02...2026.05.03
