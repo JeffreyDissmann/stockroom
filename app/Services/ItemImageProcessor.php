@@ -139,28 +139,34 @@ class ItemImageProcessor
         $disk = Storage::disk('public');
         $disk->makeDirectory($record->directory());
 
+        // Variants are emitted in monotonic-shrink order so the source can be
+        // mutated in place — no clones. Each `clone $sourceImage` would have
+        // duplicated the decoded GD pixel buffer (~200 MB for a 6000×4000
+        // photo), so three clones briefly coexisting could blow past the
+        // 512 MB memory_limit during HomeBox imports of phone photos. With
+        // in-place mutation peak memory stays at one pixel buffer.
+
         // Original — contain to ORIGINAL_MAX. EXIF is dropped because we re-encode.
+        $sourceImage->scaleDown(self::ORIGINAL_MAX, self::ORIGINAL_MAX);
         $disk->put(
             $record->originalPath(),
-            (string) (clone $sourceImage)
-                ->scaleDown(self::ORIGINAL_MAX, self::ORIGINAL_MAX)
-                ->encodeUsingFileExtension($extension, quality: self::QUALITY),
+            (string) $sourceImage->encodeUsingFileExtension($extension, quality: self::QUALITY),
         );
 
-        // Large — contain to LARGE_MAX.
+        // Large — further contain to LARGE_MAX (always ≤ ORIGINAL_MAX, so the
+        // source is already at most ORIGINAL_MAX from the previous step).
+        $sourceImage->scaleDown(self::LARGE_MAX, self::LARGE_MAX);
         $disk->put(
             $record->largePath(),
-            (string) (clone $sourceImage)
-                ->scaleDown(self::LARGE_MAX, self::LARGE_MAX)
-                ->encodeUsingFileExtension($extension, quality: self::QUALITY),
+            (string) $sourceImage->encodeUsingFileExtension($extension, quality: self::QUALITY),
         );
 
-        // Thumb — cover-crop to THUMB_SIZE × THUMB_SIZE.
+        // Thumb — cover-crop to THUMB_SIZE × THUMB_SIZE. Source is ≥ LARGE_MAX
+        // along the longer edge here, so `cover` never enlarges.
+        $sourceImage->cover(self::THUMB_SIZE, self::THUMB_SIZE);
         $disk->put(
             $record->thumbPath(),
-            (string) (clone $sourceImage)
-                ->cover(self::THUMB_SIZE, self::THUMB_SIZE)
-                ->encodeUsingFileExtension($extension, quality: self::QUALITY),
+            (string) $sourceImage->encodeUsingFileExtension($extension, quality: self::QUALITY),
         );
     }
 
