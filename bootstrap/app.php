@@ -16,6 +16,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Trust ANY proxy header. Stockroom is designed to run behind a
+        // reverse proxy that terminates TLS (Caddy / Traefik / nginx /
+        // Cloudflare Tunnel) — FrankenPHP only ever listens on plain HTTP
+        // inside the container. Without this Laravel sees the request as
+        // HTTP, route() generates http:// URLs, redirect()->intended()
+        // emits a Location pointing at http://…, and the browser blocks
+        // the cross-scheme XHR as mixed content — which is exactly the
+        // post-2026.05.04 NAS login bug: POST /login → 302 to
+        // http://…/dashboard → Axios Network Error → user stuck on
+        // /login with no error shown.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             SetLocale::class,
             HandleInertiaRequests::class,
