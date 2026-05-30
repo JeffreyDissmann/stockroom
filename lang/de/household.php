@@ -29,10 +29,12 @@ return [
         'password' => 'Passwort',
         'note' => 'Deine Zugangsdaten werden einmalig für ein Token verwendet und nie gespeichert. Der Import läuft im Hintergrund – ein Queue-Worker muss laufen.',
         'submit' => 'Verbinden & importieren',
+        'discovering' => 'Verbinde mit Homebox und ermittle die Gegenstände… Bei großen Instanzen kann das eine Minute dauern.',
         'progress' => 'Importiere… :done / :total',
         'done' => ':entities Einträge importiert (:created neu, :updated aktualisiert) und :images Fotos',
         'skipped' => ' (:count nicht unterstützte(s) Foto(s) übersprungen)',
-        'failed' => 'Import fehlgeschlagen: :error',
+        'failed_title' => 'Import fehlgeschlagen',
+        'failed' => ':error',
     ],
 
     'search_index' => [

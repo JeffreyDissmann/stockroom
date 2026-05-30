@@ -34,6 +34,15 @@ class ImportFromHomeboxJob implements ShouldBeEncrypted, ShouldQueue
 
     public function handle(ItemImageProcessor $images): void
     {
+        // The controller already wrote 'discovering' before dispatching, but
+        // re-stamp it here so the cache survives a stale 1-hour TTL or a
+        // controller flow that ever stops writing the initial state.
+        // 'discovering' covers the silent bootstrap inside the importer
+        // (tree fetch + allEntities pagination) which used to look like a
+        // hung job because progress only flips to 'running' once the first
+        // entity is upserted — easily 1–3 minutes on big HomeBox instances.
+        $this->putStatus(['state' => 'discovering']);
+
         $importer = new HomeboxImporter(new HomeboxClient($this->baseUrl, $this->token), $images);
 
         $result = $importer->import(onProgress: function (int $done, int $total): void {
