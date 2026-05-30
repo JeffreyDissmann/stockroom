@@ -192,7 +192,11 @@
 .topbar .crumb .sep { color: var(--fg-subtle); display: inline-flex; }
 .topbar .crumb .current { color: var(--fg); font-weight: 600; }
 .topbar .grow { flex: 1; }
-.topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* flex:1 + justify-end so the actions row takes all remaining space after
+   the breadcrumb and pins its children to the right edge. Without flex:1
+   the box was content-sized and the inner justify-end had nothing to push
+   against — items would right-align against themselves (i.e. not move). */
+.topbar-actions { flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .btn-pill {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 10px;

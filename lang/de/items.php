@@ -100,6 +100,29 @@ return [
         'submit' => 'Hierher verschieben',
     ],
 
+    'related' => [
+        'section_title' => 'Verknüpfte Gegenstände',
+        'empty' => 'Noch keine verknüpften Gegenstände.',
+        'trigger' => 'Verknüpfen',
+        'title' => '„:name" mit einem Gegenstand verknüpfen',
+        'description' => 'Wähle einen anderen Gegenstand zur Verknüpfung. Die Verbindung ist beidseitig – beide Gegenstände erscheinen auf den jeweiligen Seiten des anderen, und die Verknüpfung bleibt bestehen, auch wenn einer von beiden in einen anderen Raum oder Behälter verschoben wird.',
+        'search' => 'Gegenstände suchen…',
+        'type_to_search' => 'Tippe los, um einen Gegenstand zu finden.',
+        'no_match' => 'Keine passenden Gegenstände.',
+        'submit' => 'Verknüpfen',
+        'unlink' => 'Verknüpfung lösen',
+        'unlink_confirm' => 'Verknüpfung zu „:name" lösen?',
+        'cannot_link_to_self' => 'Ein Gegenstand kann nicht mit sich selbst verknüpft werden.',
+    ],
+
+    'box' => [
+        'trigger' => 'Karton anlegen',
+        'title' => 'Karton für „:name"',
+        'description' => 'Lege einen Container für die Originalverpackung dieses Gegenstands an. Der Karton wird als Kind des Gegenstands erstellt und übernimmt Seriennummer, Hersteller und Beschreibung.',
+        'submit' => 'Karton anlegen',
+        'created_for' => 'Karton für „:name" angelegt. Such ein Foto vom Karton aus, damit du ihn später wiederfindest.',
+    ],
+
     'image_search' => [
         'trigger' => 'Bild finden',
         'title' => 'Ein Bild finden',

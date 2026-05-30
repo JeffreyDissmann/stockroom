@@ -27,6 +27,12 @@ class ActivityPresenter
         $attributes = (array) ($changes['attributes'] ?? []);
         $old = (array) ($changes['old'] ?? []);
 
+        // Properties bag carries event-specific extras (image count, related
+        // item handle, …). Pulled out once here so the consumer-shaped row
+        // stays a flat dictionary.
+        $properties = $activity->properties ?? collect();
+        $relatedId = $properties->get('related_id');
+
         return [
             'id' => $activity->id,
             'event' => $activity->event,
@@ -40,7 +46,13 @@ class ActivityPresenter
             'causer' => $activity->causer?->name,
             'changes' => $activity->event === 'updated' ? $this->changes($attributes, $old, (string) $activity->log_name) : [],
             // For 'image_added' events: how many images were attached.
-            'count' => (int) ($activity->properties?->get('count') ?? 0),
+            'count' => (int) ($properties->get('count') ?? 0),
+            // For 'link_added' / 'link_removed': the partner item's name +
+            // a click-through url to its detail page. Null when the partner
+            // has since been deleted (FK cascade kills the link itself, but
+            // historical activity rows survive).
+            'related_label' => $properties->get('related_name'),
+            'related_url' => $relatedId !== null ? "/items/{$relatedId}" : null,
             'at' => $activity->created_at?->toIso8601String(),
         ];
     }

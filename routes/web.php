@@ -9,6 +9,8 @@ use App\Http\Controllers\ImageSearchController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\ItemPhotoAnalysisController;
+use App\Http\Controllers\Items\BoxController;
+use App\Http\Controllers\Items\RelatedItemController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
@@ -34,9 +36,25 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('items', ItemController::class);
 
+    // JSON-only endpoints used by item dialogs (search-as-you-type pickers).
+    // Sit outside the resource because they're not REST verbs on the item itself.
+    Route::get('items/{item}/related-item-targets', [ItemController::class, 'relatedItemTargets'])->name('items.related-item-targets');
+
     // Gated by the EnsureImageSearchEnabled middleware declared on the controller.
     Route::get('items/{item}/image-search', [ImageSearchController::class, 'search'])->name('items.image-search');
     Route::post('items/{item}/images/from-search', [ImageSearchController::class, 'attach'])->name('items.images.from-search');
+
+    // "Create a box for this item" (#9) — spawns a Container child representing
+    // the source item's original packaging. Open to every authenticated user;
+    // item edit is also unrestricted, so gating box-creation differently would
+    // be inconsistent.
+    Route::post('items/{item}/box', [BoxController::class, 'store'])->name('items.box.store');
+
+    // Symmetric "related items" link — see Item::linkRelated for the data
+    // model. Each request operates on a specific item, but the underlying
+    // pivot write touches both sides of the pair.
+    Route::post('items/{item}/related-items', [RelatedItemController::class, 'store'])->name('items.related-items.store');
+    Route::delete('items/{item}/related-items/{related}', [RelatedItemController::class, 'destroy'])->name('items.related-items.destroy');
 
     Route::scopeBindings()->group(function () {
         Route::post('items/{item}/images', [ItemImageController::class, 'store'])->name('items.images.store');

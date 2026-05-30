@@ -100,6 +100,29 @@ return [
         'submit' => 'Move here',
     ],
 
+    'related' => [
+        'section_title' => 'Related items',
+        'empty' => 'No related items linked yet.',
+        'trigger' => 'Link item',
+        'title' => 'Link a related item to ":name"',
+        'description' => 'Pick another item to link as related. The connection is symmetric — both items will list each other on their pages, and it survives moving either side to a different room or container.',
+        'search' => 'Search items…',
+        'type_to_search' => 'Start typing to find an item.',
+        'no_match' => 'No matching items.',
+        'submit' => 'Link',
+        'unlink' => 'Unlink',
+        'unlink_confirm' => 'Unlink ":name" from this item?',
+        'cannot_link_to_self' => 'An item cannot be linked to itself.',
+    ],
+
+    'box' => [
+        'trigger' => 'Create box',
+        'title' => 'Box for ":name"',
+        'description' => 'Spawn a container record for this item\'s original packaging. It\'s created as a child of the item and inherits its serial, manufacturer and description.',
+        'submit' => 'Create box',
+        'created_for' => 'Box created for ":name". Pick a photo of the box so you can spot it later.',
+    ],
+
     'image_search' => [
         'trigger' => 'Find image',
         'title' => 'Find an image',

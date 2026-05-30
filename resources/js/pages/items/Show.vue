@@ -1,25 +1,30 @@
 <script setup lang="ts">
 import ActivityFeed from '@/components/ActivityFeed.vue';
+import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
+import LinkRelatedItemDialog from '@/components/LinkRelatedItemDialog.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
-import { itemIconMap } from '@/lib/itemIcons';
-import { trans } from '@/composables/useTranslations';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCurrency } from '@/composables/useCurrency';
+import { trans } from '@/composables/useTranslations';
+import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
+import relatedItemsRoutes from '@/routes/items/related-items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, ImagePlus, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     item: ItemSummary;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
+    relatedItems: ItemSummary[];
     activities: ActivityRow[];
 }>();
 
@@ -31,6 +36,32 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
 });
 
 const page = usePage<SharedData>();
+
+// Auto-open SearchImageDialog when the URL says so. The "Create a box for
+// this item" action redirects here with ?focus=images because picking a
+// photo for the freshly-created box is the natural next step.
+//
+// Reading from page.url (Inertia's reactive URL incl. query string) rather
+// than window.location.search, because the latter isn't guaranteed to be
+// updated by the time the script setup runs after a programmatic redirect —
+// usePage().url is fed straight from the server response and is reliable
+// at component mount.
+const focusImages = computed(() => {
+    const queryString = page.url.split('?')[1] ?? '';
+    return new URLSearchParams(queryString).get('focus') === 'images';
+});
+
+// One-shot success banner after the new box was created — Inertia's flash
+// payload carries the source item's name so the message can name the thing
+// the box was made for. The banner is dismissible and disappears on the
+// next navigation regardless.
+const boxCreatedFor = computed(() => page.props.flash?.box_created_for ?? null);
+const boxBannerDismissed = ref(false);
+
+// Refs into the two dialog components so the mobile More-menu items can open
+// them imperatively (the inline trigger button is CSS-hidden below md).
+const createBoxDialog = ref<InstanceType<typeof CreateBoxDialog> | null>(null);
+const searchImageDialog = ref<InstanceType<typeof SearchImageDialog> | null>(null);
 
 const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
 const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
@@ -94,6 +125,14 @@ const soldRows = computed<DetailRow[]>(() => {
 });
 
 const contentsView = ref<ItemViewMode>('grid');
+const relatedView = ref<ItemViewMode>('grid');
+
+// "Related items" section actions. Unlink uses Inertia router so the page
+// refreshes the relatedItems prop on success — no manual list pruning here.
+function unlinkRelated(related: ItemSummary) {
+    if (!confirm(trans('items.related.unlink_confirm', { name: related.name }))) return;
+    router.delete(relatedItemsRoutes.destroy([props.item.id, related.id]).url, { preserveScroll: true });
+}
 
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
@@ -113,18 +152,109 @@ function destroyItem() {
                 {{ $t('common.edit') }}
             </Link>
             <MoveItemDialog :item="item" />
-            <SearchImageDialog v-if="page.props.features.imageSearch" :item-id="item.id" :item-name="item.name" />
-            <button class="btn-pill btn-danger" type="button" @click="destroyItem">
+
+            <!-- Secondary actions: visible inline on desktop, hidden on mobile
+                 and reachable via the More dropdown below. The dialogs stay
+                 mounted on both breakpoints; only their inline triggers are
+                 hidden — the mobile menu opens them via the exposed
+                 openDialog() method on each component. -->
+            <!-- `!`-prefixed utilities so .btn-pill's `display: inline-flex`
+                 in app.css (loaded after Tailwind) doesn't override the
+                 mobile-hide. The `!` adds !important which wins regardless
+                 of stylesheet order. -->
+            <CreateBoxDialog ref="createBoxDialog" :item="item" trigger-class="!hidden md:!inline-flex" />
+            <SearchImageDialog
+                v-if="page.props.features.imageSearch"
+                ref="searchImageDialog"
+                :item-id="item.id"
+                :item-name="item.name"
+                :auto-open="focusImages"
+                trigger-class="!hidden md:!inline-flex"
+            />
+            <button class="btn-pill btn-danger !hidden md:!inline-flex" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
             </button>
+
             <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-primary">
                 <Plus :size="14" />
                 {{ $t('items.show.add_child') }}
             </Link>
+
+            <!-- Mobile-only More menu: surfaces Create box / Find image /
+                 Delete in a single tap target so the topbar doesn't wrap on a
+                 phone. Move and Edit are deliberately kept inline because
+                 they're the everyday actions when reorganising inventory.
+                 Right-alignment of the whole row is handled by
+                 .topbar-actions { justify-content: flex-end }. -->
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <!-- Icon-only ⋮ button: deliberately no "More" text so the
+                         tap target stays compact next to "Add child". Square-
+                         ish padding overrides .btn-pill's wider horizontal
+                         padding. -->
+                    <button
+                        type="button"
+                        class="btn-pill md:!hidden"
+                        style="padding: 5px 8px"
+                        data-test="item-actions-more"
+                        :aria-label="$t('common.more')"
+                    >
+                        <MoreVertical :size="16" />
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem data-test="item-actions-more-create-box" @click="createBoxDialog?.openDialog()">
+                        <PackageOpen class="mr-2 h-4 w-4" />
+                        {{ $t('items.box.trigger') }}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        v-if="page.props.features.imageSearch"
+                        data-test="item-actions-more-find-image"
+                        @click="searchImageDialog?.openDialog()"
+                    >
+                        <ImagePlus class="mr-2 h-4 w-4" />
+                        {{ $t('items.image_search.trigger') }}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        data-test="item-actions-more-delete"
+                        class="text-destructive focus:text-destructive"
+                        @click="destroyItem"
+                    >
+                        <Trash2 class="mr-2 h-4 w-4" />
+                        {{ $t('common.delete') }}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </template>
 
         <div class="page">
+            <!-- One-shot banner after creating this record via "Create a box
+                 for <item>". Names the source item so the success message
+                 reads like a sentence. Dismissible; gone on next nav. -->
+            <div
+                v-if="boxCreatedFor && !boxBannerDismissed"
+                data-test="box-created-banner"
+                role="status"
+                style="display: flex; gap: 10px; padding: 12px 14px; margin-bottom: 16px; border-radius: 8px; background: color-mix(in srgb, var(--pos) 12%, transparent); color: var(--pos)"
+            >
+                <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
+                <p style="font-size: 13px; line-height: 1.5; margin: 0; flex: 1; color: var(--fg)">
+                    {{ $t('items.box.created_for', { name: boxCreatedFor }) }}
+                </p>
+                <button
+                    type="button"
+                    class="btn-ghost"
+                    style="padding: 2px 6px; font-size: 12px"
+                    data-test="box-created-banner-dismiss"
+                    :aria-label="$t('common.close')"
+                    @click="boxBannerDismissed = true"
+                >
+                    <X :size="14" />
+                </button>
+            </div>
+
             <div class="detail-grid">
                 <div class="gallery">
                     <div class="main-img" :class="{ 'is-empty': !activeImage }">
@@ -246,6 +376,33 @@ function destroyItem() {
                 </div>
 
                 <ItemCollection v-else :items="children" :view="contentsView" />
+            </section>
+
+            <!-- Related items: the durable many-to-many edge (separate from
+                 the parent/child tree). Auto-populated when you create a box
+                 for an item; can also be linked manually via the dialog.
+                 Matches the Contents section's grid/list toggle so the two
+                 sibling lists feel like the same UI element. -->
+            <section class="mt-8" data-test="related-items-section">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
+                    <div class="flex items-center gap-2">
+                        <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
+                        <LinkRelatedItemDialog :item="item" />
+                    </div>
+                </div>
+
+                <div v-if="relatedItems.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+                    {{ $t('items.related.empty') }}
+                </div>
+
+                <ItemCollection
+                    v-else
+                    :items="relatedItems"
+                    :view="relatedView"
+                    removable
+                    @remove="unlinkRelated"
+                />
             </section>
 
             <section v-if="activities.length" class="mt-8">

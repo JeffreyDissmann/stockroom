@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use Laravel\Scout\Searchable;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -88,6 +90,22 @@ class Item extends Model
         return $this->hasMany(self::class, 'parent_id')->orderBy('name');
     }
 
+    /**
+     * Symmetric "related items" pivot — distinct from parent/child. Both
+     * directions are persisted as separate rows so this single
+     * BelongsToMany answers "what's linked to me?" without UNIONs. Use
+     * `linkRelated()` / `unlinkRelated()` to mutate — they keep both
+     * directions in sync in a transaction.
+     */
+    public function relatedItems(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'item_relations', 'item_id', 'related_item_id')
+            // Pivot has timestamps columns; tell Laravel to populate them so
+            // the link's age is queryable (and visible to future debug tooling).
+            ->withTimestamps()
+            ->orderBy('name');
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
@@ -133,6 +151,76 @@ class Item extends Model
     public function isDescendantOf(self $other): bool
     {
         return $this->ancestors()->contains(fn (self $ancestor) => $ancestor->is($other));
+    }
+
+    /**
+     * Establish a symmetric link with another item. Both directions are
+     * inserted (A→B and B→A) in a single transaction; either side then sees
+     * the other via $item->relatedItems. Idempotent — re-linking the same
+     * pair is a no-op via syncWithoutDetaching.
+     *
+     * Throws on self-link, which is never meaningful in this domain.
+     */
+    public function linkRelated(self $other): void
+    {
+        if ($this->is($other)) {
+            throw new InvalidArgumentException('An item cannot be related to itself.');
+        }
+
+        DB::transaction(function () use ($other): void {
+            // `attached` is the rows that were newly inserted; an empty array
+            // means the pair was already linked (idempotent path). No need
+            // for a separate exists() roundtrip just to detect that.
+            $result = $this->relatedItems()->syncWithoutDetaching([$other->id]);
+            $other->relatedItems()->syncWithoutDetaching([$this->id]);
+
+            if ($result['attached'] !== []) {
+                // Symmetric activity write: log on both items so each side's
+                // history surfaces "Linked with X" on its own page. Skipped
+                // on the idempotent path so re-saving doesn't spam the feed.
+                $this->logRelatedLinkActivity($other, 'link_added');
+                $other->logRelatedLinkActivity($this, 'link_added');
+            }
+        });
+    }
+
+    /**
+     * Remove a symmetric link. Both directions are detached. Idempotent on
+     * an already-unlinked pair.
+     */
+    public function unlinkRelated(self $other): void
+    {
+        DB::transaction(function () use ($other): void {
+            // detach() returns the number of rows removed. Non-zero means
+            // the pair was actually linked — log on both ends. Zero means
+            // unlinking something already unlinked, so the activity feed
+            // stays untouched.
+            $removed = $this->relatedItems()->detach($other->id);
+            $other->relatedItems()->detach($this->id);
+
+            if ($removed > 0) {
+                $this->logRelatedLinkActivity($other, 'link_removed');
+                $other->logRelatedLinkActivity($this, 'link_removed');
+            }
+        });
+    }
+
+    /**
+     * Internal helper for the link/unlink activity log entries. Mirrors the
+     * shape of logImagesAdded so the ActivityPresenter / ActivityFeed pair
+     * can pick up the related id & name from the properties bag.
+     */
+    private function logRelatedLinkActivity(self $other, string $event): void
+    {
+        activity()
+            ->useLog('item')
+            ->performedOn($this)
+            ->event($event)
+            ->withProperties([
+                'related_id' => $other->id,
+                'related_name' => $other->name,
+            ])
+            ->log($event);
     }
 
     /**

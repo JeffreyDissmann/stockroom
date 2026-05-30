@@ -1,6 +1,6 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
-* @see routes/household.php:28
+* @see routes/household.php:29
 * @route '/household/import'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -14,7 +14,7 @@ index.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see routes/household.php:28
+* @see routes/household.php:29
 * @route '/household/import'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -22,7 +22,7 @@ index.url = (options?: RouteQueryOptions) => {
 }
 
 /**
-* @see routes/household.php:28
+* @see routes/household.php:29
 * @route '/household/import'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -31,7 +31,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 
 /**
-* @see routes/household.php:28
+* @see routes/household.php:29
 * @route '/household/import'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

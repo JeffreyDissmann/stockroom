@@ -76,6 +76,17 @@ if [ "${STOCKROOM_ROLE:-web}" = "web" ]; then
     # points at the right target. Safe to run on every boot.
     php artisan storage:link --force >/dev/null 2>&1 || true
 
+    # Push search index settings (filterableAttributes / sortableAttributes /
+    # the userProvided embedder) to Meilisearch. Idempotent — Scout creates
+    # the index if it doesn't exist yet, otherwise merges settings. Boot
+    # shouldn't fail if Meili happens to be slow to come up; the picker
+    # endpoints would return 5xx briefly until the next container restart
+    # but the rest of the app keeps working.
+    if [ "${SCOUT_DRIVER:-meilisearch}" = "meilisearch" ]; then
+        echo "stockroom: syncing search index settings to Meilisearch"
+        php artisan scout:sync-index-settings --no-interaction || echo "stockroom: WARNING — scout:sync-index-settings failed; pickers may return 5xx until next boot" >&2
+    fi
+
     # Optional first-admin seed. Driven by STOCKROOM_ADMIN_EMAIL +
     # STOCKROOM_ADMIN_PASSWORD; the command itself is idempotent and no-ops
     # once any user exists.

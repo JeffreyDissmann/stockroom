@@ -59,6 +59,18 @@ it('renders the members page without errors', function () {
     $page->assertSee('Members')->assertNoJavaScriptErrors();
 });
 
+it('renders the preferences page with the Box tag picker pre-selected', function () {
+    // RefreshDatabase has just run the settings migration, so the Box tag
+    // exists and box_tag_id points at it — the dropdown must reflect that
+    // out of the box. No render-time template errors either.
+    $page = visit('/household/preferences');
+
+    $page->assertSee('Preferences')
+        ->assertPresent('@box-tag-select')
+        ->assertPresent('@preferences-save')
+        ->assertNoJavaScriptErrors();
+});
+
 it('redirects the legacy import URL to the consolidated page', function () {
     // The visit() helper opens the URL in a real browser and follows the
     // 302 from Route::redirect. We assert content from the destination page

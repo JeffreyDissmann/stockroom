@@ -7,6 +7,7 @@ use App\Http\Controllers\Household\CustomFieldController;
 use App\Http\Controllers\Household\ImportController;
 use App\Http\Controllers\Household\InvitationController;
 use App\Http\Controllers\Household\MemberController;
+use App\Http\Controllers\Household\PreferencesController;
 use App\Http\Controllers\Household\ResetController;
 use App\Http\Controllers\Household\SearchIndexController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::middleware('auth')->group(function () {
     Route::get('household/import', fn () => redirect('/household/backup'))->name('household.import.index');
     Route::get('household/search-index', [SearchIndexController::class, 'index'])->name('household.search-index.index');
     Route::get('household/members', [InvitationController::class, 'index'])->name('household.members.index');
+    Route::get('household/preferences', [PreferencesController::class, 'edit'])
+        ->middleware('can:admin')
+        ->name('household.preferences.edit');
 
     // Mutations / household tools — admins only.
     Route::middleware('can:admin')->group(function () {
@@ -39,6 +43,8 @@ Route::middleware('auth')->group(function () {
         Route::post('household/backup/import', [BackupController::class, 'import'])->name('household.backup.import');
 
         Route::post('household/reset', [ResetController::class, 'wipe'])->name('household.reset');
+
+        Route::put('household/preferences', [PreferencesController::class, 'update'])->name('household.preferences.update');
 
         Route::post('household/import', [ImportController::class, 'start'])->name('household.import.start');
 

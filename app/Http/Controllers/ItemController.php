@@ -96,6 +96,10 @@ class ItemController extends Controller
     {
         $item->load(['tags', 'images', 'customFieldValues.field']);
         $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
+        // Related items survive moves around the tree, so they're a separate
+        // edge from `children`. Eager-load enough for the same card layout
+        // the Contents section uses.
+        $relatedItems = $item->relatedItems()->withCount('children')->with(['tags', 'images'])->get();
 
         $activities = Activity::query()
             ->whereMorphedTo('subject', $item)
@@ -111,6 +115,7 @@ class ItemController extends Controller
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            'relatedItems' => $relatedItems->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
             'activities' => $activities,
         ]);
     }
@@ -127,31 +132,82 @@ class ItemController extends Controller
         $includeItems = $request->boolean('all');
         $excluded = [$item->id, ...$item->descendantIds()];
 
-        $targets = Item::query()
-            ->when(! $includeItems, fn ($builder) => $builder->whereIn('type', [ItemType::Room->value, ItemType::Container->value]))
+        // No-query path: explicit Eloquent so we can alphabetic-order —
+        // Scout's relevance ordering doesn't apply without a search term.
+        if ($query === '') {
+            $rows = Item::query()
+                ->when(! $includeItems, fn ($builder) => $builder->whereIn('type', [ItemType::Room->value, ItemType::Container->value]))
+                ->whereNotIn('id', $excluded)
+                ->orderBy('name')
+                ->limit(25)
+                ->get(['id', 'parent_id', 'name']);
+
+            return response()->json(['targets' => $this->mapAsTargets($rows)]);
+        }
+
+        // Query path: push the filters down to Meili via Scout's
+        // whereIn / whereNotIn — `id` and `type` are both filterable on
+        // the items index (see config/scout.php). No more overfetch +
+        // PHP reject.
+        $rows = Item::search($query)
             ->whereNotIn('id', $excluded)
-            ->when(
-                $query !== '',
-                function ($builder) use ($query): void {
-                    $ids = Item::search($query)->take(100)->keys()->all();
-                    $builder->whereIn('id', $ids);
-                    if ($ids !== []) {
-                        $builder->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']);
-                    }
-                },
-                fn ($builder) => $builder->orderBy('name'),
-            )
-            ->limit(25)
-            ->get(['id', 'parent_id', 'name'])
-            ->map(fn (Item $target): array => [
+            ->when(! $includeItems, fn ($b) => $b->whereIn('type', [
+                ItemType::Room->value,
+                ItemType::Container->value,
+            ]))
+            ->take(25)
+            ->get();
+
+        return response()->json(['targets' => $this->mapAsTargets($rows)]);
+    }
+
+    /**
+     * Candidate items to link as a related-item. Excludes self and any item
+     * already linked to this one (re-linking is idempotent server-side, but
+     * showing them in the picker would be confusing). Unlike moveTargets,
+     * cycles aren't a concern, so descendants and ancestors are eligible.
+     *
+     * Search-only — the dialog never calls this without a query, so an
+     * empty `q` returns an empty list rather than dumping every item.
+     */
+    public function relatedItemTargets(Request $request, Item $item): JsonResponse
+    {
+        $query = trim((string) $request->query('q', ''));
+
+        if ($query === '') {
+            return response()->json(['targets' => []]);
+        }
+
+        $excluded = [$item->id, ...$item->relatedItems()->pluck('items.id')->all()];
+
+        $rows = Item::search($query)
+            ->whereNotIn('id', $excluded)
+            ->take(25)
+            ->get();
+
+        return response()->json(['targets' => $this->mapAsTargets($rows)]);
+    }
+
+    /**
+     * Shared serialisation for both target endpoints — picker dialogs only
+     * need id, name and an ancestor path for the secondary line.
+     *
+     * @param  iterable<int, Item>  $items
+     * @return array<int, array{id: int, name: string, path: string}>
+     */
+    private function mapAsTargets(iterable $items): array
+    {
+        $out = [];
+        foreach ($items as $target) {
+            $out[] = [
                 'id' => $target->id,
                 'name' => $target->name,
                 // Ancestor path only ("Garage / Workbench"); empty for top-level.
                 'path' => $target->locationPath(),
-            ])
-            ->all();
+            ];
+        }
 
-        return response()->json(['targets' => $targets]);
+        return $out;
     }
 
     public function edit(Item $item): Response

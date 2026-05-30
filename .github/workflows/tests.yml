@@ -84,7 +84,7 @@ jobs:
         run: npm run build
 
       - name: Tests
-        run: ./vendor/bin/phpunit
+        run: ./vendor/bin/pest
 
       # Production runs `php artisan route:cache` (see docker/entrypoint.sh)
       # which uses a different route matcher than fresh routes. A 2026.05.04
@@ -97,5 +97,5 @@ jobs:
       - name: Tests (with cached routes — mirrors production)
         run: |
           php artisan route:cache
-          ./vendor/bin/phpunit
+          ./vendor/bin/pest
           php artisan route:clear

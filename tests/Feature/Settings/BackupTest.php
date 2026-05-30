@@ -70,7 +70,8 @@ class BackupTest extends TestCase
         $manifest = json_decode((string) $zip->getFromName('manifest.json'), true);
         $this->assertSame('stockroom-backup', $manifest['format']);
         $this->assertSame(1, $manifest['version']);
-        $this->assertSame(['tags' => 1, 'items' => 2, 'images' => 1], $manifest['counts']);
+        // 2 tags: the seeded "Box" tag (from settings migration) plus "Tools" above.
+        $this->assertSame(['tags' => 2, 'items' => 2, 'images' => 1], $manifest['counts']);
 
         $imageId = $drill->images()->value('id');
         $this->assertNotFalse($zip->locateName("images/{$imageId}/original.jpg"));
@@ -104,7 +105,8 @@ class BackupTest extends TestCase
         $this->assertSame(0, Item::count());
 
         $counts = app(BackupImporter::class)->import($path);
-        $this->assertSame(['tags' => 1, 'items' => 2, 'images' => 2], $counts);
+        // 2 tags: the seeded "Box" tag (from settings migration) plus "Workshop" above.
+        $this->assertSame(['tags' => 2, 'items' => 2, 'images' => 2], $counts);
 
         $restoredRoom = Item::where('name', 'Office')->firstOrFail();
         $restoredLaptop = Item::where('name', 'Laptop')->firstOrFail();
@@ -164,7 +166,9 @@ class BackupTest extends TestCase
         $this->actingAs(User::factory()->admin()->create())
             ->post('/household/backup/import', ['file' => $upload])
             ->assertRedirect()
-            ->assertSessionHas('backup', ['tags' => 1, 'items' => 1, 'images' => 0]);
+            // 2 tags after a wipeInventory+restore: the backup re-creates its own "Box" tag
+            // (it was in the export) plus whatever the source manifest carries.
+            ->assertSessionHas('backup', ['tags' => 2, 'items' => 1, 'images' => 0]);
 
         $this->assertDatabaseHas('items', ['name' => 'Shed']);
     }
@@ -230,7 +234,9 @@ class BackupTest extends TestCase
         }
 
         $this->assertSame(0, Item::count());
-        $this->assertSame(0, Tag::count());
+        // 1 surviving tag: the seeded "Box" pre-existed; the import's "Orphans"
+        // tag was inserted inside the transaction that just rolled back.
+        $this->assertSame(1, Tag::count());
     }
 
     private function wipeInventory(): void
