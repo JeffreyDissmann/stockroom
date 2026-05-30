@@ -229,12 +229,22 @@ class PaperlessClient
 
     /**
      * Find a webhook-action workflow by name, or create one that fires on a
-     * tag-added trigger and POSTs to $webhookUrl with the doc id as a
-     * form param and a shared-secret header. Idempotent on name — existing
-     * workflows are left alone (re-run after deleting in Paperless if the
-     * URL or secret needs to change).
+     * tag-added trigger and POSTs to $webhookUrl with `doc_url` as a form
+     * param and a shared-secret header.
      *
-     * @return array{0: int, 1: bool} [id, wasCreated]
+     * Self-healing: when a workflow with the given name already exists but
+     * its trigger tag / webhook URL / secret / params have drifted from the
+     * canonical shape (LAN IP changed, secret was rotated with `--force-secret`,
+     * trigger tag was renamed and recreated…), we PATCH it back into shape
+     * instead of leaving the user with a silently-broken integration. The
+     * existing `order` and `enabled` flag are preserved.
+     *
+     * Return status:
+     *   - `'created'`   workflow didn't exist; freshly POSTed.
+     *   - `'updated'`   matched by name but drifted from canonical; PATCHed.
+     *   - `'unchanged'` matched by name and every canonical field already aligns.
+     *
+     * @return array{0: int, 1: 'created'|'updated'|'unchanged'} [id, status]
      */
     public function ensureWorkflow(string $name, int $triggerTagId, string $webhookUrl, string $secret): array
     {
@@ -243,16 +253,6 @@ class PaperlessClient
         $response = $this->request()->get('/api/workflows/');
         $this->ensureOk($response, 'listing workflows');
         $workflows = collect($response->json('results') ?? []);
-
-        $match = $workflows->first(fn ($w) => strcasecmp((string) ($w['name'] ?? ''), $name) === 0);
-        if (is_array($match) && isset($match['id'])) {
-            return [(int) $match['id'], false];
-        }
-
-        // Place after any existing workflows so we don't reorder the user's
-        // existing automation. Paperless runs workflows in ascending `order`,
-        // so highest+1 puts us last.
-        $order = (int) ($workflows->max(fn ($w) => (int) ($w['order'] ?? 0)) ?? 0) + 1;
 
         // Paperless workflow shape: a DOCUMENT_UPDATED trigger (type 3) fires
         // whenever a doc's properties change, including a tag being added.
@@ -263,37 +263,99 @@ class PaperlessClient
         // which we pattern-match for the trailing integer on our side.
         // Templates use Django-style double-brace `{{ }}` syntax. Shared
         // secret rides as a static header for auth.
-        $payload = [
+        $canonicalTrigger = [
+            'type' => 3,
+            'sources' => [],
+            'filter_has_tags' => [$triggerTagId],
+            'matching_algorithm' => 0,
+            'match' => '',
+            'is_insensitive' => true,
+        ];
+        $canonicalAction = [
+            'type' => 4,
+            'webhook' => [
+                'url' => $webhookUrl,
+                'use_params' => true,
+                'as_json' => false,
+                'params' => ['doc_url' => '{{doc_url}}'],
+                'body' => null,
+                'headers' => ['X-Stockroom-Secret' => $secret],
+                'include_document' => false,
+            ],
+        ];
+
+        $match = $workflows->first(fn ($w) => strcasecmp((string) ($w['name'] ?? ''), $name) === 0);
+
+        if (is_array($match) && isset($match['id'])) {
+            $existingId = (int) $match['id'];
+
+            if ($this->workflowMatchesCanonical($match, $triggerTagId, $webhookUrl, $secret)) {
+                return [$existingId, 'unchanged'];
+            }
+
+            // Drift — PATCH back to canonical. Preserve user-controlled fields
+            // (order so we don't reshuffle, enabled so a manually-disabled
+            // workflow stays disabled).
+            $patchPayload = [
+                'name' => $name,
+                'order' => (int) ($match['order'] ?? 1),
+                'enabled' => (bool) ($match['enabled'] ?? true),
+                'triggers' => [$canonicalTrigger],
+                'actions' => [$canonicalAction],
+            ];
+
+            $this->ensureOk(
+                $this->request()->patch("/api/workflows/{$existingId}/", $patchPayload),
+                "updating workflow '{$name}'",
+            );
+
+            return [$existingId, 'updated'];
+        }
+
+        // Place after any existing workflows so we don't reorder the user's
+        // existing automation. Paperless runs workflows in ascending `order`,
+        // so highest+1 puts us last.
+        $order = (int) ($workflows->max(fn ($w) => (int) ($w['order'] ?? 0)) ?? 0) + 1;
+
+        $createPayload = [
             'name' => $name,
             'order' => $order,
             'enabled' => true,
-            'triggers' => [[
-                'type' => 3,
-                'sources' => [],
-                'filter_has_tags' => [$triggerTagId],
-                'matching_algorithm' => 0,
-                'match' => '',
-                'is_insensitive' => true,
-            ]],
-            'actions' => [[
-                'type' => 4,
-                'webhook' => [
-                    'url' => $webhookUrl,
-                    'use_params' => true,
-                    'as_json' => false,
-                    'params' => ['doc_url' => '{{doc_url}}'],
-                    'body' => null,
-                    'headers' => ['X-Stockroom-Secret' => $secret],
-                    'include_document' => false,
-                ],
-            ]],
+            'triggers' => [$canonicalTrigger],
+            'actions' => [$canonicalAction],
         ];
 
-        $response = $this->request()->post('/api/workflows/', $payload);
+        $response = $this->request()->post('/api/workflows/', $createPayload);
 
         $this->ensureOk($response, "creating workflow '{$name}'");
 
-        return [(int) $response->json('id'), true];
+        return [(int) $response->json('id'), 'created'];
+    }
+
+    /**
+     * Does an existing Paperless workflow record already match the canonical
+     * shape we want (trigger tag, webhook URL, secret header, doc_url param)?
+     *
+     * @param  array<string, mixed>  $workflow
+     */
+    private function workflowMatchesCanonical(array $workflow, int $triggerTagId, string $webhookUrl, string $secret): bool
+    {
+        $trigger = $workflow['triggers'][0] ?? null;
+        $action = $workflow['actions'][0] ?? null;
+        if (! is_array($trigger) || ! is_array($action)) {
+            return false;
+        }
+
+        $tags = array_map('intval', $trigger['filter_has_tags'] ?? []);
+        $webhook = $action['webhook'] ?? [];
+
+        return ($trigger['type'] ?? null) === 3
+            && $tags === [$triggerTagId]
+            && ($action['type'] ?? null) === 4
+            && is_array($webhook)
+            && (string) ($webhook['url'] ?? '') === $webhookUrl
+            && (string) ($webhook['headers']['X-Stockroom-Secret'] ?? '') === $secret
+            && (string) ($webhook['params']['doc_url'] ?? '') === '{{doc_url}}';
     }
 
     /**

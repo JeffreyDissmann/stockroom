@@ -89,14 +89,85 @@ it('reports already-exists when items are present', function () {
         'https://paperless.test/api/custom_fields/' => Http::response([
             'results' => [['id' => 7, 'name' => 'Stockroom URL']],
         ]),
+        // Existing workflow is in canonical shape — install reports
+        // "already exists" without touching it.
         'https://paperless.test/api/workflows/' => Http::response([
-            'results' => [['id' => 8, 'name' => 'Stockroom intake']],
+            'results' => [[
+                'id' => 8,
+                'name' => 'Stockroom intake',
+                'order' => 1,
+                'enabled' => true,
+                'triggers' => [['type' => 3, 'filter_has_tags' => [5]]],
+                'actions' => [[
+                    'type' => 4,
+                    'webhook' => [
+                        'url' => 'https://stockroom.test/webhooks/paperless/document',
+                        'params' => ['doc_url' => '{{doc_url}}'],
+                        'headers' => ['X-Stockroom-Secret' => 'preset-secret'],
+                    ],
+                ]],
+            ]],
         ]),
     ]);
 
     $this->artisan('paperless:install')
         ->expectsOutputToContain('already exists')
         ->assertSuccessful();
+
+    // Self-heal didn't fire — no PATCH should have been sent against the
+    // existing workflow.
+    Http::assertNotSent(fn ($r) => $r->method() === 'PATCH'
+        && str_contains($r->url(), '/api/workflows/8/'));
+});
+
+it('PATCHes the existing workflow back into canonical shape when the URL or secret has drifted', function () {
+    config()->set('app.url', 'https://stockroom.test');
+    config()->set('paperless.webhook_secret', 'current-secret');
+
+    Http::fake([
+        'https://paperless.test/api/tags/?name__iexact=Add%20to%20Stockroom' => Http::response([
+            'results' => [['id' => 5, 'name' => 'Add to Stockroom']],
+        ]),
+        'https://paperless.test/api/tags/?name__iexact=Stockroom' => Http::response([
+            'results' => [['id' => 6, 'name' => 'Stockroom']],
+        ]),
+        'https://paperless.test/api/custom_fields/' => Http::response([
+            'results' => [['id' => 7, 'name' => 'Stockroom URL']],
+        ]),
+        // Existing workflow points at an old LAN IP and a rotated secret —
+        // the kind of drift `--force-secret` or a network move produces.
+        'https://paperless.test/api/workflows/' => Http::response([
+            'results' => [[
+                'id' => 8,
+                'name' => 'Stockroom intake',
+                'order' => 1,
+                'enabled' => true,
+                'triggers' => [['type' => 3, 'filter_has_tags' => [5]]],
+                'actions' => [[
+                    'type' => 4,
+                    'webhook' => [
+                        'url' => 'http://192.168.0.99/webhooks/paperless/document',
+                        'params' => ['doc_url' => '{{doc_url}}'],
+                        'headers' => ['X-Stockroom-Secret' => 'old-secret'],
+                    ],
+                ]],
+            ]],
+        ]),
+        'https://paperless.test/api/workflows/8/' => Http::response([], 200),
+    ]);
+
+    $this->artisan('paperless:install')
+        ->expectsOutputToContain('updated')
+        ->assertSuccessful();
+
+    // Self-heal PATCH carried the current URL + secret + canonical params,
+    // and preserved the existing `order`.
+    Http::assertSent(fn ($r) => $r->method() === 'PATCH'
+        && str_contains($r->url(), '/api/workflows/8/')
+        && $r['order'] === 1
+        && $r['actions'][0]['webhook']['url'] === 'https://stockroom.test/webhooks/paperless/document'
+        && $r['actions'][0]['webhook']['headers']['X-Stockroom-Secret'] === 'current-secret'
+        && $r['actions'][0]['webhook']['params']['doc_url'] === '{{doc_url}}');
 });
 
 it('fails when APP_URL is missing — Paperless needs a callback target', function () {

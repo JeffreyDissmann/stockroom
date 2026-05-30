@@ -70,7 +70,7 @@ class PaperlessInstall extends Command
             // Stockroom's search-filtered view of the items extracted from
             // this doc.
             [, $fieldCreated] = $client->ensureCustomField($customField, 'url');
-            [, $workflowCreated] = $client->ensureWorkflow($workflowName, $triggerTagId, $webhookUrl, $secret);
+            [, $workflowStatus] = $client->ensureWorkflow($workflowName, $triggerTagId, $webhookUrl, $secret);
         } catch (PaperlessException $e) {
             $this->error("Paperless API error: {$e->getMessage()}");
 
@@ -86,10 +86,11 @@ class PaperlessInstall extends Command
             'kept' => 'already set, kept as-is',
             'no_env' => '<fg=yellow>no .env file found, skipped</>',
         });
-        $this->components->twoColumnDetail(
-            "Workflow <fg=cyan>{$workflowName}</>",
-            $workflowCreated ? '<fg=green>created</>' : 'already exists',
-        );
+        $this->components->twoColumnDetail("Workflow <fg=cyan>{$workflowName}</>", match ($workflowStatus) {
+            'created' => '<fg=green>created</>',
+            'updated' => '<fg=yellow>updated (URL or secret had drifted)</>',
+            'unchanged' => 'already exists',
+        });
         $this->components->twoColumnDetail('  → webhook url', "<fg=gray>{$webhookUrl}</>");
 
         $this->newLine();
