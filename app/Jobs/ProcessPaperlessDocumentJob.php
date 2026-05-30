@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Ai\Agents\DocumentExtractor;
 use App\Enums\ItemType;
 use App\Models\Item;
+use App\Services\Brave\AttachFirstImage;
 use App\Services\Paperless\PaperlessClient;
 use App\Services\Paperless\PaperlessException;
 use Illuminate\Bus\Queueable;
@@ -56,19 +57,25 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
 
         $extracted = $this->extractItems($ocr);
 
-        DB::transaction(function () use ($extracted, $title): void {
+        $items = DB::transaction(function () use ($extracted, $title): array {
             if ($extracted === []) {
                 // Placeholder fallback when the AI returned nothing — at
                 // least one item per doc so the user has a hook to find it.
-                $this->createItem(['name' => $title]);
-
-                return;
+                return [$this->createItem(['name' => $title])];
             }
 
-            foreach ($extracted as $proposal) {
-                $this->createItem($proposal);
-            }
+            return array_map(fn (array $proposal) => $this->createItem($proposal), $extracted);
         });
+
+        // Opportunistic auto-cover: when Brave is configured, search the
+        // web for an image of each newly-created item and attach the first
+        // hit. Runs outside the transaction (image writes touch disk) and
+        // swallows its own failures — a missing cover is no reason to
+        // strand a successful intake.
+        $attacher = app(AttachFirstImage::class);
+        foreach ($items as $item) {
+            $attacher($item);
+        }
 
         $this->annotatePaperlessDocument($client);
     }
