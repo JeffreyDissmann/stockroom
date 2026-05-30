@@ -90,7 +90,10 @@ it('reports already-exists when items are present', function () {
             'results' => [['id' => 7, 'name' => 'Stockroom URL']],
         ]),
         // Existing workflow is in canonical shape — install reports
-        // "already exists" without touching it.
+        // "already exists" without touching it. Must include every field
+        // workflowMatchesCanonical checks (use_params/as_json/body/
+        // include_document), or the self-heal branch fires and tries to
+        // PATCH a doc that isn't faked.
         'https://paperless.test/api/workflows/' => Http::response([
             'results' => [[
                 'id' => 8,
@@ -102,8 +105,12 @@ it('reports already-exists when items are present', function () {
                     'type' => 4,
                     'webhook' => [
                         'url' => 'https://stockroom.test/webhooks/paperless/document',
+                        'use_params' => true,
+                        'as_json' => false,
+                        'body' => null,
                         'params' => ['doc_url' => '{{doc_url}}'],
                         'headers' => ['X-Stockroom-Secret' => 'preset-secret'],
+                        'include_document' => false,
                     ],
                 ]],
             ]],

@@ -74,9 +74,9 @@ class SearchController extends Controller
         // to a given Paperless document. Set as a URL custom field on the
         // doc by ProcessPaperlessDocumentJob, so clicking it in Paperless
         // lands here with the right item subset already in view.
-        $paperlessDocumentId = $request->query('paperless_document') !== null
-            ? max(0, (int) $request->query('paperless_document')) ?: null
-            : null;
+        // `$request->integer()` coerces missing / non-numeric input to 0;
+        // the `?: null` then collapses 0 into "no filter".
+        $paperlessDocumentId = $request->integer('paperless_document') ?: null;
 
         // Relevance-ordered matching ids from Meilisearch (null = browse everything).
         $ids = $query !== '' ? $this->search->search($query, fn ($b) => $b->take(500)->keys()->all()) : null;

@@ -26,9 +26,11 @@ return [
     'token' => env('PAPERLESS_TOKEN'),
 
     /*
-    | Shared secret signed into webhook requests as an HMAC-SHA256 over the
-    | raw body, in the `X-Stockroom-Signature` header (case-insensitive).
-    | Without it the route refuses every request — there is no other auth.
+    | Static shared secret compared timing-safely against the
+    | `X-Stockroom-Secret` header on every webhook request. Paperless's
+    | workflow webhook action can only send STATIC headers (no per-body
+    | HMAC), so we use a fixed token instead of a signature. Without it
+    | the route 503s — see VerifyPaperlessSignature.
     */
     'webhook_secret' => env('PAPERLESS_WEBHOOK_SECRET'),
 

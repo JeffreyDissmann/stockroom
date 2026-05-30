@@ -44,7 +44,7 @@ class PaperlessLink extends Model
      */
     public function paperlessUrl(): ?string
     {
-        $base = (string) (config('paperless.url') ?? '');
+        $base = (string) config('paperless.url');
         if ($base === '') {
             return null;
         }
@@ -58,9 +58,10 @@ class PaperlessLink extends Model
      * This is the URL we write back into Paperless's `Stockroom URL`
      * custom field, and the one the search filter chip clears.
      *
-     * Centralised here so the intake job, the relink-all repair job and
-     * the search controller all agree on the shape — change the query
-     * key and you change every consumer at once.
+     * String-composed rather than going through `route()` because Laravel's
+     * URL helpers lock onto APP_URL at boot — and intake jobs need to
+     * follow a runtime APP_URL change (LAN-IP shift, host move) without
+     * an artisan optimize:clear. `config('app.url')` is live; route() isn't.
      */
     public static function stockroomBacklinkFor(int $documentId): string
     {

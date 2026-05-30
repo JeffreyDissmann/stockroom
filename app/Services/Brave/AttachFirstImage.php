@@ -49,7 +49,14 @@ class AttachFirstImage
             }
 
             $image = $this->downloader->download($url);
-            $tempPath = (string) tempnam(sys_get_temp_dir(), 'brave-auto-');
+            $tempPath = tempnam(sys_get_temp_dir(), 'brave-auto-');
+            if ($tempPath === false) {
+                // Disk full / TMPDIR mis-set / sandbox restriction — bail
+                // before we try to write to "". The empty-string cast
+                // followed by file_put_contents("") explodes with a
+                // misleading error otherwise.
+                throw new \RuntimeException('Could not create temp file for Brave image download.');
+            }
 
             try {
                 file_put_contents($tempPath, $image->contents);

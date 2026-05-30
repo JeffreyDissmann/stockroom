@@ -120,8 +120,12 @@ class PaperlessInstall extends Command
         $secret = bin2hex(random_bytes(32));
         $env = (string) file_get_contents($envPath);
 
-        if (preg_match('/^PAPERLESS_WEBHOOK_SECRET=.*$/m', $env)) {
-            $env = preg_replace('/^PAPERLESS_WEBHOOK_SECRET=.*$/m', "PAPERLESS_WEBHOOK_SECRET={$secret}", $env);
+        // `(?!#)` keeps the regex from matching a commented-out line like
+        // `# PAPERLESS_WEBHOOK_SECRET=…`, which would otherwise get
+        // silently rewritten and break the operator's documentation note.
+        $pattern = '/^(?!#)PAPERLESS_WEBHOOK_SECRET=.*$/m';
+        if (preg_match($pattern, $env)) {
+            $env = preg_replace($pattern, "PAPERLESS_WEBHOOK_SECRET={$secret}", $env);
         } else {
             // No line at all — append. Newline before so we don't run into
             // the previous line if the file didn't end with one.
@@ -130,10 +134,14 @@ class PaperlessInstall extends Command
 
         // Best-effort atomic write: tmp then rename, so a partial write can't
         // leave .env half-rewritten. atomic = same filesystem so no rename
-        // surprises.
+        // surprises. Both writes are checked because a disk-full or
+        // permission error followed by an un-checked rename would replace
+        // a working .env with an empty / stale file.
         $tmp = $envPath.'.'.Str::random(8).'.tmp';
-        file_put_contents($tmp, $env);
-        rename($tmp, $envPath);
+        if (file_put_contents($tmp, $env) === false || ! rename($tmp, $envPath)) {
+            @unlink($tmp);
+            throw new \RuntimeException('Could not write the new webhook secret to .env — check disk space and file permissions.');
+        }
 
         // Live config gets the new secret too, in case anything later in the
         // process reads it — otherwise it'd see the stale (blank) value

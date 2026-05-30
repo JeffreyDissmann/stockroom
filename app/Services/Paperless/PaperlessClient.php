@@ -55,8 +55,8 @@ class PaperlessClient
      */
     public static function fromConfig(): ?self
     {
-        $url = (string) (config('paperless.url') ?? '');
-        $token = (string) (config('paperless.token') ?? '');
+        $url = (string) config('paperless.url');
+        $token = (string) config('paperless.token');
 
         if ($url === '' || $token === '') {
             return null;
@@ -137,23 +137,10 @@ class PaperlessClient
     {
         $fieldId = $this->customFieldIdByName($fieldName);
         $doc = $this->document($documentId);
-        $existing = $doc['custom_fields'] ?? [];
 
-        $merged = [];
-        $written = false;
-        foreach ($existing as $entry) {
-            if ((int) ($entry['field'] ?? 0) === $fieldId) {
-                $merged[] = ['field' => $fieldId, 'value' => $value];
-                $written = true;
-            } else {
-                $merged[] = $entry;
-            }
-        }
-        if (! $written) {
-            $merged[] = ['field' => $fieldId, 'value' => $value];
-        }
-
-        $this->patchDocument($documentId, ['custom_fields' => $merged]);
+        $this->patchDocument($documentId, [
+            'custom_fields' => $this->mergeCustomField($doc['custom_fields'] ?? [], $fieldId, $value),
+        ]);
     }
 
     /**
@@ -186,24 +173,39 @@ class PaperlessClient
             $linkedId,
         ]));
 
+        $this->patchDocument($documentId, [
+            'tags' => $tags,
+            'custom_fields' => $this->mergeCustomField($doc['custom_fields'] ?? [], $fieldId, $customFieldValue),
+        ]);
+    }
+
+    /**
+     * Read-merge-write for the Paperless `custom_fields` array. If a row for
+     * $fieldId already exists, its value is replaced; otherwise a new row is
+     * appended. Other fields pass through untouched. Paperless requires the
+     * full custom_fields array on every PATCH — there's no "patch one field"
+     * endpoint, so we always read-modify-write.
+     *
+     * @param  array<int, array<string, mixed>>  $existing
+     * @return array<int, array<string, mixed>>
+     */
+    private function mergeCustomField(array $existing, int $fieldId, ?string $value): array
+    {
         $merged = [];
         $written = false;
-        foreach ($doc['custom_fields'] ?? [] as $entry) {
+        foreach ($existing as $entry) {
             if ((int) ($entry['field'] ?? 0) === $fieldId) {
-                $merged[] = ['field' => $fieldId, 'value' => $customFieldValue];
+                $merged[] = ['field' => $fieldId, 'value' => $value];
                 $written = true;
             } else {
                 $merged[] = $entry;
             }
         }
         if (! $written) {
-            $merged[] = ['field' => $fieldId, 'value' => $customFieldValue];
+            $merged[] = ['field' => $fieldId, 'value' => $value];
         }
 
-        $this->patchDocument($documentId, [
-            'tags' => $tags,
-            'custom_fields' => $merged,
-        ]);
+        return $merged;
     }
 
     /**
@@ -349,13 +351,25 @@ class PaperlessClient
         $tags = array_map('intval', $trigger['filter_has_tags'] ?? []);
         $webhook = $action['webhook'] ?? [];
 
+        // Check every webhook-shape field that could break the integration
+        // if a user toggled it in Paperless's UI. Missing one would leave
+        // self-heal reporting "unchanged" while requests silently break:
+        //   - use_params/as_json/body decide HOW params get sent
+        //   - include_document false keeps the POST small + avoids
+        //     leaking doc bytes through our auth header
         return ($trigger['type'] ?? null) === 3
             && $tags === [$triggerTagId]
             && ($action['type'] ?? null) === 4
             && is_array($webhook)
             && (string) ($webhook['url'] ?? '') === $webhookUrl
             && (string) ($webhook['headers']['X-Stockroom-Secret'] ?? '') === $secret
-            && (string) ($webhook['params']['doc_url'] ?? '') === '{{doc_url}}';
+            && (string) ($webhook['params']['doc_url'] ?? '') === '{{doc_url}}'
+            && ($webhook['use_params'] ?? null) === true
+            && ($webhook['as_json'] ?? null) === false
+            // body must be literally null — `?? null` would mask "missing
+            // from response", which is the same shape as drift here.
+            && array_key_exists('body', $webhook) && $webhook['body'] === null
+            && ($webhook['include_document'] ?? null) === false;
     }
 
     /**

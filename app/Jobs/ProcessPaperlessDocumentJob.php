@@ -154,7 +154,7 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
     private function createItem(array $proposal): Item
     {
         $item = Item::create([
-            'type' => ItemType::Item->value,
+            'type' => ItemType::Item,
             // Drop new items into the room / container the admin configured
             // in household preferences. Null = top-level, which is also
             // what happens if the preference points at a since-deleted item

@@ -47,7 +47,7 @@ const props = defineProps<{
 const isAdmin = useIsAdmin();
 const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 
-const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.preferences'), href: '/household/preferences' }];
+const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.preferences'), href: householdPreferences.edit().url }];
 
 // `null` is a valid choice for either field — admin opts out of auto-tagging
 // or chooses to drop intake at top level — so we preserve it through the

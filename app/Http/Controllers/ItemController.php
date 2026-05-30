@@ -12,6 +12,7 @@ use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\PaperlessLink;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
@@ -20,6 +21,7 @@ use App\Services\Items\ItemWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -123,13 +125,7 @@ class ItemController extends Controller
             // composed by the model from config('paperless.url'), so we
             // skip rows where the integration is disabled and the URL
             // would be null.
-            'paperlessLinks' => $item->paperlessLinks
-                ->map(fn ($link) => [
-                    'document_id' => $link->paperless_document_id,
-                    'url' => $link->paperlessUrl(),
-                ])
-                ->filter(fn ($l) => $l['url'] !== null)
-                ->values(),
+            'paperlessLinks' => $this->presentPaperlessLinks($item),
             'activities' => $activities,
         ]);
     }
@@ -236,14 +232,27 @@ class ItemController extends Controller
             // Paperless links surface on Edit only — that's where the user
             // can unlink. Show.vue lists the same docs (server passes a
             // separate `paperlessLinks` prop there too) but read-only.
-            'paperlessLinks' => $item->paperlessLinks
-                ->map(fn ($link) => [
-                    'document_id' => $link->paperless_document_id,
-                    'url' => $link->paperlessUrl(),
-                ])
-                ->filter(fn ($l) => $l['url'] !== null)
-                ->values(),
+            'paperlessLinks' => $this->presentPaperlessLinks($item),
         ]);
+    }
+
+    /**
+     * Shape an item's PaperlessLink rows for the Inertia client. Rows whose
+     * `paperlessUrl()` is null (the integration was disabled after the link
+     * was created) are dropped so the front-end never gets a clickable chip
+     * pointing at nowhere.
+     *
+     * @return Collection<int, array{document_id: int, url: string}>
+     */
+    private function presentPaperlessLinks(Item $item): Collection
+    {
+        return $item->paperlessLinks
+            ->map(fn (PaperlessLink $link) => [
+                'document_id' => $link->paperless_document_id,
+                'url' => $link->paperlessUrl(),
+            ])
+            ->filter(fn (array $l) => $l['url'] !== null)
+            ->values();
     }
 
     public function update(UpdateItemRequest $request, Item $item): RedirectResponse
@@ -268,7 +277,7 @@ class ItemController extends Controller
         // silently drop future imports back to the top level. Admin has to
         // change the preference first; same shape as the box-tag guard in
         // TagController::destroy.
-        if (Setting::get('paperless_parent_id') === $item->id) {
+        if (Setting::int('paperless_parent_id') === $item->id) {
             throw ValidationException::withMessages([
                 'item' => __('items.cannot_delete_paperless_parent'),
             ]);
