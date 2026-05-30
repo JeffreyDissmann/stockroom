@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Ai\Agents\DocumentExtractor;
 use App\Enums\ItemType;
 use App\Models\Item;
+use App\Models\PaperlessLink;
 use App\Models\Setting;
 use App\Services\Brave\AttachFirstImage;
 use App\Services\Paperless\PaperlessClient;
@@ -211,7 +212,7 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
         $linkField = (string) config('paperless.link_custom_field');
         $triggerTag = (string) config('paperless.trigger_tag');
         $linkedTag = (string) config('paperless.linked_tag');
-        $backlink = rtrim((string) config('app.url'), '/').'/search?paperless_document='.$this->documentId;
+        $backlink = PaperlessLink::stockroomBacklinkFor($this->documentId);
 
         try {
             $client->annotateProcessed($this->documentId, $triggerTag, $linkedTag, $linkField, $backlink);

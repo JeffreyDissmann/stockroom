@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::edit
-* @see app/Http/Controllers/Household/PreferencesController.php:25
+* @see app/Http/Controllers/Household/PreferencesController.php:29
 * @route '/household/preferences'
 */
 export const edit = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::edit
-* @see app/Http/Controllers/Household/PreferencesController.php:25
+* @see app/Http/Controllers/Household/PreferencesController.php:29
 * @route '/household/preferences'
 */
 edit.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ edit.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::edit
-* @see app/Http/Controllers/Household/PreferencesController.php:25
+* @see app/Http/Controllers/Household/PreferencesController.php:29
 * @route '/household/preferences'
 */
 edit.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ edit.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::edit
-* @see app/Http/Controllers/Household/PreferencesController.php:25
+* @see app/Http/Controllers/Household/PreferencesController.php:29
 * @route '/household/preferences'
 */
 edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:68
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless-parent-targets'
 */
 export const paperlessParentTargets = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -60,7 +60,7 @@ paperlessParentTargets.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:68
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ paperlessParentTargets.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:68
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -79,7 +79,7 @@ paperlessParentTargets.get = (options?: RouteQueryOptions): RouteDefinition<'get
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:68
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -89,7 +89,7 @@ paperlessParentTargets.head = (options?: RouteQueryOptions): RouteDefinition<'he
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:94
+* @see app/Http/Controllers/Household/PreferencesController.php:123
 * @route '/household/preferences'
 */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -104,7 +104,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:94
+* @see app/Http/Controllers/Household/PreferencesController.php:123
 * @route '/household/preferences'
 */
 update.url = (options?: RouteQueryOptions) => {
@@ -113,7 +113,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:94
+* @see app/Http/Controllers/Household/PreferencesController.php:123
 * @route '/household/preferences'
 */
 update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -121,6 +121,40 @@ update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     method: 'put',
 })
 
-const PreferencesController = { edit, paperlessParentTargets, update }
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::relinkAllPaperless
+* @see app/Http/Controllers/Household/PreferencesController.php:78
+* @route '/household/preferences/paperless/relink-all'
+*/
+export const relinkAllPaperless = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: relinkAllPaperless.url(options),
+    method: 'post',
+})
+
+relinkAllPaperless.definition = {
+    methods: ["post"],
+    url: '/household/preferences/paperless/relink-all',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::relinkAllPaperless
+* @see app/Http/Controllers/Household/PreferencesController.php:78
+* @route '/household/preferences/paperless/relink-all'
+*/
+relinkAllPaperless.url = (options?: RouteQueryOptions) => {
+    return relinkAllPaperless.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::relinkAllPaperless
+* @see app/Http/Controllers/Household/PreferencesController.php:78
+* @route '/household/preferences/paperless/relink-all'
+*/
+relinkAllPaperless.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: relinkAllPaperless.url(options),
+    method: 'post',
+})
+
+const PreferencesController = { edit, paperlessParentTargets, update, relinkAllPaperless }
 
 export default PreferencesController

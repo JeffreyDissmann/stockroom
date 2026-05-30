@@ -7,10 +7,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import householdPreferences from '@/routes/household/preferences';
 import type { BreadcrumbItem, SharedData } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage, usePoll } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Save, Search, X } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { RefreshCw, Save, Search, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 interface TagOption {
     id: number;
@@ -29,7 +29,20 @@ interface Preferences {
     paperless_parent_id: number | null;
 }
 
-const props = defineProps<{ preferences: Preferences; tags: TagOption[]; selectedParent: ParentOption | null }>();
+interface RelinkStatus {
+    state: 'running' | 'done' | 'failed';
+    done?: number;
+    failed?: number;
+    total?: number;
+    error?: string;
+}
+
+const props = defineProps<{
+    preferences: Preferences;
+    tags: TagOption[];
+    selectedParent: ParentOption | null;
+    relinkStatus: RelinkStatus | null;
+}>();
 
 const isAdmin = useIsAdmin();
 const paperlessEnabled = usePage<SharedData>().props.features.paperless;
@@ -90,6 +103,37 @@ function clearSelection() {
 
 function submit() {
     form.put(householdPreferences.update().url, { preserveScroll: true });
+}
+
+// Operator repair: re-apply Stockroom annotations on every Paperless doc
+// that local items link to. Status is polled live from the server while
+// the background job is running, mirroring the search-index rebuild UX —
+// same `usePoll(... { only: [...] }, { autoStart: false })` shape.
+const relinkProcessing = ref(false);
+const relinkRunning = computed(() => props.relinkStatus?.state === 'running');
+const relinkPercent = computed(() => {
+    const s = props.relinkStatus;
+    return s && s.total ? Math.round((((s.done ?? 0) + (s.failed ?? 0)) / s.total) * 100) : 0;
+});
+
+const relinkPoll = usePoll(2000, { only: ['relinkStatus'] }, { autoStart: false });
+watch(relinkRunning, (running) => (running ? relinkPoll.start() : relinkPoll.stop()), { immediate: true });
+
+function relinkAllPaperless() {
+    if (!confirm(trans('household.preferences.paperless_relink_confirm'))) {
+        return;
+    }
+    relinkProcessing.value = true;
+    router.post(
+        householdPreferences.paperless.relinkAll().url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                relinkProcessing.value = false;
+            },
+        },
+    );
 }
 </script>
 
@@ -192,6 +236,61 @@ function submit() {
                         <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_parent_help') }}</p>
                     </div>
 
+                    <!-- Operator repair: re-apply Stockroom annotations on the
+                         Paperless side for every doc local items still link to.
+                         Lives next to the Paperless intake parent because both
+                         are Paperless-only and admin-only. -->
+                    <div v-if="paperlessEnabled" class="form-row">
+                        <label>{{ $t('household.preferences.paperless_relink') }}</label>
+                        <div>
+                            <button
+                                type="button"
+                                class="btn-pill"
+                                :disabled="relinkProcessing || relinkRunning"
+                                data-test="paperless-relink-all"
+                                @click="relinkAllPaperless"
+                            >
+                                <RefreshCw :size="14" :class="relinkRunning ? 'spin' : ''" />
+                                {{ $t('household.preferences.paperless_relink_action') }}
+                            </button>
+                        </div>
+                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_relink_help') }}</p>
+
+                        <!-- Live status pane. Mirrors the search-index rebuild
+                             layout: a progress bar while running, then a done
+                             or failed line. Hidden when no run has happened
+                             (or its cache key expired). -->
+                        <div v-if="relinkStatus" data-test="paperless-relink-status" style="margin-top: 12px">
+                            <template v-if="relinkStatus.state === 'running'">
+                                <p style="font-size: 13px; margin: 0 0 8px">
+                                    {{ $t('household.preferences.paperless_relink_progress', {
+                                        done: (relinkStatus.done ?? 0) + (relinkStatus.failed ?? 0),
+                                        total: relinkStatus.total ?? 0,
+                                    }) }}
+                                </p>
+                                <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
+                                    <div :style="{ width: `${relinkPercent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
+                                </div>
+                            </template>
+                            <p
+                                v-else-if="relinkStatus.state === 'done'"
+                                style="font-size: 13px; margin: 0"
+                                :style="{ color: (relinkStatus.failed ?? 0) > 0 ? 'var(--warn)' : 'var(--pos)' }"
+                            >
+                                {{ $tChoice('household.preferences.paperless_relink_done', relinkStatus.done ?? 0) }}
+                                <template v-if="(relinkStatus.failed ?? 0) > 0">
+                                    {{ $tChoice('household.preferences.paperless_relink_failed_count', relinkStatus.failed ?? 0) }}
+                                </template>
+                            </p>
+                            <p
+                                v-else-if="relinkStatus.state === 'failed'"
+                                style="font-size: 13px; margin: 0; color: var(--neg)"
+                            >
+                                {{ $t('household.preferences.paperless_relink_failed', { error: relinkStatus.error ?? '' }) }}
+                            </p>
+                        </div>
+                    </div>
+
                     <div>
                         <button type="submit" class="btn-primary" :disabled="form.processing" data-test="preferences-save">
                             <Save :size="14" />
@@ -291,4 +390,7 @@ function submit() {
     cursor: pointer;
 }
 .parent-picker-cancel:hover { color: var(--fg); }
+
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
 </style>

@@ -24,6 +24,15 @@ return [
         'paperless_parent_help' => 'When Paperless-ngx hands a document to Stockroom, the items it extracts land inside this room or container. Move them elsewhere any time — this only decides where they appear first.',
         'paperless_parent_search' => 'Search rooms and containers…',
         'paperless_parent_no_match' => 'No matching rooms or containers.',
+        'paperless_relink' => 'Repair Paperless links',
+        'paperless_relink_action' => 'Re-link all documents',
+        'paperless_relink_help' => 'Walks every Paperless document that an item is currently linked to and re-applies the Stockroom tag and the backlink URL on the Paperless side. Useful after changing APP_URL or if the tag was removed manually. Runs in the background — a queue worker must be running.',
+        'paperless_relink_confirm' => 'Re-apply the Stockroom tag and backlink URL on every linked Paperless document?',
+        'paperless_relink_none' => 'No documents to re-link.',
+        'paperless_relink_progress' => 'Re-linking… :done / :total',
+        'paperless_relink_done' => 'Re-linked :count document.|Re-linked :count documents.',
+        'paperless_relink_failed_count' => ':count failed.|:count failed.',
+        'paperless_relink_failed' => 'Re-link job failed: :error',
     ],
 
     'import' => [

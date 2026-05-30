@@ -52,6 +52,13 @@ Route::middleware('auth')->group(function () {
 
         Route::put('household/preferences', [PreferencesController::class, 'update'])->name('household.preferences.update');
 
+        // Operator repair: re-apply Stockroom annotations (linked tag +
+        // backlink URL) on every Paperless doc that local items are
+        // currently linked to. EnsurePaperlessEnabled is also declared on
+        // the controller method via attribute — belt and braces.
+        Route::post('household/preferences/paperless/relink-all', [PreferencesController::class, 'relinkAllPaperless'])
+            ->name('household.preferences.paperless.relink-all');
+
         Route::post('household/import', [ImportController::class, 'start'])->name('household.import.start');
 
         Route::post('household/search-index', [SearchIndexController::class, 'rebuild'])->name('household.search-index.rebuild');

@@ -6,13 +6,18 @@ namespace App\Http\Controllers\Household;
 
 use App\Enums\ItemType;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsurePaperlessEnabled;
 use App\Http\Requests\Household\UpdatePreferencesRequest;
+use App\Jobs\RelinkAllPaperlessDocumentsJob;
 use App\Models\Item;
+use App\Models\PaperlessLink;
 use App\Models\Setting;
 use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,7 +61,46 @@ class PreferencesController extends Controller
                     'name' => $selectedParent->name,
                     'type' => $selectedParent->type->value,
                 ],
+            // Live status for the "Re-link all documents" job. Polled by
+            // the page while state==='running'; null when no run has
+            // happened (or its TTL expired).
+            'relinkStatus' => Cache::get(RelinkAllPaperlessDocumentsJob::STATUS_KEY),
         ]);
+    }
+
+    /**
+     * Operator repair (#7): dispatches a background job that walks every
+     * distinct Paperless doc id we have local items linked to and re-applies
+     * the Stockroom annotation (linked tag + `Stockroom URL` custom field).
+     * Idempotent — safe to re-run.
+     *
+     * Queued rather than inline because a household with hundreds of linked
+     * docs and a slow Paperless instance could blow past PHP's request
+     * timeout. Returns immediately with a flash count so the admin sees
+     * "started for N documents".
+     */
+    #[Middleware(EnsurePaperlessEnabled::class)]
+    public function relinkAllPaperless(): RedirectResponse
+    {
+        $count = PaperlessLink::query()
+            ->distinct()
+            ->count('paperless_document_id');
+
+        if ($count > 0) {
+            // Seed the status as 'running' so the UI shows the bar
+            // immediately on redirect — without it, the user sees "no
+            // status" until the worker actually picks up the job.
+            Cache::put(RelinkAllPaperlessDocumentsJob::STATUS_KEY, [
+                'state' => 'running',
+                'done' => 0,
+                'failed' => 0,
+                'total' => $count,
+            ], now()->addHour());
+
+            RelinkAllPaperlessDocumentsJob::dispatch();
+        }
+
+        return back()->with('paperless_relink_count', $count);
     }
 
     /**

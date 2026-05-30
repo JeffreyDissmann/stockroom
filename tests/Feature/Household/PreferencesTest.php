@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 use App\Enums\ItemType;
+use App\Jobs\RelinkAllPaperlessDocumentsJob;
 use App\Models\Item;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 
 uses(RefreshDatabase::class);
 
@@ -112,6 +115,62 @@ it('exposes features.paperless as false when configuration is missing', function
         ->get('/household/preferences')
         ->assertOk()
         ->assertInertia(fn ($page) => $page->where('features.paperless', false));
+});
+
+it('queues the relink-all job and seeds the cache status to running', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    Bus::fake();
+
+    // Three items pointing at two distinct docs — relink should report 2.
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]);
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]);
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 200]);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->post('/household/preferences/paperless/relink-all')
+        ->assertRedirect();
+
+    Bus::assertDispatched(RelinkAllPaperlessDocumentsJob::class);
+
+    // Cache is seeded synchronously so the redirect-followed edit() picks it
+    // up and the UI shows the progress bar without waiting on the worker.
+    $status = Cache::get(RelinkAllPaperlessDocumentsJob::STATUS_KEY);
+    expect($status)
+        ->toMatchArray(['state' => 'running', 'done' => 0, 'failed' => 0, 'total' => 2]);
+});
+
+it('does not dispatch the relink job when no documents are linked', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    Bus::fake();
+    Cache::forget(RelinkAllPaperlessDocumentsJob::STATUS_KEY);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->post('/household/preferences/paperless/relink-all')
+        ->assertRedirect();
+
+    Bus::assertNothingDispatched();
+    expect(Cache::get(RelinkAllPaperlessDocumentsJob::STATUS_KEY))->toBeNull();
+});
+
+it('404s the relink endpoint when Paperless is not configured', function () {
+    config()->set('paperless.url', '');
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->post('/household/preferences/paperless/relink-all')
+        ->assertNotFound();
+});
+
+it('denies the relink endpoint to non-admins', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    $this->actingAs(User::factory()->create())
+        ->post('/household/preferences/paperless/relink-all')
+        ->assertForbidden();
 });
 
 it('updates the Paperless parent setting to a container', function () {

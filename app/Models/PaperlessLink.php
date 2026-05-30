@@ -51,4 +51,19 @@ class PaperlessLink extends Model
 
         return rtrim($base, '/')."/documents/{$this->paperless_document_id}/";
     }
+
+    /**
+     * Stockroom-side backlink for a Paperless document id: points at the
+     * search page filtered to the items currently linked to that doc.
+     * This is the URL we write back into Paperless's `Stockroom URL`
+     * custom field, and the one the search filter chip clears.
+     *
+     * Centralised here so the intake job, the relink-all repair job and
+     * the search controller all agree on the shape — change the query
+     * key and you change every consumer at once.
+     */
+    public static function stockroomBacklinkFor(int $documentId): string
+    {
+        return rtrim((string) config('app.url'), '/').'/search?paperless_document='.$documentId;
+    }
 }
