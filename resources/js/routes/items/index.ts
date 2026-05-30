@@ -2,9 +2,10 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 import images from './images'
 import box from './box'
 import relatedItems from './related-items'
+import paperlessLinks from './paperless-links'
 /**
 * @see \App\Http\Controllers\ItemController::moveTargets
-* @see app/Http/Controllers/ItemController.php:129
+* @see app/Http/Controllers/ItemController.php:139
 * @route '/items/{item}/move-targets'
 */
 export const moveTargets = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -19,7 +20,7 @@ moveTargets.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::moveTargets
-* @see app/Http/Controllers/ItemController.php:129
+* @see app/Http/Controllers/ItemController.php:139
 * @route '/items/{item}/move-targets'
 */
 moveTargets.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -52,7 +53,7 @@ moveTargets.url = (args: { item: number | { id: number } } | [item: number | { i
 
 /**
 * @see \App\Http\Controllers\ItemController::moveTargets
-* @see app/Http/Controllers/ItemController.php:129
+* @see app/Http/Controllers/ItemController.php:139
 * @route '/items/{item}/move-targets'
 */
 moveTargets.get = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -62,7 +63,7 @@ moveTargets.get = (args: { item: number | { id: number } } | [item: number | { i
 
 /**
 * @see \App\Http\Controllers\ItemController::moveTargets
-* @see app/Http/Controllers/ItemController.php:129
+* @see app/Http/Controllers/ItemController.php:139
 * @route '/items/{item}/move-targets'
 */
 moveTargets.head = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -72,7 +73,7 @@ moveTargets.head = (args: { item: number | { id: number } } | [item: number | { 
 
 /**
 * @see \App\Http\Controllers\ItemController::move
-* @see app/Http/Controllers/ItemController.php:250
+* @see app/Http/Controllers/ItemController.php:294
 * @route '/items/{item}/move'
 */
 export const move = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -87,7 +88,7 @@ move.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::move
-* @see app/Http/Controllers/ItemController.php:250
+* @see app/Http/Controllers/ItemController.php:294
 * @route '/items/{item}/move'
 */
 move.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -120,7 +121,7 @@ move.url = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\ItemController::move
-* @see app/Http/Controllers/ItemController.php:250
+* @see app/Http/Controllers/ItemController.php:294
 * @route '/items/{item}/move'
 */
 move.patch = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -164,7 +165,7 @@ analyzePhoto.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ItemController::index
-* @see app/Http/Controllers/ItemController.php:34
+* @see app/Http/Controllers/ItemController.php:38
 * @route '/items'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -179,7 +180,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::index
-* @see app/Http/Controllers/ItemController.php:34
+* @see app/Http/Controllers/ItemController.php:38
 * @route '/items'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -188,7 +189,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ItemController::index
-* @see app/Http/Controllers/ItemController.php:34
+* @see app/Http/Controllers/ItemController.php:38
 * @route '/items'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -198,7 +199,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ItemController::index
-* @see app/Http/Controllers/ItemController.php:34
+* @see app/Http/Controllers/ItemController.php:38
 * @route '/items'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -208,7 +209,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ItemController::create
-* @see app/Http/Controllers/ItemController.php:60
+* @see app/Http/Controllers/ItemController.php:64
 * @route '/items/create'
 */
 export const create = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -223,7 +224,7 @@ create.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::create
-* @see app/Http/Controllers/ItemController.php:60
+* @see app/Http/Controllers/ItemController.php:64
 * @route '/items/create'
 */
 create.url = (options?: RouteQueryOptions) => {
@@ -232,7 +233,7 @@ create.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ItemController::create
-* @see app/Http/Controllers/ItemController.php:60
+* @see app/Http/Controllers/ItemController.php:64
 * @route '/items/create'
 */
 create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -242,7 +243,7 @@ create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\ItemController::create
-* @see app/Http/Controllers/ItemController.php:60
+* @see app/Http/Controllers/ItemController.php:64
 * @route '/items/create'
 */
 create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -252,7 +253,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ItemController::store
-* @see app/Http/Controllers/ItemController.php:74
+* @see app/Http/Controllers/ItemController.php:78
 * @route '/items'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -267,7 +268,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::store
-* @see app/Http/Controllers/ItemController.php:74
+* @see app/Http/Controllers/ItemController.php:78
 * @route '/items'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -276,7 +277,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ItemController::store
-* @see app/Http/Controllers/ItemController.php:74
+* @see app/Http/Controllers/ItemController.php:78
 * @route '/items'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -286,7 +287,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\ItemController::show
-* @see app/Http/Controllers/ItemController.php:95
+* @see app/Http/Controllers/ItemController.php:99
 * @route '/items/{item}'
 */
 export const show = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -301,7 +302,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::show
-* @see app/Http/Controllers/ItemController.php:95
+* @see app/Http/Controllers/ItemController.php:99
 * @route '/items/{item}'
 */
 show.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -334,7 +335,7 @@ show.url = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\ItemController::show
-* @see app/Http/Controllers/ItemController.php:95
+* @see app/Http/Controllers/ItemController.php:99
 * @route '/items/{item}'
 */
 show.get = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -344,7 +345,7 @@ show.get = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\ItemController::show
-* @see app/Http/Controllers/ItemController.php:95
+* @see app/Http/Controllers/ItemController.php:99
 * @route '/items/{item}'
 */
 show.head = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -354,7 +355,7 @@ show.head = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\ItemController::edit
-* @see app/Http/Controllers/ItemController.php:213
+* @see app/Http/Controllers/ItemController.php:223
 * @route '/items/{item}/edit'
 */
 export const edit = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -369,7 +370,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::edit
-* @see app/Http/Controllers/ItemController.php:213
+* @see app/Http/Controllers/ItemController.php:223
 * @route '/items/{item}/edit'
 */
 edit.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -402,7 +403,7 @@ edit.url = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\ItemController::edit
-* @see app/Http/Controllers/ItemController.php:213
+* @see app/Http/Controllers/ItemController.php:223
 * @route '/items/{item}/edit'
 */
 edit.get = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -412,7 +413,7 @@ edit.get = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\ItemController::edit
-* @see app/Http/Controllers/ItemController.php:213
+* @see app/Http/Controllers/ItemController.php:223
 * @route '/items/{item}/edit'
 */
 edit.head = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -422,7 +423,7 @@ edit.head = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:225
+* @see app/Http/Controllers/ItemController.php:258
 * @route '/items/{item}'
 */
 export const update = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -437,7 +438,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:225
+* @see app/Http/Controllers/ItemController.php:258
 * @route '/items/{item}'
 */
 update.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -470,7 +471,7 @@ update.url = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:225
+* @see app/Http/Controllers/ItemController.php:258
 * @route '/items/{item}'
 */
 update.put = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -480,7 +481,7 @@ update.put = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:225
+* @see app/Http/Controllers/ItemController.php:258
 * @route '/items/{item}'
 */
 update.patch = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -490,7 +491,7 @@ update.patch = (args: { item: number | { id: number } } | [item: number | { id: 
 
 /**
 * @see \App\Http\Controllers\ItemController::destroy
-* @see app/Http/Controllers/ItemController.php:240
+* @see app/Http/Controllers/ItemController.php:273
 * @route '/items/{item}'
 */
 export const destroy = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -505,7 +506,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::destroy
-* @see app/Http/Controllers/ItemController.php:240
+* @see app/Http/Controllers/ItemController.php:273
 * @route '/items/{item}'
 */
 destroy.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -538,7 +539,7 @@ destroy.url = (args: { item: number | { id: number } } | [item: number | { id: n
 
 /**
 * @see \App\Http\Controllers\ItemController::destroy
-* @see app/Http/Controllers/ItemController.php:240
+* @see app/Http/Controllers/ItemController.php:273
 * @route '/items/{item}'
 */
 destroy.delete = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -548,7 +549,7 @@ destroy.delete = (args: { item: number | { id: number } } | [item: number | { id
 
 /**
 * @see \App\Http\Controllers\ItemController::relatedItemTargets
-* @see app/Http/Controllers/ItemController.php:173
+* @see app/Http/Controllers/ItemController.php:183
 * @route '/items/{item}/related-item-targets'
 */
 export const relatedItemTargets = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -563,7 +564,7 @@ relatedItemTargets.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::relatedItemTargets
-* @see app/Http/Controllers/ItemController.php:173
+* @see app/Http/Controllers/ItemController.php:183
 * @route '/items/{item}/related-item-targets'
 */
 relatedItemTargets.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -596,7 +597,7 @@ relatedItemTargets.url = (args: { item: number | { id: number } } | [item: numbe
 
 /**
 * @see \App\Http\Controllers\ItemController::relatedItemTargets
-* @see app/Http/Controllers/ItemController.php:173
+* @see app/Http/Controllers/ItemController.php:183
 * @route '/items/{item}/related-item-targets'
 */
 relatedItemTargets.get = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -606,7 +607,7 @@ relatedItemTargets.get = (args: { item: number | { id: number } } | [item: numbe
 
 /**
 * @see \App\Http\Controllers\ItemController::relatedItemTargets
-* @see app/Http/Controllers/ItemController.php:173
+* @see app/Http/Controllers/ItemController.php:183
 * @route '/items/{item}/related-item-targets'
 */
 relatedItemTargets.head = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -698,6 +699,7 @@ const items = {
     images: Object.assign(images, images),
     box: Object.assign(box, box),
     relatedItems: Object.assign(relatedItems, relatedItems),
+    paperlessLinks: Object.assign(paperlessLinks, paperlessLinks),
 }
 
 export default items

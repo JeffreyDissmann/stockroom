@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'inventory' => 'Inventar',
     'new_item' => 'Neuer Gegenstand',
+    'cannot_delete_paperless_parent' => 'Dieser Raum oder Behälter ist als Ziel für Paperless-Importe in den Haushaltseinstellungen festgelegt. Ändere zuerst die Einstellung.',
     'add_title' => 'Gegenstand hinzufügen',
     'edit_breadcrumb' => 'Bearbeiten',
     'edit_title' => ':name bearbeiten',
@@ -98,6 +99,13 @@ return [
         'no_match_locations' => 'Keine passenden Orte.',
         'include_all' => 'Alle Gegenstände durchsuchen, nicht nur Räume & Behälter',
         'submit' => 'Hierher verschieben',
+    ],
+
+    'paperless' => [
+        'section_title' => 'Aus Dokument',
+        'open_in_paperless' => 'In Paperless öffnen',
+        'unlink' => 'Dokument-Verknüpfung lösen',
+        'unlink_confirm' => 'Verknüpfung zum Paperless-Dokument lösen?',
     ],
 
     'related' => [

@@ -68,6 +68,11 @@ class HandleInertiaRequests extends Middleware
             'features' => [
                 'imageSearch' => BraveImageSearchClient::isConfigured(),
                 'ai' => (bool) config('ai.enabled'),
+                // Paperless is enabled only when BOTH URL and token are set —
+                // either alone is a half-configured install that would 401 or
+                // hit a connection error. Server-side routes mirror this gate
+                // via EnsurePaperlessEnabled (404).
+                'paperless' => filled(config('paperless.url')) && filled(config('paperless.token')),
             ],
             'flash' => [
                 'backup' => $request->session()->get('backup'),

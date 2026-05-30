@@ -158,6 +158,42 @@ class SearchTest extends TestCase
                 ->has('items.data', 3));
     }
 
+    public function test_search_page_filters_by_paperless_document(): void
+    {
+        $user = User::factory()->create();
+
+        // Two items linked to doc 547, one linked to a different doc, one
+        // not linked at all. ?paperless_document=547 should return only
+        // the first two.
+        $linkedA = Item::factory()->create(['type' => ItemType::Item, 'name' => 'NUK Adapter']);
+        $linkedB = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Flaschenwärmer']);
+        $otherDoc = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Other doc item']);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Unrelated']);
+
+        $linkedA->paperlessLinks()->create(['paperless_document_id' => 547]);
+        $linkedB->paperlessLinks()->create(['paperless_document_id' => 547]);
+        $otherDoc->paperlessLinks()->create(['paperless_document_id' => 999]);
+
+        $this->actingAs($user)->get('/search?paperless_document=547')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Search')
+                ->where('filters.paperless_document', 547)
+                ->has('items.data', 2));
+    }
+
+    public function test_search_page_filter_chip_round_trips_invalid_ids_as_null(): void
+    {
+        Item::factory()->count(2)->create(['type' => ItemType::Item]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search?paperless_document=abc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filters.paperless_document', null)
+                ->has('items.data', 2));
+    }
+
     public function test_search_page_can_sort_by_recently_added(): void
     {
         $oldest = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Oldest']);

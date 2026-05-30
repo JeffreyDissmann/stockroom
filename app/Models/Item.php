@@ -111,6 +111,17 @@ class Item extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    /**
+     * Paperless-ngx documents this item is linked to (#7). Each row is a
+     * pair (item, paperless_document_id) in the `paperless_links` table.
+     * The remote side has no Stockroom model; PaperlessLink::paperlessUrl()
+     * composes the click-through URL from config.
+     */
+    public function paperlessLinks(): HasMany
+    {
+        return $this->hasMany(PaperlessLink::class);
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ItemImage::class)->orderBy('sort_order');

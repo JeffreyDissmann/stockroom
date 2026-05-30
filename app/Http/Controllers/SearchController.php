@@ -70,6 +70,14 @@ class SearchController extends Controller
             ? $request->query('sort')
             : 'relevance';
 
+        // Paperless backlink filter (#7): scopes the result to items linked
+        // to a given Paperless document. Set as a URL custom field on the
+        // doc by ProcessPaperlessDocumentJob, so clicking it in Paperless
+        // lands here with the right item subset already in view.
+        // `$request->integer()` coerces missing / non-numeric input to 0;
+        // the `?: null` then collapses 0 into "no filter".
+        $paperlessDocumentId = $request->integer('paperless_document') ?: null;
+
         // Relevance-ordered matching ids from Meilisearch (null = browse everything).
         $ids = $query !== '' ? $this->search->search($query, fn ($b) => $b->take(500)->keys()->all()) : null;
 
@@ -79,6 +87,10 @@ class SearchController extends Controller
             ->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))
             ->when($type !== null, fn ($q) => $q->where('type', $type))
             ->when($tagIds !== [], fn ($q) => $q->whereHas('tags', fn ($t) => $t->whereKey($tagIds)))
+            ->when(
+                $paperlessDocumentId !== null,
+                fn ($q) => $q->whereHas('paperlessLinks', fn ($pl) => $pl->where('paperless_document_id', $paperlessDocumentId)),
+            )
             ->when(
                 $ids !== null && $ids !== [] && $sort === 'relevance',
                 fn ($q) => $q->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']),
@@ -94,7 +106,12 @@ class SearchController extends Controller
 
         return Inertia::render('Search', [
             'query' => $query,
-            'filters' => ['type' => $type, 'tags' => $tagIds, 'sort' => $sort],
+            'filters' => [
+                'type' => $type,
+                'tags' => $tagIds,
+                'sort' => $sort,
+                'paperless_document' => $paperlessDocumentId,
+            ],
             'items' => $items,
             'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
             'types' => collect(ItemType::cases())

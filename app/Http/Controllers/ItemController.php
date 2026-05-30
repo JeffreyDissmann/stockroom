@@ -12,6 +12,8 @@ use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\PaperlessLink;
+use App\Models\Setting;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
 use App\Services\ItemImageProcessor;
@@ -19,6 +21,8 @@ use App\Services\Items\ItemWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
@@ -94,7 +98,7 @@ class ItemController extends Controller
 
     public function show(Item $item): Response
     {
-        $item->load(['tags', 'images', 'customFieldValues.field']);
+        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks']);
         $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
         // Related items survive moves around the tree, so they're a separate
         // edge from `children`. Eager-load enough for the same card layout
@@ -116,6 +120,12 @@ class ItemController extends Controller
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
             'relatedItems' => $relatedItems->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            // Paperless-ngx documents the user linked this item to (#7).
+            // Each entry is a click-through to the Paperless UI; the URL is
+            // composed by the model from config('paperless.url'), so we
+            // skip rows where the integration is disabled and the URL
+            // would be null.
+            'paperlessLinks' => $this->presentPaperlessLinks($item),
             'activities' => $activities,
         ]);
     }
@@ -212,14 +222,37 @@ class ItemController extends Controller
 
     public function edit(Item $item): Response
     {
-        $item->load(['tags', 'images', 'customFieldValues.field']);
+        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks']);
 
         return Inertia::render('items/Edit', [
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
+            // Paperless links surface on Edit only — that's where the user
+            // can unlink. Show.vue lists the same docs (server passes a
+            // separate `paperlessLinks` prop there too) but read-only.
+            'paperlessLinks' => $this->presentPaperlessLinks($item),
         ]);
+    }
+
+    /**
+     * Shape an item's PaperlessLink rows for the Inertia client. Rows whose
+     * `paperlessUrl()` is null (the integration was disabled after the link
+     * was created) are dropped so the front-end never gets a clickable chip
+     * pointing at nowhere.
+     *
+     * @return Collection<int, array{document_id: int, url: string}>
+     */
+    private function presentPaperlessLinks(Item $item): Collection
+    {
+        return $item->paperlessLinks
+            ->map(fn (PaperlessLink $link) => [
+                'document_id' => $link->paperless_document_id,
+                'url' => $link->paperlessUrl(),
+            ])
+            ->filter(fn (array $l) => $l['url'] !== null)
+            ->values();
     }
 
     public function update(UpdateItemRequest $request, Item $item): RedirectResponse
@@ -239,6 +272,17 @@ class ItemController extends Controller
 
     public function destroy(Item $item): RedirectResponse
     {
+        // Guard against deleting the room/container that household prefs
+        // points at for Paperless intake — orphaning the preference would
+        // silently drop future imports back to the top level. Admin has to
+        // change the preference first; same shape as the box-tag guard in
+        // TagController::destroy.
+        if (Setting::int('paperless_parent_id') === $item->id) {
+            throw ValidationException::withMessages([
+                'item' => __('items.cannot_delete_paperless_parent'),
+            ]);
+        }
+
         $parentId = $item->parent_id;
         $this->writer->delete($item);
 

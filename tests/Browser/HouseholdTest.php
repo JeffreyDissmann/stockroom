@@ -71,6 +71,32 @@ it('renders the preferences page with the Box tag picker pre-selected', function
         ->assertNoJavaScriptErrors();
 });
 
+it('shows the Paperless intake destination picker when Paperless is configured', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    $page = visit('/household/preferences');
+
+    $page->assertSee('Preferences')
+        ->assertPresent('@paperless-parent-picker')
+        ->assertPresent('@paperless-parent-trigger')
+        ->assertNoJavaScriptErrors();
+});
+
+it('hides the Paperless intake destination picker when Paperless is not configured', function () {
+    // Default test env has PAPERLESS_URL / PAPERLESS_TOKEN unset, so the
+    // features.paperless flag is false and the prefs row should vanish.
+    config()->set('paperless.url', '');
+    config()->set('paperless.token', '');
+
+    $page = visit('/household/preferences');
+
+    $page->assertSee('Preferences')
+        ->assertMissing('@paperless-parent-picker')
+        ->assertMissing('@paperless-parent-trigger')
+        ->assertNoJavaScriptErrors();
+});
+
 it('redirects the legacy import URL to the consolidated page', function () {
     // The visit() helper opens the URL in a real browser and follows the
     // 302 from Route::redirect. We assert content from the destination page

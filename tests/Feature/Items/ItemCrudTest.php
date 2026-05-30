@@ -6,6 +6,7 @@ namespace Tests\Feature\Items;
 
 use App\Enums\ItemType;
 use App\Models\Item;
+use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -97,5 +98,19 @@ class ItemCrudTest extends TestCase
 
         $this->assertDatabaseMissing('items', ['id' => $parent->id]);
         $this->assertNull($child->fresh()->parent_id);
+    }
+
+    public function test_destroy_blocks_the_room_set_as_paperless_intake_parent(): void
+    {
+        $user = User::factory()->create();
+        $room = Item::factory()->room()->create();
+        Setting::set('paperless_parent_id', $room->id);
+
+        $this->actingAs($user)
+            ->from("/items/{$room->id}")
+            ->delete("/items/{$room->id}")
+            ->assertSessionHasErrors('item');
+
+        $this->assertDatabaseHas('items', ['id' => $room->id]);
     }
 }

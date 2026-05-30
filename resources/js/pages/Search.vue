@@ -5,9 +5,9 @@ import TagFilter from '@/components/TagFilter.vue';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
-import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { Search as SearchIcon } from 'lucide-vue-next';
+import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, SharedData, TagSummary } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { FileText, Search as SearchIcon, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 interface Paginated<T> {
@@ -20,20 +20,33 @@ interface Paginated<T> {
 
 const props = defineProps<{
     query: string;
-    filters: { type: ItemTypeValue | null; tags: number[]; sort: 'relevance' | 'name' | 'added' | 'edited' };
+    filters: {
+        type: ItemTypeValue | null;
+        tags: number[];
+        sort: 'relevance' | 'name' | 'added' | 'edited';
+        paperless_document: number | null;
+    };
     items: Paginated<ItemSummary>;
     tags: TagSummary[];
     types: { value: ItemTypeValue; label: string }[];
 }>();
 
 const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.search'), href: search().url }];
+const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 
 const term = ref(props.query);
 const view = ref<ItemViewMode>('list');
 
 function apply(overrides: Record<string, string | number | number[] | null>) {
     const params: Record<string, string | number | number[]> = {};
-    const merged = { q: term.value, type: props.filters.type, tags: props.filters.tags, sort: props.filters.sort, ...overrides };
+    const merged = {
+        q: term.value,
+        type: props.filters.type,
+        tags: props.filters.tags,
+        sort: props.filters.sort,
+        paperless_document: props.filters.paperless_document,
+        ...overrides,
+    };
     for (const [key, value] of Object.entries(merged)) {
         if (Array.isArray(value)) {
             if (value.length > 0) params[key] = value;
@@ -69,6 +82,26 @@ function searchNow() {
                     <input v-model="term" type="search" :placeholder="$t('search.placeholder')" autofocus @search="searchNow" />
                 </div>
             </form>
+
+            <!-- Paperless backlink chip (#7). Surfaces the active filter when
+                 the user arrived here from a Paperless doc's stockroom_url
+                 custom field. Click the × to drop the filter and broaden
+                 back to the full inventory; other filters stay in place. -->
+            <div v-if="paperlessEnabled && filters.paperless_document !== null" class="flex items-center gap-2 mb-3" data-test="paperless-filter-chip">
+                <span class="chip active" style="display: inline-flex; align-items: center; gap: 6px">
+                    <FileText :size="12" />
+                    {{ $t('search.paperless_filter', { id: filters.paperless_document }) }}
+                    <button
+                        type="button"
+                        style="margin-left: 4px; display: inline-flex; align-items: center; padding: 0; background: transparent; border: 0; color: inherit; cursor: pointer"
+                        :aria-label="$t('search.paperless_filter_clear')"
+                        data-test="paperless-filter-clear"
+                        @click="apply({ paperless_document: null })"
+                    >
+                        <X :size="12" />
+                    </button>
+                </span>
+            </div>
 
             <div class="flex flex-wrap items-center gap-2 mb-4">
                 <div class="flex items-center gap-1">

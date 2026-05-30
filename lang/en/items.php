@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'inventory' => 'Inventory',
     'new_item' => 'New item',
+    'cannot_delete_paperless_parent' => 'This room or container is currently set as the Paperless intake destination in household preferences. Change the preference first.',
     'add_title' => 'Add item',
     'edit_breadcrumb' => 'Edit',
     'edit_title' => 'Edit :name',
@@ -98,6 +99,13 @@ return [
         'no_match_locations' => 'No matching locations.',
         'include_all' => 'Search all items, not just rooms & containers',
         'submit' => 'Move here',
+    ],
+
+    'paperless' => [
+        'section_title' => 'From document',
+        'open_in_paperless' => 'Open in Paperless',
+        'unlink' => 'Unlink document',
+        'unlink_confirm' => 'Unlink this Paperless document from the item?',
     ],
 
     'related' => [

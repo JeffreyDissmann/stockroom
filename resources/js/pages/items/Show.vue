@@ -17,14 +17,20 @@ import itemRoutes from '@/routes/items';
 import relatedItemsRoutes from '@/routes/items/related-items';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckCircle2, ChevronRight, ImagePlus, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, FileText, ImagePlus, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+
+interface PaperlessLinkSummary {
+    document_id: number;
+    url: string;
+}
 
 const props = defineProps<{
     item: ItemSummary;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
     relatedItems: ItemSummary[];
+    paperlessLinks: PaperlessLinkSummary[];
     activities: ActivityRow[];
 }>();
 
@@ -322,6 +328,29 @@ function destroyItem() {
                         </div>
                     </div>
 
+                    <!-- Paperless documents linked to this item (#7).
+                         Sits above the custom fields card. Each chip is a
+                         click-through to the doc in Paperless. Read-only on
+                         Show; unlinking lives on the Edit page so a
+                         destructive action requires an explicit edit-mode
+                         click first. -->
+                    <div v-if="page.props.features.paperless && paperlessLinks.length" class="card" data-test="paperless-block">
+                        <div class="card-head">
+                            <h3>{{ $t('items.paperless.section_title') }}</h3>
+                        </div>
+                        <div class="card-pad">
+                            <ul class="paperless-list" data-test="paperless-list">
+                                <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
+                                    <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
+                                        <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                                        <span class="paperless-id">#{{ link.document_id }}</span>
+                                        <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div v-if="customFields.length" class="card">
                         <div class="card-head">
                             <h3>{{ $t('items.show.custom_fields') }}</h3>
@@ -414,6 +443,40 @@ function destroyItem() {
 </template>
 
 <style scoped>
+/* Paperless link chips. One row per linked doc: id + open-in-Paperless.
+   Lives in its own card above the custom fields card. */
+.paperless-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.paperless-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+}
+.paperless-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+    font-size: 13px;
+}
+.paperless-link:hover .paperless-host { color: var(--accent); }
+.paperless-id { font-family: var(--font-mono, monospace); color: var(--fg); }
+.paperless-host { color: var(--fg-muted); }
+.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* Place initials shown big when a room/container has no photo and no chosen icon. */
 .main-img-initials {
     font-size: 48px;

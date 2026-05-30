@@ -8,14 +8,20 @@ import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
+import paperlessLinksRoutes from '@/routes/items/paperless-links';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
-import { useForm, usePage } from '@inertiajs/vue3';
-import { Check, Loader2, Sparkles } from 'lucide-vue-next';
+import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Check, FileText, Loader2, Sparkles, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const currency = usePage<SharedData>().props.currency;
 
 type Mode = 'create' | 'edit';
+
+interface PaperlessLinkSummary {
+    document_id: number;
+    url: string;
+}
 
 const props = defineProps<{
     mode: Mode;
@@ -26,6 +32,9 @@ const props = defineProps<{
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];
     submitLabel?: string;
+    // Paperless-ngx documents linked to this item (#7). Edit-page only —
+    // Show.vue renders the same chips read-only. Empty array on create.
+    paperlessLinks?: PaperlessLinkSummary[];
 }>();
 
 const form = useForm({
@@ -69,6 +78,7 @@ function onFilesUpdate(files: File[]) {
 // call is fully async with a visible busy state, a disabled trigger, and a
 // hard client-side timeout so the UI never hangs indefinitely.
 const aiEnabled = usePage<SharedData>().props.features.ai;
+const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 const analyzing = ref(false);
 const analyzeError = ref<string | null>(null);
 
@@ -193,6 +203,19 @@ function toggleTag(id: number) {
     } else {
         form.tags = [...form.tags, id];
     }
+}
+
+// Drop a Paperless-link pivot row + scrub the item id from the doc's
+// stockroom_item_ids custom field. Edit-page only; Show is read-only.
+// preserveScroll keeps the user in place when the page refreshes the
+// paperlessLinks prop.
+function unlinkPaperless(documentId: number) {
+    if (!props.item) return;
+    if (!confirm(trans('items.paperless.unlink_confirm'))) return;
+
+    router.delete(paperlessLinksRoutes.destroy([props.item.id, documentId]).url, {
+        preserveScroll: true,
+    });
 }
 
 function submit() {
@@ -388,6 +411,35 @@ function submit() {
             </div>
         </div>
 
+        <!-- Paperless documents linked to this item (#7). Edit-only surface,
+             so a destructive unlink requires the user to first click Edit.
+             Sits above Custom fields so the source-of-truth doc is the first
+             thing you see after the purchase block. Show.vue renders the same
+             chips read-only in their own card. -->
+        <template v-if="paperlessEnabled && mode === 'edit' && (paperlessLinks?.length ?? 0) > 0">
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+            <p class="section-label">{{ $t('items.paperless.section_title') }}</p>
+            <ul class="paperless-list" data-test="paperless-edit-list">
+                <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
+                    <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
+                        <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                        <span class="paperless-id">#{{ link.document_id }}</span>
+                        <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
+                    </a>
+                    <button
+                        type="button"
+                        class="btn-ghost"
+                        style="padding: 4px 8px"
+                        :data-test="`paperless-unlink-${link.document_id}`"
+                        :aria-label="$t('items.paperless.unlink')"
+                        @click="unlinkPaperless(link.document_id)"
+                    >
+                        <X :size="14" />
+                    </button>
+                </li>
+            </ul>
+        </template>
+
         <template v-if="customFields.length">
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
             <p class="section-label">{{ $t('items.form.section_custom') }}</p>
@@ -511,4 +563,24 @@ function submit() {
     overflow: hidden;
     border: 1px solid var(--border);
 }
+/* Paperless link chips — same shape as Show.vue's read-only block, plus
+   a trailing × per row that fires the unlink action. */
+.paperless-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.paperless-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+}
+.paperless-link {
+    display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 0;
+    color: inherit; text-decoration: none;
+    font-size: 13px;
+}
+.paperless-link:hover .paperless-host { color: var(--accent); }
+.paperless-id { font-family: var(--font-mono, monospace); color: var(--fg); }
+.paperless-host { color: var(--fg-muted); }
+.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>

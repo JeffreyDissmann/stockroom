@@ -33,6 +33,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('can:admin')
         ->name('household.preferences.edit');
 
+    // JSON picker data for the Paperless intake parent. Admin-only because
+    // it powers an admin-only settings field; mirrors the moveTargets endpoint.
+    Route::get('household/preferences/paperless-parent-targets', [PreferencesController::class, 'paperlessParentTargets'])
+        ->middleware('can:admin')
+        ->name('household.preferences.paperless-parent-targets');
+
     // Mutations / household tools — admins only.
     Route::middleware('can:admin')->group(function () {
         Route::post('household/custom-fields', [CustomFieldController::class, 'store'])->name('custom-fields.store');
@@ -45,6 +51,13 @@ Route::middleware('auth')->group(function () {
         Route::post('household/reset', [ResetController::class, 'wipe'])->name('household.reset');
 
         Route::put('household/preferences', [PreferencesController::class, 'update'])->name('household.preferences.update');
+
+        // Operator repair: re-apply Stockroom annotations (linked tag +
+        // backlink URL) on every Paperless doc that local items are
+        // currently linked to. EnsurePaperlessEnabled is also declared on
+        // the controller method via attribute — belt and braces.
+        Route::post('household/preferences/paperless/relink-all', [PreferencesController::class, 'relinkAllPaperless'])
+            ->name('household.preferences.paperless.relink-all');
 
         Route::post('household/import', [ImportController::class, 'start'])->name('household.import.start');
 
