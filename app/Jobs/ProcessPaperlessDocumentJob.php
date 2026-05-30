@@ -184,6 +184,11 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
      * stays valid even after the user unlinks items locally. Idempotent —
      * re-running the job rewrites the same URL.
      *
+     * Done as one combined PATCH (see PaperlessClient::annotateProcessed):
+     * separate calls would each fire DOCUMENT_UPDATED, and the first one
+     * (custom-field write) would re-trigger this very workflow while the
+     * doc still carried the trigger tag — duplicate intake on every run.
+     *
      * Local DB state is already committed by this point — a Paperless API
      * hiccup here is logged but doesn't roll back the items.
      */
@@ -195,9 +200,7 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
         $backlink = rtrim((string) config('app.url'), '/').'/search?paperless_document='.$this->documentId;
 
         try {
-            $client->setCustomField($this->documentId, $linkField, $backlink);
-            $client->removeTag($this->documentId, $triggerTag);
-            $client->addTag($this->documentId, $linkedTag);
+            $client->annotateProcessed($this->documentId, $triggerTag, $linkedTag, $linkField, $backlink);
         } catch (PaperlessException $e) {
             Log::warning('paperless.intake.annotate_failed', [
                 'document_id' => $this->documentId,

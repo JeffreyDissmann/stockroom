@@ -129,6 +129,70 @@ it('setCustomField() replaces the value when the field is already populated', fu
         && $r['custom_fields'] === [['field' => 2, 'value' => 'new']]);
 });
 
+it('caches tag and custom_field id lookups per client instance', function () {
+    Http::fake([
+        'https://paperless.test/api/tags/?name__iexact=Add%20to%20Stockroom' => Http::response([
+            'results' => [['id' => 9, 'name' => 'Add to Stockroom']],
+        ]),
+        'https://paperless.test/api/custom_fields/' => Http::response([
+            'results' => [['id' => 2, 'name' => 'Stockroom URL']],
+        ]),
+        'https://paperless.test/api/documents/42/' => Http::response([
+            'tags' => [9],
+            'custom_fields' => [],
+        ]),
+    ]);
+
+    $client = PaperlessClient::fromConfig();
+    // First call warms the caches; subsequent calls should hit them.
+    $client->addTag(42, 'Add to Stockroom');
+    $client->removeTag(42, 'Add to Stockroom');
+    $client->setCustomField(42, 'Stockroom URL', 'x');
+    $client->getCustomField(42, 'Stockroom URL');
+
+    // Tag iexact lookup: exactly one GET regardless of how many tag ops follow.
+    $tagLookups = collect(Http::recorded())
+        ->filter(fn ($p) => $p[0]->method() === 'GET' && str_contains($p[0]->url(), 'name__iexact=Add%20to%20Stockroom'));
+    expect($tagLookups->count())->toBe(1);
+
+    // Custom field listing: exactly one GET (Paperless has no name filter on
+    // /api/custom_fields/, so we GET the whole list once and memoize).
+    $fieldLookups = collect(Http::recorded())
+        ->filter(fn ($p) => $p[0]->method() === 'GET' && str_ends_with($p[0]->url(), '/api/custom_fields/'));
+    expect($fieldLookups->count())->toBe(1);
+});
+
+it('annotateProcessed() produces a single PATCH with merged tags and custom_fields', function () {
+    Http::fake([
+        'https://paperless.test/api/tags/?name__iexact=Add%20to%20Stockroom' => Http::response([
+            'results' => [['id' => 9, 'name' => 'Add to Stockroom']],
+        ]),
+        'https://paperless.test/api/tags/?name__iexact=Stockroom' => Http::response([
+            'results' => [['id' => 10, 'name' => 'Stockroom']],
+        ]),
+        'https://paperless.test/api/custom_fields/' => Http::response([
+            'results' => [['id' => 2, 'name' => 'Stockroom URL']],
+        ]),
+        'https://paperless.test/api/documents/42/' => Http::response([
+            'tags' => [3, 9, 4],
+            'custom_fields' => [['field' => 1, 'value' => 'INV-001']],
+        ]),
+    ]);
+
+    PaperlessClient::fromConfig()->annotateProcessed(42, 'Add to Stockroom', 'Stockroom', 'Stockroom URL', 'https://stockroom.test/search?paperless_document=42');
+
+    $patches = collect(Http::recorded())->filter(fn ($pair) => $pair[0]->method() === 'PATCH');
+
+    expect($patches->count())->toBe(1);
+
+    $patch = $patches->first()[0];
+    expect($patch['tags'])->toBe([3, 4, 10]) // trigger 9 dropped, linked 10 appended
+        ->and($patch['custom_fields'])->toBe([
+            ['field' => 1, 'value' => 'INV-001'],
+            ['field' => 2, 'value' => 'https://stockroom.test/search?paperless_document=42'],
+        ]);
+});
+
 it('getCustomField() returns the value when populated', function () {
     Http::fake([
         'https://paperless.test/api/custom_fields/' => Http::response([

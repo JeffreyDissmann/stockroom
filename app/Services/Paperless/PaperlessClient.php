@@ -26,6 +26,23 @@ class PaperlessClient
 {
     private const TIMEOUT = 20;
 
+    /**
+     * Per-instance memoization for the two `/api/{tags,custom_fields}/?name__iexact=…`
+     * lookups. Tag and field ids never change across an intake or unlink
+     * cycle; resolving them once per client instance halves the round-trips
+     * for annotateProcessed (one custom field + two tag resolves → three
+     * cached lookups → 3 GETs to 0 on the hot path after the first call).
+     * The cache is intentionally instance-local: a fresh PaperlessClient is
+     * built per webhook / queue job, so stale ids can't survive a Paperless
+     * admin renaming something between runs.
+     *
+     * @var array<string, int>
+     */
+    private array $tagIdCache = [];
+
+    /** @var array<string, int> */
+    private array $customFieldIdCache = [];
+
     public function __construct(
         private readonly string $baseUrl,
         private readonly string $token,
@@ -140,6 +157,56 @@ class PaperlessClient
     }
 
     /**
+     * Atomic post-intake annotation: tag swap (drop trigger tag, add linked
+     * tag) and custom-field write in a single PATCH on `/api/documents/{id}/`.
+     *
+     * Avoiding the per-field PATCHes matters because Paperless fires a
+     * DOCUMENT_UPDATED event per PATCH, and the intake workflow is itself
+     * triggered by DOCUMENT_UPDATED. Spreading the writes across three calls
+     * meant the first PATCH (custom field) fired the workflow again while
+     * the trigger tag was still attached — same job, second time, duplicate
+     * items. One PATCH = one event, evaluated against post-state (trigger
+     * tag already gone), no re-fire.
+     */
+    public function annotateProcessed(
+        int $documentId,
+        string $triggerTagName,
+        string $linkedTagName,
+        string $customFieldName,
+        ?string $customFieldValue,
+    ): void {
+        $triggerId = $this->tagIdByName($triggerTagName);
+        $linkedId = $this->tagIdByName($linkedTagName);
+        $fieldId = $this->customFieldIdByName($customFieldName);
+
+        $doc = $this->document($documentId);
+
+        $tags = array_values(array_unique([
+            ...array_diff(array_map('intval', $doc['tags'] ?? []), [$triggerId]),
+            $linkedId,
+        ]));
+
+        $merged = [];
+        $written = false;
+        foreach ($doc['custom_fields'] ?? [] as $entry) {
+            if ((int) ($entry['field'] ?? 0) === $fieldId) {
+                $merged[] = ['field' => $fieldId, 'value' => $customFieldValue];
+                $written = true;
+            } else {
+                $merged[] = $entry;
+            }
+        }
+        if (! $written) {
+            $merged[] = ['field' => $fieldId, 'value' => $customFieldValue];
+        }
+
+        $this->patchDocument($documentId, [
+            'tags' => $tags,
+            'custom_fields' => $merged,
+        ]);
+    }
+
+    /**
      * Read the string value of a named custom field on a doc, or null when
      * the field exists but isn't populated on this doc. Throws if the named
      * field isn't defined in Paperless at all (configuration error).
@@ -245,7 +312,10 @@ class PaperlessClient
 
         $this->ensureOk($response, "creating tag '{$name}'");
 
-        return [(int) $response->json('id'), true];
+        $id = (int) $response->json('id');
+        $this->tagIdCache[$name] = $id;
+
+        return [$id, true];
     }
 
     /**
@@ -269,11 +339,18 @@ class PaperlessClient
 
         $this->ensureOk($response, "creating custom field '{$name}'");
 
-        return [(int) $response->json('id'), true];
+        $id = (int) $response->json('id');
+        $this->customFieldIdCache[$name] = $id;
+
+        return [$id, true];
     }
 
     private function findTagId(string $name): ?int
     {
+        if (isset($this->tagIdCache[$name])) {
+            return $this->tagIdCache[$name];
+        }
+
         $response = $this->request()->get('/api/tags/', ['name__iexact' => $name]);
 
         $this->ensureOk($response, "looking up tag '{$name}'");
@@ -281,11 +358,24 @@ class PaperlessClient
         $match = collect($response->json('results') ?? [])
             ->first(fn ($t) => strcasecmp((string) ($t['name'] ?? ''), $name) === 0);
 
-        return is_array($match) && isset($match['id']) ? (int) $match['id'] : null;
+        $id = is_array($match) && isset($match['id']) ? (int) $match['id'] : null;
+
+        // Only memoize positive hits — negative results would keep a not-yet-
+        // created tag invisible after `ensureTag` provisions it later in the
+        // same instance (the install command's hot path).
+        if ($id !== null) {
+            $this->tagIdCache[$name] = $id;
+        }
+
+        return $id;
     }
 
     private function findCustomFieldId(string $name): ?int
     {
+        if (isset($this->customFieldIdCache[$name])) {
+            return $this->customFieldIdCache[$name];
+        }
+
         $response = $this->request()->get('/api/custom_fields/');
 
         $this->ensureOk($response, 'listing custom fields');
@@ -293,7 +383,13 @@ class PaperlessClient
         $match = collect($response->json('results') ?? [])
             ->first(fn ($f) => strcasecmp((string) ($f['name'] ?? ''), $name) === 0);
 
-        return is_array($match) && isset($match['id']) ? (int) $match['id'] : null;
+        $id = is_array($match) && isset($match['id']) ? (int) $match['id'] : null;
+
+        if ($id !== null) {
+            $this->customFieldIdCache[$name] = $id;
+        }
+
+        return $id;
     }
 
     private function tagIdByName(string $name): int
