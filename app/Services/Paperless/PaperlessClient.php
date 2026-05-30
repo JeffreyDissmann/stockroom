@@ -297,18 +297,27 @@ class PaperlessClient
     }
 
     /**
-     * Find a tag by name, or create it. Returns the id either way.
+     * Find a tag by name, or create it with an optional hex color. Returns
+     * the id either way. Existing tags are left alone — color only applies
+     * on first creation, so re-running the install command after a manual
+     * color tweak in Paperless won't clobber the user's choice.
      *
+     * @param  string|null  $color  hex like `#0a0a0a`, or null for Paperless's default randomiser
      * @return array{0: int, 1: bool} [id, wasCreated]
      */
-    public function ensureTag(string $name): array
+    public function ensureTag(string $name, ?string $color = null): array
     {
         $existing = $this->findTagId($name);
         if ($existing !== null) {
             return [$existing, false];
         }
 
-        $response = $this->request()->post('/api/tags/', ['name' => $name]);
+        $payload = ['name' => $name];
+        if ($color !== null) {
+            $payload['color'] = $color;
+        }
+
+        $response = $this->request()->post('/api/tags/', $payload);
 
         $this->ensureOk($response, "creating tag '{$name}'");
 

@@ -58,8 +58,14 @@ class PaperlessInstall extends Command
         $workflowName = 'Stockroom intake';
 
         try {
-            [$triggerTagId, $triggerCreated] = $client->ensureTag($triggerTag);
-            [, $linkedCreated] = $client->ensureTag($linkedTag);
+            // Tag colors line up with the Stockroom mono design tokens:
+            // the linked tag uses the near-black accent (#0a0a0a, same as
+            // --accent in light mode), the trigger tag uses a muted gray
+            // (#a1a1a1, ≈ --fg-subtle) to read as "queued / in progress".
+            // Only applied on first creation — manual tweaks in Paperless
+            // survive a re-install.
+            [$triggerTagId, $triggerCreated] = $client->ensureTag($triggerTag, '#a1a1a1');
+            [, $linkedCreated] = $client->ensureTag($linkedTag, '#0a0a0a');
             // 'url' so Paperless renders it as a clickable link straight to
             // Stockroom's search-filtered view of the items extracted from
             // this doc.

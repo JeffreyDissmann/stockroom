@@ -61,6 +61,18 @@ it('creates the trigger tag, linked tag, custom field and workflow when none exi
         && str_contains($r->url(), '/api/custom_fields/')
         && $r['name'] === 'Stockroom URL'
         && $r['data_type'] === 'url');
+
+    // Tag colors are seeded from the Stockroom design tokens: linked tag
+    // gets the near-black accent, trigger tag a muted gray. Only on
+    // creation — manual tweaks in Paperless survive re-runs.
+    Http::assertSent(fn ($r) => $r->method() === 'POST'
+        && str_ends_with($r->url(), '/api/tags/')
+        && $r['name'] === 'Add to Stockroom'
+        && $r['color'] === '#a1a1a1');
+    Http::assertSent(fn ($r) => $r->method() === 'POST'
+        && str_ends_with($r->url(), '/api/tags/')
+        && $r['name'] === 'Stockroom'
+        && $r['color'] === '#0a0a0a');
 });
 
 it('reports already-exists when items are present', function () {
