@@ -37,6 +37,11 @@ about it.
   fields from a running [HomeBox](https://github.com/sysadminsmedia/homebox)
   instance. Re-runs update existing items instead of duplicating, so the
   importer doubles as a sync. See [Importing from HomeBox](#importing-from-homebox).
+- **Paperless-ngx integration** — tag a document with **Add to Stockroom**
+  in [Paperless-ngx](https://docs.paperless-ngx.com/) and the OCR text is
+  handed to the AI to extract inventory items, linked back to the doc, and
+  (optionally) given Brave-sourced cover images. See
+  [`docs/paperless-integration.md`](./docs/paperless-integration.md).
 
 ## Self-host with Docker
 
@@ -149,6 +154,15 @@ Set `BRAVE_SEARCH_KEY` to a [Brave Search Image API](https://brave.com/search/ap
 key to enable the "search for an image" button on items. Leave blank to
 disable.
 
+### Optional: Paperless-ngx
+
+If you run [Paperless-ngx](https://docs.paperless-ngx.com/) for paperwork,
+Stockroom can pull inventory items out of any tagged document — invoices,
+receipts, manuals. After installing, tagging a doc with **Add to Stockroom**
+fires a webhook, the AI parses the OCR text, items appear in Stockroom
+already linked back to the source doc. Setup is a single artisan command;
+full walkthrough in [`docs/paperless-integration.md`](./docs/paperless-integration.md).
+
 ## Importing from HomeBox
 
 Stockroom can pull a complete inventory from a running
@@ -210,6 +224,9 @@ occasional resync if you're running both side-by-side.
 | `AI_CHAT_MODEL` | `ministral-3:8b` | Must support tool calling. |
 | `AI_CHAT_RETENTION_DAYS` | `3` | Older conversations are deleted daily. |
 | `BRAVE_SEARCH_KEY` | — | Enables image search; blank disables it. |
+| `PAPERLESS_URL` | — | Base URL of your Paperless-ngx instance; blank disables the integration end-to-end. |
+| `PAPERLESS_TOKEN` | — | Personal API token from Paperless's user menu. |
+| `PAPERLESS_WEBHOOK_SECRET` | auto | Seeded by `paperless:install`; sent as `X-Stockroom-Secret`. Rotate with `--force-secret`. |
 
 The complete list with comments lives in [`.env.example`](./.env.example).
 
