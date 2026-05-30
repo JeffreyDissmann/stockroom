@@ -33,6 +33,16 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        // Paperless workflow webhook (#7) authenticates via a static
+        // shared-secret header (VerifyPaperlessSignature middleware), not
+        // a session — so CSRF would always reject it. Exempt only the
+        // exact path so the rest of the app keeps its CSRF protection.
+        // `preventRequestForgery` is Laravel 13's replacement for the
+        // now-deprecated `validateCsrfTokens`; same signature.
+        $middleware->preventRequestForgery(except: [
+            'webhooks/paperless/document',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -11,11 +11,23 @@ use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\ItemPhotoAnalysisController;
 use App\Http\Controllers\Items\BoxController;
 use App\Http\Controllers\Items\RelatedItemController;
+use App\Http\Controllers\PaperlessWebhookController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
+use App\Http\Middleware\EnsurePaperlessEnabled;
+use App\Http\Middleware\VerifyPaperlessSignature;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
+
+// Paperless-ngx workflow webhook (#7). Sits outside the `auth` group on
+// purpose — Paperless authenticates via the static X-Stockroom-Secret
+// header, not a user session. EnsurePaperlessEnabled 404s the route when
+// the integration is disabled; VerifyPaperlessSignature 401s on missing
+// or wrong secret.
+Route::post('webhooks/paperless/document', [PaperlessWebhookController::class, 'store'])
+    ->middleware([EnsurePaperlessEnabled::class, VerifyPaperlessSignature::class])
+    ->name('webhooks.paperless.document');
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
