@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Http;
 beforeEach(function () {
     config()->set('paperless.url', 'https://paperless.test');
     config()->set('paperless.token', 'TOKEN');
-    config()->set('paperless.trigger_tag', 'add to stockbox');
-    config()->set('paperless.linked_tag', 'stockbox');
-    config()->set('paperless.link_custom_field', 'stockroom_item_ids');
+    config()->set('paperless.trigger_tag', 'Add to Stockroom');
+    config()->set('paperless.linked_tag', 'Stockroom');
+    config()->set('paperless.link_custom_field', 'Stockroom URL');
 });
 
 it('fails when Paperless config is missing', function () {
@@ -25,8 +25,8 @@ it('creates the trigger tag, linked tag, custom field and workflow when none exi
     config()->set('paperless.webhook_secret', 'preset-secret');
 
     Http::fake([
-        'https://paperless.test/api/tags/?name__iexact=add%20to%20stockbox' => Http::response(['results' => []]),
-        'https://paperless.test/api/tags/?name__iexact=stockbox' => Http::response(['results' => []]),
+        'https://paperless.test/api/tags/?name__iexact=Add%20to%20Stockroom' => Http::response(['results' => []]),
+        'https://paperless.test/api/tags/?name__iexact=Stockroom' => Http::response(['results' => []]),
         'https://paperless.test/api/custom_fields/' => Http::response(['results' => []]),
         // Existing workflows already present — used to compute the order
         // for our new workflow (highest + 1 = 4).
@@ -54,6 +54,13 @@ it('creates the trigger tag, linked tag, custom field and workflow when none exi
         && $r['order'] === 4
         && $r['actions'][0]['webhook']['url'] === 'https://stockroom.test/webhooks/paperless/document'
         && $r['actions'][0]['webhook']['headers']['X-Stockroom-Secret'] === 'preset-secret');
+
+    // Custom field is provisioned as `url` so Paperless renders the
+    // backlink as a clickable link, not a plain string.
+    Http::assertSent(fn ($r) => $r->method() === 'POST'
+        && str_contains($r->url(), '/api/custom_fields/')
+        && $r['name'] === 'Stockroom URL'
+        && $r['data_type'] === 'url');
 });
 
 it('reports already-exists when items are present', function () {
@@ -61,14 +68,14 @@ it('reports already-exists when items are present', function () {
     config()->set('paperless.webhook_secret', 'preset-secret');
 
     Http::fake([
-        'https://paperless.test/api/tags/?name__iexact=add%20to%20stockbox' => Http::response([
-            'results' => [['id' => 5, 'name' => 'add to stockbox']],
+        'https://paperless.test/api/tags/?name__iexact=Add%20to%20Stockroom' => Http::response([
+            'results' => [['id' => 5, 'name' => 'Add to Stockroom']],
         ]),
-        'https://paperless.test/api/tags/?name__iexact=stockbox' => Http::response([
-            'results' => [['id' => 6, 'name' => 'stockbox']],
+        'https://paperless.test/api/tags/?name__iexact=Stockroom' => Http::response([
+            'results' => [['id' => 6, 'name' => 'Stockroom']],
         ]),
         'https://paperless.test/api/custom_fields/' => Http::response([
-            'results' => [['id' => 7, 'name' => 'stockroom_item_ids']],
+            'results' => [['id' => 7, 'name' => 'Stockroom URL']],
         ]),
         'https://paperless.test/api/workflows/' => Http::response([
             'results' => [['id' => 8, 'name' => 'Stockroom intake']],

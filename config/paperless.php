@@ -38,15 +38,14 @@ return [
     | swapped to `linked_tag` so the workflow doesn't re-fire on the same
     | document. Re-tagging with `trigger_tag` is the explicit re-run signal.
     */
-    'trigger_tag' => env('PAPERLESS_TRIGGER_TAG', 'add to stockbox'),
-    'linked_tag' => env('PAPERLESS_LINKED_TAG', 'stockbox'),
+    'trigger_tag' => env('PAPERLESS_TRIGGER_TAG', 'Add to Stockroom'),
+    'linked_tag' => env('PAPERLESS_LINKED_TAG', 'Stockroom'),
 
     /*
-    | Name of the Paperless *custom field* that stores the comma-separated
-    | Stockroom item IDs for a processed document. Pre-populating it on the
-    | Paperless side before triggering tells Stockroom to link the doc to
-    | those existing items instead of running extraction — the "attach a
-    | second receipt to an existing item" path.
+    | Name of the Paperless *URL custom field* that stores a backlink to
+    | Stockroom for a processed document. Written once on intake, points at
+    | Stockroom's search page filtered to the items linked to this doc —
+    | click it in Paperless to land on the matching items list.
     */
-    'link_custom_field' => env('PAPERLESS_LINK_CUSTOM_FIELD', 'stockroom_item_ids'),
+    'link_custom_field' => env('PAPERLESS_LINK_CUSTOM_FIELD', 'Stockroom URL'),
 ];

@@ -114,7 +114,7 @@ class PaperlessClient
      * Write a string into a Paperless custom field by name. Paperless expects
      * the full `custom_fields` array on PATCH, so we read-merge-write. Throws
      * if the named field hasn't been created in Paperless yet — admins must
-     * create it once (typically `stockroom_item_ids`).
+     * create it once (typically `Stockroom URL`).
      */
     public function setCustomField(int $documentId, string $fieldName, ?string $value): void
     {

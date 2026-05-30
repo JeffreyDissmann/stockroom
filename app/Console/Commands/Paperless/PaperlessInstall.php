@@ -60,7 +60,10 @@ class PaperlessInstall extends Command
         try {
             [$triggerTagId, $triggerCreated] = $client->ensureTag($triggerTag);
             [, $linkedCreated] = $client->ensureTag($linkedTag);
-            [, $fieldCreated] = $client->ensureCustomField($customField, 'string');
+            // 'url' so Paperless renders it as a clickable link straight to
+            // Stockroom's search-filtered view of the items extracted from
+            // this doc.
+            [, $fieldCreated] = $client->ensureCustomField($customField, 'url');
             [, $workflowCreated] = $client->ensureWorkflow($workflowName, $triggerTagId, $webhookUrl, $secret);
         } catch (PaperlessException $e) {
             $this->error("Paperless API error: {$e->getMessage()}");

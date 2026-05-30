@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::destroy
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:22
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:25
 * @route '/items/{item}/paperless-links/{document}'
 */
 export const destroy = (args: { item: number | { id: number }, document: string | number } | [item: number | { id: number }, document: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -16,7 +16,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::destroy
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:22
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:25
 * @route '/items/{item}/paperless-links/{document}'
 */
 destroy.url = (args: { item: number | { id: number }, document: string | number } | [item: number | { id: number }, document: string | number ], options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ destroy.url = (args: { item: number | { id: number }, document: string | number 
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::destroy
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:22
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:25
 * @route '/items/{item}/paperless-links/{document}'
 */
 destroy.delete = (args: { item: number | { id: number }, document: string | number } | [item: number | { id: number }, document: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

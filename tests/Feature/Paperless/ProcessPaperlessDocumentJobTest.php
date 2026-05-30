@@ -16,9 +16,10 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     config()->set('paperless.url', 'https://paperless.test');
     config()->set('paperless.token', 'TOKEN');
-    config()->set('paperless.trigger_tag', 'add to stockbox');
-    config()->set('paperless.linked_tag', 'stockbox');
-    config()->set('paperless.link_custom_field', 'stockroom_item_ids');
+    config()->set('paperless.trigger_tag', 'Add to Stockroom');
+    config()->set('paperless.linked_tag', 'Stockroom');
+    config()->set('paperless.link_custom_field', 'Stockroom URL');
+    config()->set('app.url', 'https://stockroom.test');
     config()->set('ai.enabled', true);
 });
 
@@ -40,14 +41,14 @@ function fakePaperless(array $docPayload, int $docId): void
         if (str_contains($url, "/api/documents/{$docId}/") && $method === 'PATCH') {
             return Http::response([], 200);
         }
-        if (str_contains($url, '/api/tags/') && str_contains($url, 'add%20to%20stockbox')) {
-            return Http::response(['results' => [['id' => 9, 'name' => 'add to stockbox']]]);
+        if (str_contains($url, '/api/tags/') && str_contains($url, 'Add%20to%20Stockroom')) {
+            return Http::response(['results' => [['id' => 9, 'name' => 'Add to Stockroom']]]);
         }
-        if (str_contains($url, '/api/tags/') && str_contains($url, 'stockbox')) {
-            return Http::response(['results' => [['id' => 10, 'name' => 'stockbox']]]);
+        if (str_contains($url, '/api/tags/') && str_contains($url, 'Stockroom')) {
+            return Http::response(['results' => [['id' => 10, 'name' => 'Stockroom']]]);
         }
         if (str_contains($url, '/api/custom_fields/')) {
-            return Http::response(['results' => [['id' => 5, 'name' => 'stockroom_item_ids']]]);
+            return Http::response(['results' => [['id' => 5, 'name' => 'Stockroom URL']]]);
         }
 
         return Http::response([], 404);
@@ -109,13 +110,14 @@ it('creates one Stockroom item per extracted product (multi-item receipt)', func
     // Both items linked to the SAME doc.
     expect(PaperlessLink::query()->where('paperless_document_id', 547)->count())->toBe(2);
 
-    // Paperless side: custom field carries both ids comma-separated.
+    // Paperless side: custom field carries the stable backlink URL that
+    // points at Stockroom's search page filtered to this doc. Doesn't
+    // mention specific item ids — those live in our DB, not Paperless.
     Http::assertSent(fn ($r) => $r->method() === 'PATCH'
         && str_contains($r->url(), '/api/documents/547/')
         && isset($r['custom_fields'])
         && collect($r['custom_fields'])->contains(fn ($entry) => (int) $entry['field'] === 5
-            && str_contains((string) $entry['value'], (string) $items[0]->id)
-            && str_contains((string) $entry['value'], (string) $items[1]->id)));
+            && (string) $entry['value'] === 'https://stockroom.test/search?paperless_document=547'));
 });
 
 it('falls back to a single placeholder item when the agent returns no items', function () {

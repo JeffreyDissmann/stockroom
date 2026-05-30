@@ -57,13 +57,13 @@ it('document() throws on 401 with a credentials-rejected message', function () {
 
 it('addTag() resolves the tag name and PATCHes the document with the merged tag id', function () {
     Http::fake([
-        'https://paperless.test/api/tags/?name__iexact=stockbox' => Http::response([
-            'results' => [['id' => 7, 'name' => 'stockbox']],
+        'https://paperless.test/api/tags/?name__iexact=Stockroom' => Http::response([
+            'results' => [['id' => 7, 'name' => 'Stockroom']],
         ]),
         'https://paperless.test/api/documents/42/' => Http::response(['id' => 42, 'tags' => [3, 4]]),
     ]);
 
-    PaperlessClient::fromConfig()->addTag(42, 'stockbox');
+    PaperlessClient::fromConfig()->addTag(42, 'Stockroom');
 
     Http::assertSent(fn ($r) => $r->method() === 'PATCH'
         && str_contains($r->url(), '/api/documents/42/')
@@ -81,13 +81,13 @@ it('addTag() throws when the tag does not exist in Paperless', function () {
 
 it('removeTag() PATCHes the document with the tag id detached', function () {
     Http::fake([
-        'https://paperless.test/api/tags/?name__iexact=add%20to%20stockbox' => Http::response([
-            'results' => [['id' => 9, 'name' => 'add to stockbox']],
+        'https://paperless.test/api/tags/?name__iexact=Add%20to%20Stockroom' => Http::response([
+            'results' => [['id' => 9, 'name' => 'Add to Stockroom']],
         ]),
         'https://paperless.test/api/documents/42/' => Http::response(['id' => 42, 'tags' => [3, 9, 4]]),
     ]);
 
-    PaperlessClient::fromConfig()->removeTag(42, 'add to stockbox');
+    PaperlessClient::fromConfig()->removeTag(42, 'Add to Stockroom');
 
     Http::assertSent(fn ($r) => $r->method() === 'PATCH' && $r['tags'] === [3, 4]);
 });
@@ -97,7 +97,7 @@ it('setCustomField() writes the value into the named field, preserving other fie
         'https://paperless.test/api/custom_fields/' => Http::response([
             'results' => [
                 ['id' => 1, 'name' => 'invoice_number'],
-                ['id' => 2, 'name' => 'stockroom_item_ids'],
+                ['id' => 2, 'name' => 'Stockroom URL'],
             ],
         ]),
         'https://paperless.test/api/documents/42/' => Http::response(['id' => 42, 'custom_fields' => [
@@ -105,7 +105,7 @@ it('setCustomField() writes the value into the named field, preserving other fie
         ]]),
     ]);
 
-    PaperlessClient::fromConfig()->setCustomField(42, 'stockroom_item_ids', '17,42');
+    PaperlessClient::fromConfig()->setCustomField(42, 'Stockroom URL', '17,42');
 
     Http::assertSent(fn ($r) => $r->method() === 'PATCH' && $r['custom_fields'] === [
         ['field' => 1, 'value' => 'INV-001'],
@@ -116,14 +116,14 @@ it('setCustomField() writes the value into the named field, preserving other fie
 it('setCustomField() replaces the value when the field is already populated', function () {
     Http::fake([
         'https://paperless.test/api/custom_fields/' => Http::response([
-            'results' => [['id' => 2, 'name' => 'stockroom_item_ids']],
+            'results' => [['id' => 2, 'name' => 'Stockroom URL']],
         ]),
         'https://paperless.test/api/documents/42/' => Http::response(['id' => 42, 'custom_fields' => [
             ['field' => 2, 'value' => 'old'],
         ]]),
     ]);
 
-    PaperlessClient::fromConfig()->setCustomField(42, 'stockroom_item_ids', 'new');
+    PaperlessClient::fromConfig()->setCustomField(42, 'Stockroom URL', 'new');
 
     Http::assertSent(fn ($r) => $r->method() === 'PATCH'
         && $r['custom_fields'] === [['field' => 2, 'value' => 'new']]);
@@ -132,24 +132,24 @@ it('setCustomField() replaces the value when the field is already populated', fu
 it('getCustomField() returns the value when populated', function () {
     Http::fake([
         'https://paperless.test/api/custom_fields/' => Http::response([
-            'results' => [['id' => 2, 'name' => 'stockroom_item_ids']],
+            'results' => [['id' => 2, 'name' => 'Stockroom URL']],
         ]),
         'https://paperless.test/api/documents/42/' => Http::response(['custom_fields' => [
             ['field' => 2, 'value' => '17,42'],
         ]]),
     ]);
 
-    expect(PaperlessClient::fromConfig()->getCustomField(42, 'stockroom_item_ids'))
+    expect(PaperlessClient::fromConfig()->getCustomField(42, 'Stockroom URL'))
         ->toBe('17,42');
 });
 
 it('getCustomField() returns null when the field exists but is empty on this doc', function () {
     Http::fake([
         'https://paperless.test/api/custom_fields/' => Http::response([
-            'results' => [['id' => 2, 'name' => 'stockroom_item_ids']],
+            'results' => [['id' => 2, 'name' => 'Stockroom URL']],
         ]),
         'https://paperless.test/api/documents/42/' => Http::response(['custom_fields' => []]),
     ]);
 
-    expect(PaperlessClient::fromConfig()->getCustomField(42, 'stockroom_item_ids'))->toBeNull();
+    expect(PaperlessClient::fromConfig()->getCustomField(42, 'Stockroom URL'))->toBeNull();
 });

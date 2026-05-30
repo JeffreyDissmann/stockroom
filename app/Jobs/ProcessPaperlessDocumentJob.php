@@ -56,17 +56,21 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
 
         $extracted = $this->extractItems($ocr);
 
-        $createdItemIds = DB::transaction(function () use ($extracted, $title): array {
+        DB::transaction(function () use ($extracted, $title): void {
             if ($extracted === []) {
                 // Placeholder fallback when the AI returned nothing — at
                 // least one item per doc so the user has a hook to find it.
-                return [$this->createItem(['name' => $title])->id];
+                $this->createItem(['name' => $title]);
+
+                return;
             }
 
-            return array_map(fn (array $proposal) => $this->createItem($proposal)->id, $extracted);
+            foreach ($extracted as $proposal) {
+                $this->createItem($proposal);
+            }
         });
 
-        $this->annotatePaperlessDocument($client, $createdItemIds);
+        $this->annotatePaperlessDocument($client);
     }
 
     /**
@@ -174,27 +178,30 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
     }
 
     /**
-     * Write back to Paperless: comma-separated new item ids into the
-     * link-back custom field, swap the trigger tag for the linked tag.
+     * Write back to Paperless: a stable URL backlink into the link custom
+     * field, plus the trigger→linked tag swap. The URL points at the
+     * Stockroom search page filtered to items linked to this doc, so it
+     * stays valid even after the user unlinks items locally. Idempotent —
+     * re-running the job rewrites the same URL.
+     *
      * Local DB state is already committed by this point — a Paperless API
      * hiccup here is logged but doesn't roll back the items.
-     *
-     * @param  list<int>  $itemIds
      */
-    private function annotatePaperlessDocument(PaperlessClient $client, array $itemIds): void
+    private function annotatePaperlessDocument(PaperlessClient $client): void
     {
         $linkField = (string) config('paperless.link_custom_field');
         $triggerTag = (string) config('paperless.trigger_tag');
         $linkedTag = (string) config('paperless.linked_tag');
+        $backlink = rtrim((string) config('app.url'), '/').'/search?paperless_document='.$this->documentId;
 
         try {
-            $client->setCustomField($this->documentId, $linkField, implode(',', $itemIds));
+            $client->setCustomField($this->documentId, $linkField, $backlink);
             $client->removeTag($this->documentId, $triggerTag);
             $client->addTag($this->documentId, $linkedTag);
         } catch (PaperlessException $e) {
             Log::warning('paperless.intake.annotate_failed', [
                 'document_id' => $this->documentId,
-                'stockroom_item_ids' => $itemIds,
+                'backlink' => $backlink,
                 'error' => $e->getMessage(),
             ]);
         }
