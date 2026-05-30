@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#
+# Stockroom — local pre-push guard. Mirrors the CI "Verify Wayfinder routes
+# are in sync" step so a stale generated tree never leaves your machine.
+#
+# Runs the same command CI runs:
+#   vendor/bin/sail npm run wayfinder:check
+#       → php artisan wayfinder:generate --no-interaction
+#       → node scripts/scrub-nosync.mjs
+#       → git diff --exit-code -- resources/js/{actions,routes,wayfinder}
+#
+# Skip with `git push --no-verify` if you really need to (don't).
+
+set -e
+
+# Sail not running → command will fail with a clear error and the push is
+# aborted. That's intentional; pushing while the dev stack is down is the
+# kind of thing this hook exists to catch.
+exec vendor/bin/sail npm run wayfinder:check

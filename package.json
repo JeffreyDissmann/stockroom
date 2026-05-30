@@ -9,7 +9,8 @@
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
         "wayfinder:generate": "php artisan wayfinder:generate --no-interaction && node scripts/scrub-nosync.mjs",
-        "wayfinder:check": "npm run wayfinder:generate && git diff --exit-code -- resources/js/actions resources/js/routes resources/js/wayfinder"
+        "wayfinder:check": "npm run wayfinder:generate && git diff --exit-code -- resources/js/actions resources/js/routes resources/js/wayfinder",
+        "postinstall": "git config core.hooksPath .githooks 2>/dev/null || true"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",

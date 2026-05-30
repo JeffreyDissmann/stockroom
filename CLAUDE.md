@@ -249,6 +249,6 @@ This project uses **`laravel/wayfinder`** for typed route helpers in TS/Vue. **Z
   Each helper returns `{ url, method }`. Call `.url` (or `.url(args)`) for an Inertia `Link :href`, `router.visit/post/patch/delete`, `useForm` `.post/.put/.patch/.delete`, or a `fetch(...)`.
 - **Query params** go through the helper too: `search({ query: { q: term } }).url` — never compose `?q=…` by hand.
 - **Naming clash** with a prop/ref (e.g. you also have a prop called `items` or `activity`) → alias the import: `import itemRoutes from '@/routes/items'` or `import { activity as activityRoute } from '@/routes'`.
-- **Drift guard:** `vendor/bin/sail npm run wayfinder:check` regenerates and fails if `git diff` on the generated tree is non-empty. Run it in CI (or as a pre-commit hook) so a stale committed copy is caught before merge.
+- **Drift guard:** `vendor/bin/sail npm run wayfinder:check` regenerates and fails if `git diff` on the generated tree is non-empty. CI runs it on every PR; locally a `.githooks/pre-push` runs the same command so you can't push a branch with a stale tree. The hooks path is wired up automatically by the `postinstall` script in `package.json` (one-time setup happens on `npm install`); if you cloned without npm-installing, run `git config core.hooksPath .githooks` once.
 - **Prettier/ESLint** are configured to ignore the generated directories — don't reformat them.
 </project-routing-conventions>
