@@ -6,8 +6,8 @@ import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import householdPreferences from '@/routes/household/preferences';
-import type { BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import type { BreadcrumbItem, SharedData } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
 import { Save, Search, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
@@ -32,6 +32,7 @@ interface Preferences {
 const props = defineProps<{ preferences: Preferences; tags: TagOption[]; selectedParent: ParentOption | null }>();
 
 const isAdmin = useIsAdmin();
+const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.preferences'), href: '/household/preferences' }];
 
@@ -114,7 +115,7 @@ function submit() {
                         <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.box_tag_help') }}</p>
                     </div>
 
-                    <div class="form-row">
+                    <div v-if="paperlessEnabled" class="form-row">
                         <label>{{ $t('household.preferences.paperless_parent') }}</label>
 
                         <div class="parent-picker" data-test="paperless-parent-picker">

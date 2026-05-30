@@ -92,6 +92,28 @@ it('denies the Paperless parent search endpoint to non-admins', function () {
         ->assertForbidden();
 });
 
+it('exposes features.paperless as true when both URL and token are configured', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get('/household/preferences')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('features.paperless', true));
+});
+
+it('exposes features.paperless as false when configuration is missing', function () {
+    // Half-configured (url only, no token) is still considered disabled —
+    // hitting Paperless without a token would just 401 every call.
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', '');
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get('/household/preferences')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('features.paperless', false));
+});
+
 it('updates the Paperless parent setting to a container', function () {
     $box = Item::factory()->create(['type' => ItemType::Container, 'name' => 'Inbox']);
 

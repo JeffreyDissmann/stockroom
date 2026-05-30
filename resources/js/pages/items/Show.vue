@@ -334,7 +334,7 @@ function destroyItem() {
                          Show; unlinking lives on the Edit page so a
                          destructive action requires an explicit edit-mode
                          click first. -->
-                    <div v-if="paperlessLinks.length" class="card" data-test="paperless-block">
+                    <div v-if="page.props.features.paperless && paperlessLinks.length" class="card" data-test="paperless-block">
                         <div class="card-head">
                             <h3>{{ $t('items.paperless.section_title') }}</h3>
                         </div>

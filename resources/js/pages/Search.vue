@@ -5,8 +5,8 @@ import TagFilter from '@/components/TagFilter.vue';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
-import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, TagSummary } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
+import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, SharedData, TagSummary } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { FileText, Search as SearchIcon, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
@@ -32,6 +32,7 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.search'), href: search().url }];
+const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 
 const term = ref(props.query);
 const view = ref<ItemViewMode>('list');
@@ -86,7 +87,7 @@ function searchNow() {
                  the user arrived here from a Paperless doc's stockroom_url
                  custom field. Click the × to drop the filter and broaden
                  back to the full inventory; other filters stay in place. -->
-            <div v-if="filters.paperless_document !== null" class="flex items-center gap-2 mb-3" data-test="paperless-filter-chip">
+            <div v-if="paperlessEnabled && filters.paperless_document !== null" class="flex items-center gap-2 mb-3" data-test="paperless-filter-chip">
                 <span class="chip active" style="display: inline-flex; align-items: center; gap: 6px">
                     <FileText :size="12" />
                     {{ $t('search.paperless_filter', { id: filters.paperless_document }) }}

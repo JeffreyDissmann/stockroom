@@ -78,6 +78,7 @@ function onFilesUpdate(files: File[]) {
 // call is fully async with a visible busy state, a disabled trigger, and a
 // hard client-side timeout so the UI never hangs indefinitely.
 const aiEnabled = usePage<SharedData>().props.features.ai;
+const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 const analyzing = ref(false);
 const analyzeError = ref<string | null>(null);
 
@@ -415,7 +416,7 @@ function submit() {
              Sits above Custom fields so the source-of-truth doc is the first
              thing you see after the purchase block. Show.vue renders the same
              chips read-only in their own card. -->
-        <template v-if="mode === 'edit' && (paperlessLinks?.length ?? 0) > 0">
+        <template v-if="paperlessEnabled && mode === 'edit' && (paperlessLinks?.length ?? 0) > 0">
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
             <p class="section-label">{{ $t('items.paperless.section_title') }}</p>
             <ul class="paperless-list" data-test="paperless-edit-list">
