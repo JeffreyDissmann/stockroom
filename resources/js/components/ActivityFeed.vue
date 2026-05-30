@@ -71,11 +71,13 @@ function when(iso: string | null): string {
                     </template>
 
                     <template v-else-if="isLink(row)">
-                        <!-- "Linked with X" / "Unlinked from X". The connector
-                             word reads naturally in German too — `with` maps
-                             to `mit`, which is the right preposition for
-                             "verknüpft mit". -->
-                        <span class="mx-1" style="color: var(--fg-subtle)">{{
+                        <!-- "Linked with X" / "Unlinked from X". `mx-2` (not
+                             mx-1) so the connectors don't visually crowd the
+                             verb — Vue strips the inter-span whitespace, so
+                             the only horizontal gap is whatever margin we set
+                             here. The same bump applies to the words.* spans
+                             everywhere else in this feed; tested visually. -->
+                        <span class="mx-2" style="color: var(--fg-subtle)">{{
                             row.event === 'link_added' ? $t('activity.words.with') : $t('activity.words.from')
                         }}</span>
                         <component
@@ -85,7 +87,7 @@ function when(iso: string | null): string {
                             :class="row.related_url ? 'hover:underline' : ''"
                         >{{ row.related_label ?? $t('activity.words.unknown') }}</component>
                         <template v-if="showSubject">
-                            <span class="mx-1" style="color: var(--fg-subtle)">{{ $t('activity.words.on') }}</span>
+                            <span class="mx-2" style="color: var(--fg-subtle)">{{ $t('activity.words.on') }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"

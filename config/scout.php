@@ -168,7 +168,11 @@ return [
                     'description',
                     'location_path',
                 ],
-                'filterableAttributes' => ['type'],
+                // `id` is filterable so the item-picker endpoints
+                // (moveTargets, relatedItemTargets) can push their
+                // exclusion filters down to Meili instead of overfetching
+                // and rejecting in PHP.
+                'filterableAttributes' => ['type', 'id'],
                 'sortableAttributes' => ['name'],
             ], $embedder ? [
                 // A2: the app computes embeddings with the Laravel AI SDK and pushes

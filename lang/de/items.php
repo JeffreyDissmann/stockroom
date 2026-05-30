@@ -112,6 +112,7 @@ return [
         'submit' => 'Verknüpfen',
         'unlink' => 'Verknüpfung lösen',
         'unlink_confirm' => 'Verknüpfung zu „:name" lösen?',
+        'cannot_link_to_self' => 'Ein Gegenstand kann nicht mit sich selbst verknüpft werden.',
     ],
 
     'box' => [

@@ -112,6 +112,7 @@ return [
         'submit' => 'Link',
         'unlink' => 'Unlink',
         'unlink_confirm' => 'Unlink ":name" from this item?',
+        'cannot_link_to_self' => 'An item cannot be linked to itself.',
     ],
 
     'box' => [

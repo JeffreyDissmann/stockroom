@@ -100,6 +100,9 @@ class Item extends Model
     public function relatedItems(): BelongsToMany
     {
         return $this->belongsToMany(self::class, 'item_relations', 'item_id', 'related_item_id')
+            // Pivot has timestamps columns; tell Laravel to populate them so
+            // the link's age is queryable (and visible to future debug tooling).
+            ->withTimestamps()
             ->orderBy('name');
     }
 
@@ -165,16 +168,16 @@ class Item extends Model
         }
 
         DB::transaction(function () use ($other): void {
-            $existed = $this->relatedItems()->where('related_item_id', $other->id)->exists();
-
-            $this->relatedItems()->syncWithoutDetaching([$other->id]);
+            // `attached` is the rows that were newly inserted; an empty array
+            // means the pair was already linked (idempotent path). No need
+            // for a separate exists() roundtrip just to detect that.
+            $result = $this->relatedItems()->syncWithoutDetaching([$other->id]);
             $other->relatedItems()->syncWithoutDetaching([$this->id]);
 
-            // Log the link as activity on BOTH items — it's a symmetric fact,
-            // so each item's history surfaces "linked to X" on its own page.
-            // Skip when the pair was already linked (idempotent path) so
-            // re-saving doesn't spam the feed.
-            if (! $existed) {
+            if ($result['attached'] !== []) {
+                // Symmetric activity write: log on both items so each side's
+                // history surfaces "Linked with X" on its own page. Skipped
+                // on the idempotent path so re-saving doesn't spam the feed.
                 $this->logRelatedLinkActivity($other, 'link_added');
                 $other->logRelatedLinkActivity($this, 'link_added');
             }
@@ -188,14 +191,14 @@ class Item extends Model
     public function unlinkRelated(self $other): void
     {
         DB::transaction(function () use ($other): void {
-            $existed = $this->relatedItems()->where('related_item_id', $other->id)->exists();
-
-            $this->relatedItems()->detach($other->id);
+            // detach() returns the number of rows removed. Non-zero means
+            // the pair was actually linked — log on both ends. Zero means
+            // unlinking something already unlinked, so the activity feed
+            // stays untouched.
+            $removed = $this->relatedItems()->detach($other->id);
             $other->relatedItems()->detach($this->id);
 
-            // Symmetric — log on both ends, but only when something actually
-            // changed so unlinking an already-unlinked pair is a true no-op.
-            if ($existed) {
+            if ($removed > 0) {
                 $this->logRelatedLinkActivity($other, 'link_removed');
                 $other->logRelatedLinkActivity($this, 'link_removed');
             }

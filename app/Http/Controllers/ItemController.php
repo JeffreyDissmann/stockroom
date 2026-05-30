@@ -132,31 +132,33 @@ class ItemController extends Controller
         $includeItems = $request->boolean('all');
         $excluded = [$item->id, ...$item->descendantIds()];
 
-        $targets = Item::query()
-            ->when(! $includeItems, fn ($builder) => $builder->whereIn('type', [ItemType::Room->value, ItemType::Container->value]))
-            ->whereNotIn('id', $excluded)
-            ->when(
-                $query !== '',
-                function ($builder) use ($query): void {
-                    $ids = Item::search($query)->take(100)->keys()->all();
-                    $builder->whereIn('id', $ids);
-                    if ($ids !== []) {
-                        $builder->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']);
-                    }
-                },
-                fn ($builder) => $builder->orderBy('name'),
-            )
-            ->limit(25)
-            ->get(['id', 'parent_id', 'name'])
-            ->map(fn (Item $target): array => [
-                'id' => $target->id,
-                'name' => $target->name,
-                // Ancestor path only ("Garage / Workbench"); empty for top-level.
-                'path' => $target->locationPath(),
-            ])
-            ->all();
+        // No-query path: explicit Eloquent so we can alphabetic-order —
+        // Scout's relevance ordering doesn't apply without a search term.
+        if ($query === '') {
+            $rows = Item::query()
+                ->when(! $includeItems, fn ($builder) => $builder->whereIn('type', [ItemType::Room->value, ItemType::Container->value]))
+                ->whereNotIn('id', $excluded)
+                ->orderBy('name')
+                ->limit(25)
+                ->get(['id', 'parent_id', 'name']);
 
-        return response()->json(['targets' => $targets]);
+            return response()->json(['targets' => $this->mapAsTargets($rows)]);
+        }
+
+        // Query path: push the filters down to Meili via Scout's
+        // whereIn / whereNotIn — `id` and `type` are both filterable on
+        // the items index (see config/scout.php). No more overfetch +
+        // PHP reject.
+        $rows = Item::search($query)
+            ->whereNotIn('id', $excluded)
+            ->when(! $includeItems, fn ($b) => $b->whereIn('type', [
+                ItemType::Room->value,
+                ItemType::Container->value,
+            ]))
+            ->take(25)
+            ->get();
+
+        return response()->json(['targets' => $this->mapAsTargets($rows)]);
     }
 
     /**
@@ -176,28 +178,36 @@ class ItemController extends Controller
             return response()->json(['targets' => []]);
         }
 
-        $excluded = array_fill_keys(
-            [$item->id, ...$item->relatedItems()->pluck('items.id')->all()],
-            true,
-        );
+        $excluded = [$item->id, ...$item->relatedItems()->pluck('items.id')->all()];
 
-        // Lean on Scout directly — it already orders by relevance, so no
-        // back-and-forth between Scout for ids and Eloquent for ordering.
-        // 25 is plenty for a search-as-you-type picker; if all the top
-        // results happened to be excluded the user can refine the query.
-        $targets = Item::search($query)
+        $rows = Item::search($query)
+            ->whereNotIn('id', $excluded)
             ->take(25)
-            ->get()
-            ->reject(fn (Item $candidate): bool => isset($excluded[$candidate->id]))
-            ->values()
-            ->map(fn (Item $target): array => [
+            ->get();
+
+        return response()->json(['targets' => $this->mapAsTargets($rows)]);
+    }
+
+    /**
+     * Shared serialisation for both target endpoints — picker dialogs only
+     * need id, name and an ancestor path for the secondary line.
+     *
+     * @param  iterable<int, Item>  $items
+     * @return array<int, array{id: int, name: string, path: string}>
+     */
+    private function mapAsTargets(iterable $items): array
+    {
+        $out = [];
+        foreach ($items as $target) {
+            $out[] = [
                 'id' => $target->id,
                 'name' => $target->name,
+                // Ancestor path only ("Garage / Workbench"); empty for top-level.
                 'path' => $target->locationPath(),
-            ])
-            ->all();
+            ];
+        }
 
-        return response()->json(['targets' => $targets]);
+        return $out;
     }
 
     public function edit(Item $item): Response

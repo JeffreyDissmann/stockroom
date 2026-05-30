@@ -41,7 +41,7 @@ class BoxController extends Controller
             'model_number' => $request->input('model_number') ?? $item->model_number,
             'description' => $request->input('description') ?? $item->description,
             'quantity' => $request->integer('quantity') ?: ($item->quantity ?? 1),
-        ], $this->boxTagIds());
+        ], array_filter([Setting::int('box_tag_id')]));
 
         // Establish the symmetric related-items link so it survives the box
         // being moved away from the item later (e.g. box → basement, item →
@@ -59,19 +59,5 @@ class BoxController extends Controller
         return redirect()
             ->route('items.show', ['item' => $box->id, 'focus' => 'images'])
             ->with('box_created_for', $item->name);
-    }
-
-    /**
-     * Tag ids to apply to a freshly-created box. Reads the
-     * household-configured `box_tag_id` setting; returns an empty array
-     * (no tagging) when the admin has cleared it.
-     *
-     * @return array<int, int>
-     */
-    private function boxTagIds(): array
-    {
-        $tagId = Setting::get('box_tag_id');
-
-        return is_int($tagId) ? [$tagId] : [];
     }
 }
