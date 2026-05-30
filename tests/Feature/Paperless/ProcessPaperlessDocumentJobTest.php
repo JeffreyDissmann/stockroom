@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Ai\Agents\DocumentExtractor;
+use App\Enums\ItemType;
 use App\Jobs\ProcessPaperlessDocumentJob;
 use App\Models\Item;
 use App\Models\PaperlessLink;
+use App\Models\Setting;
 use App\Services\Paperless\PaperlessClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -215,4 +217,39 @@ it('uses the document title for placeholder name and a synthetic name when title
     (new ProcessPaperlessDocumentJob(88))->handle(app(PaperlessClient::class));
 
     expect(Item::query()->where('name', 'Paperless doc 88')->exists())->toBeTrue();
+});
+
+it('places extracted items inside the configured Paperless parent', function () {
+    $box = Item::factory()->create(['type' => ItemType::Container, 'name' => 'Inbox']);
+    Setting::set('paperless_parent_id', $box->id);
+
+    fakePaperless([
+        'id' => 91,
+        'title' => 'Some doc',
+        'content' => 'irrelevant',
+        'tags' => [],
+        'custom_fields' => [],
+    ], 91);
+    DocumentExtractor::fake([['items' => [['name' => 'Widget']]]]);
+
+    (new ProcessPaperlessDocumentJob(91))->handle(app(PaperlessClient::class));
+
+    $widget = Item::query()->where('name', 'Widget')->firstOrFail();
+    expect($widget->parent_id)->toBe($box->id);
+});
+
+it('drops extracted items at top level when no Paperless parent is configured', function () {
+    fakePaperless([
+        'id' => 92,
+        'title' => 'Some doc',
+        'content' => 'irrelevant',
+        'tags' => [],
+        'custom_fields' => [],
+    ], 92);
+    DocumentExtractor::fake([['items' => [['name' => 'Standalone widget']]]]);
+
+    (new ProcessPaperlessDocumentJob(92))->handle(app(PaperlessClient::class));
+
+    $widget = Item::query()->where('name', 'Standalone widget')->firstOrFail();
+    expect($widget->parent_id)->toBeNull();
 });

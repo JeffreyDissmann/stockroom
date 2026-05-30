@@ -19,6 +19,11 @@ return [
         'box_tag' => 'Karton-Schlagwort',
         'box_tag_none' => '(keines – Kartons nicht automatisch markieren)',
         'box_tag_help' => 'Wenn du über „Karton für diesen Gegenstand erstellen" ein Verpackungs-Inventar anlegst, wird dieses Schlagwort automatisch zugewiesen. So findest du alle aufbewahrten Originalverpackungen an einer Stelle.',
+        'paperless_parent' => 'Ziel für Paperless-Importe',
+        'paperless_parent_none' => '(keines – auf oberster Ebene anlegen)',
+        'paperless_parent_help' => 'Wenn Paperless-ngx ein Dokument an Stockroom übergibt, landen die daraus extrahierten Gegenstände in diesem Raum oder Behälter. Du kannst sie jederzeit verschieben – das hier legt nur fest, wo sie zuerst erscheinen.',
+        'paperless_parent_search' => 'Räume und Behälter durchsuchen…',
+        'paperless_parent_no_match' => 'Keine passenden Räume oder Behälter.',
     ],
 
     'import' => [

@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'inventory' => 'Inventar',
     'new_item' => 'Neuer Gegenstand',
+    'cannot_delete_paperless_parent' => 'Dieser Raum oder Behälter ist als Ziel für Paperless-Importe in den Haushaltseinstellungen festgelegt. Ändere zuerst die Einstellung.',
     'add_title' => 'Gegenstand hinzufügen',
     'edit_breadcrumb' => 'Bearbeiten',
     'edit_title' => ':name bearbeiten',

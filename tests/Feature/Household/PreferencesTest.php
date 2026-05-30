@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\ItemType;
+use App\Models\Item;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
@@ -58,4 +60,62 @@ it('rejects an invalid tag id', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->put('/household/preferences', ['box_tag_id' => 99999])
         ->assertSessionHasErrors('box_tag_id');
+});
+
+it('hydrates the picker with the currently selected parent', function () {
+    $garage = Item::factory()->room()->create(['name' => 'Garage']);
+    Setting::set('paperless_parent_id', $garage->id);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get('/household/preferences')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('preferences.paperless_parent_id', $garage->id)
+            ->where('selectedParent.id', $garage->id)
+            ->where('selectedParent.type', 'room'));
+});
+
+it('returns rooms and containers from the Paperless parent search endpoint', function () {
+    Item::factory()->room()->create(['name' => 'Garage']);
+    Item::factory()->create(['type' => ItemType::Container, 'name' => 'Toolbox']);
+    Item::factory()->create(['type' => ItemType::Item, 'name' => 'Drill']); // excluded
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->getJson('/household/preferences/paperless-parent-targets')
+        ->assertOk()
+        ->assertJsonCount(2, 'targets');
+});
+
+it('denies the Paperless parent search endpoint to non-admins', function () {
+    $this->actingAs(User::factory()->create())
+        ->getJson('/household/preferences/paperless-parent-targets')
+        ->assertForbidden();
+});
+
+it('updates the Paperless parent setting to a container', function () {
+    $box = Item::factory()->create(['type' => ItemType::Container, 'name' => 'Inbox']);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['paperless_parent_id' => $box->id])
+        ->assertRedirect();
+
+    expect(Setting::get('paperless_parent_id'))->toBe($box->id);
+});
+
+it('rejects a Paperless parent that is not a room or container', function () {
+    $item = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Drill']);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['paperless_parent_id' => $item->id])
+        ->assertSessionHasErrors('paperless_parent_id');
+});
+
+it('allows clearing the Paperless parent (admin opted out)', function () {
+    Setting::set('paperless_parent_id', 42);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['paperless_parent_id' => null])
+        ->assertRedirect();
+
+    expect(Setting::get('paperless_parent_id'))->toBeNull();
 });

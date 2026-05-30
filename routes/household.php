@@ -33,6 +33,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('can:admin')
         ->name('household.preferences.edit');
 
+    // JSON picker data for the Paperless intake parent. Admin-only because
+    // it powers an admin-only settings field; mirrors the moveTargets endpoint.
+    Route::get('household/preferences/paperless-parent-targets', [PreferencesController::class, 'paperlessParentTargets'])
+        ->middleware('can:admin')
+        ->name('household.preferences.paperless-parent-targets');
+
     // Mutations / household tools — admins only.
     Route::middleware('can:admin')->group(function () {
         Route::post('household/custom-fields', [CustomFieldController::class, 'store'])->name('custom-fields.store');

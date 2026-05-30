@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Ai\Agents\DocumentExtractor;
 use App\Enums\ItemType;
 use App\Models\Item;
+use App\Models\Setting;
 use App\Services\Brave\AttachFirstImage;
 use App\Services\Paperless\PaperlessClient;
 use App\Services\Paperless\PaperlessException;
@@ -153,6 +154,12 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
     {
         $item = Item::create([
             'type' => ItemType::Item->value,
+            // Drop new items into the room / container the admin configured
+            // in household preferences. Null = top-level, which is also
+            // what happens if the preference points at a since-deleted item
+            // (the deletion guard in ItemController makes that unlikely,
+            // but a stale id from a backup restore is possible).
+            'parent_id' => Setting::int('paperless_parent_id'),
             'name' => (string) $proposal['name'],
             'description' => isset($proposal['description']) && is_string($proposal['description'])
                 ? $proposal['description']

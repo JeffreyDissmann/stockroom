@@ -19,6 +19,11 @@ return [
         'box_tag' => 'Box tag',
         'box_tag_none' => '(none — don\'t auto-tag boxes)',
         'box_tag_help' => 'When you create a packaging record via "Create a box for this item", this tag is attached automatically. Lets you filter the household\'s kept packaging in one place.',
+        'paperless_parent' => 'Paperless intake destination',
+        'paperless_parent_none' => '(none — drop at top level)',
+        'paperless_parent_help' => 'When Paperless-ngx hands a document to Stockroom, the items it extracts land inside this room or container. Move them elsewhere any time — this only decides where they appear first.',
+        'paperless_parent_search' => 'Search rooms and containers…',
+        'paperless_parent_no_match' => 'No matching rooms or containers.',
     ],
 
     'import' => [

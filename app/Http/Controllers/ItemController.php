@@ -12,6 +12,7 @@ use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\Setting;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
 use App\Services\ItemImageProcessor;
@@ -19,6 +20,7 @@ use App\Services\Items\ItemWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
@@ -261,6 +263,17 @@ class ItemController extends Controller
 
     public function destroy(Item $item): RedirectResponse
     {
+        // Guard against deleting the room/container that household prefs
+        // points at for Paperless intake — orphaning the preference would
+        // silently drop future imports back to the top level. Admin has to
+        // change the preference first; same shape as the box-tag guard in
+        // TagController::destroy.
+        if (Setting::get('paperless_parent_id') === $item->id) {
+            throw ValidationException::withMessages([
+                'item' => __('items.cannot_delete_paperless_parent'),
+            ]);
+        }
+
         $parentId = $item->parent_id;
         $this->writer->delete($item);
 
