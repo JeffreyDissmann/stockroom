@@ -21,13 +21,16 @@ class PaperlessWebhookController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        // Paperless's workflow placeholder set doesn't expose the doc id —
+        // only `{{doc_url}}` (e.g. https://paperless.host/documents/447/).
+        // We trail-match the integer rather than parse the URL because
+        // the host part can be anything depending on the user's setup.
         $validated = $request->validate([
-            // Paperless sends the doc id as a string via {{doc_id}}
-            // template substitution; we coerce to int after validation.
-            'document_id' => ['required', 'integer', 'min:1'],
+            'doc_url' => ['required', 'string', 'regex:#/documents/(\d+)/?$#'],
         ]);
 
-        $documentId = (int) $validated['document_id'];
+        preg_match('#/documents/(\d+)/?$#', (string) $validated['doc_url'], $m);
+        $documentId = (int) $m[1];
 
         ProcessPaperlessDocumentJob::dispatch($documentId);
 

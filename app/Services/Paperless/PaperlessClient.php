@@ -190,9 +190,12 @@ class PaperlessClient
         // Paperless workflow shape: a DOCUMENT_UPDATED trigger (type 3) fires
         // whenever a doc's properties change, including a tag being added.
         // `filter_has_tags` narrows it to docs that gained the trigger tag.
-        // The webhook action (type 4) POSTs form params; the doc id is
-        // templated via Paperless's {{doc_id}} placeholder, and the
-        // shared secret rides as a static header for auth.
+        // The webhook action (type 4) POSTs form params; Paperless's
+        // workflow placeholder set (see paperless-ngx/src/documents/templating/
+        // workflows.py) doesn't expose the doc id directly — only `doc_url`,
+        // which we pattern-match for the trailing integer on our side.
+        // Templates use Django-style double-brace `{{ }}` syntax. Shared
+        // secret rides as a static header for auth.
         $payload = [
             'name' => $name,
             'order' => $order,
@@ -211,7 +214,7 @@ class PaperlessClient
                     'url' => $webhookUrl,
                     'use_params' => true,
                     'as_json' => false,
-                    'params' => ['document_id' => '{{doc_id}}'],
+                    'params' => ['doc_url' => '{{doc_url}}'],
                     'body' => null,
                     'headers' => ['X-Stockroom-Secret' => $secret],
                     'include_document' => false,
