@@ -7,6 +7,58 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.08] — 2026-05-30
+
+### Added
+
+- **Paperless-ngx integration (#7).** Tag a document with **Add to
+  Stockroom** in Paperless and Stockroom extracts inventory items off
+  the OCR text via the AI agent, creates them, and writes a back-link
+  URL (`Stockroom URL` custom field) and the **Stockroom** tag onto
+  the doc — single PATCH so the workflow doesn't re-fire on its own
+  writes. Setup is one artisan command (`paperless:install`); the
+  workflow definition self-heals if the webhook URL or shared secret
+  later drifts. A **Repair Paperless links** button on household
+  preferences walks every linked doc and re-applies the annotation
+  (live progress bar, mirrors the search-index UX). Multi-item
+  receipts produce one item per line; zero-extraction docs fall back
+  to a single placeholder so every tagged doc produces *something*.
+  Full walkthrough in
+  [`docs/paperless-integration.md`](./docs/paperless-integration.md).
+- **`paperless:adopt-custom-field` command.** Migrates pre-existing
+  manual Paperless references (a custom field holding either a doc id
+  or a URL like `https://paperless.host/documents/447/`) into proper
+  `paperless_links` rows so the new UI surfaces them. `--relink` runs
+  the repair job synchronously afterwards. Listing variant when no
+  field name is supplied prints every custom field with its key, type
+  and item count so the operator can pick the right one.
+- **Auto-cover for Paperless intake.** When `BRAVE_SEARCH_KEY` is
+  configured, every item created by the intake job runs a Brave image
+  search and attaches the first hit as its primary image. Failure
+  paths (no key, no results, download error) log and skip; intake is
+  never blocked on the cover.
+- **Household preference: Paperless intake destination.** Admin picks
+  a room or container that newly extracted items land inside, instead
+  of falling out at the top level. Scout-backed searchable picker
+  so the list stays usable as the inventory grows. The selected item
+  can't be deleted while it's the intake parent — same shape as the
+  existing box-tag guard.
+- **Search filter for Paperless docs.** `/search?paperless_document={id}`
+  scopes results to items linked to that doc, with a removable chip
+  in the header. This is the URL the back-link in Paperless points
+  at — click it from any tagged doc and land on Stockroom's filtered
+  view of the items extracted from it.
+
+### Internal
+
+- Per-instance memoization on `PaperlessClient` for tag-id and
+  custom-field-id lookups; `annotateProcessed` resolves three names
+  in one round-trip-cached batch instead of three separate GETs.
+- Every Paperless UI surface gated by a `features.paperless` shared
+  Inertia prop (defense-in-depth alongside the server-side
+  `EnsurePaperlessEnabled` middleware): when `PAPERLESS_URL` or
+  `PAPERLESS_TOKEN` is blank, the entire integration is invisible.
+
 ## [2026.05.07] — 2026-05-29
 
 ### Fixed
@@ -221,7 +273,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.07...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.08...HEAD
+[2026.05.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.07...2026.05.08
 [2026.05.07]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.06...2026.05.07
 [2026.05.06]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.05...2026.05.06
 [2026.05.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.04...2026.05.05
