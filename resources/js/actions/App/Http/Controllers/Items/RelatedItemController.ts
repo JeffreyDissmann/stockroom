@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Items\RelatedItemController::store
-* @see app/Http/Controllers/Items/RelatedItemController.php:21
+* @see app/Http/Controllers/Items/RelatedItemController.php:20
 * @route '/items/{item}/related-items'
 */
 export const store = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\RelatedItemController::store
-* @see app/Http/Controllers/Items/RelatedItemController.php:21
+* @see app/Http/Controllers/Items/RelatedItemController.php:20
 * @route '/items/{item}/related-items'
 */
 store.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ store.url = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Items\RelatedItemController::store
-* @see app/Http/Controllers/Items/RelatedItemController.php:21
+* @see app/Http/Controllers/Items/RelatedItemController.php:20
 * @route '/items/{item}/related-items'
 */
 store.post = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ store.post = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Items\RelatedItemController::destroy
-* @see app/Http/Controllers/Items/RelatedItemController.php:38
+* @see app/Http/Controllers/Items/RelatedItemController.php:27
 * @route '/items/{item}/related-items/{related}'
 */
 export const destroy = (args: { item: number | { id: number }, related: number | { id: number } } | [item: number | { id: number }, related: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -74,7 +74,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\RelatedItemController::destroy
-* @see app/Http/Controllers/Items/RelatedItemController.php:38
+* @see app/Http/Controllers/Items/RelatedItemController.php:27
 * @route '/items/{item}/related-items/{related}'
 */
 destroy.url = (args: { item: number | { id: number }, related: number | { id: number } } | [item: number | { id: number }, related: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -104,7 +104,7 @@ destroy.url = (args: { item: number | { id: number }, related: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Items\RelatedItemController::destroy
-* @see app/Http/Controllers/Items/RelatedItemController.php:38
+* @see app/Http/Controllers/Items/RelatedItemController.php:27
 * @route '/items/{item}/related-items/{related}'
 */
 destroy.delete = (args: { item: number | { id: number }, related: number | { id: number } } | [item: number | { id: number }, related: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
