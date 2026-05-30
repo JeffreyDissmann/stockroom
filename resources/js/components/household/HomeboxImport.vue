@@ -2,7 +2,6 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
-import { trans } from '@/composables/useTranslations';
 import householdImport from '@/routes/household/import';
 import { useForm, usePoll } from '@inertiajs/vue3';
 import { Download } from 'lucide-vue-next';
