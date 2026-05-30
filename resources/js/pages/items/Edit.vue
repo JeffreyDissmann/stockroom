@@ -7,11 +7,17 @@ import { Head, Link } from '@inertiajs/vue3';
 import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
 
+interface PaperlessLinkSummary {
+    document_id: number;
+    url: string;
+}
+
 const props = defineProps<{
     item: ItemSummary;
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];
+    paperlessLinks: PaperlessLinkSummary[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
@@ -35,7 +41,7 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
         <div class="page">
             <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.edit_title', { name: item.name }) }}</h2>
 
-            <ItemForm mode="edit" :item="item" :items="[]" :tags="tags" :types="types" :custom-fields="customFields" />
+            <ItemForm mode="edit" :item="item" :items="[]" :tags="tags" :types="types" :custom-fields="customFields" :paperless-links="paperlessLinks" />
         </div>
     </AppLayout>
 </template>

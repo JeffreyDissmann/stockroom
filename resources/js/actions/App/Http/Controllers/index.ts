@@ -1,3 +1,4 @@
+import PaperlessWebhookController from './PaperlessWebhookController'
 import DashboardController from './DashboardController'
 import SearchController from './SearchController'
 import ActivityController from './ActivityController'
@@ -13,6 +14,7 @@ import Household from './Household'
 import Auth from './Auth'
 
 const Controllers = {
+    PaperlessWebhookController: Object.assign(PaperlessWebhookController, PaperlessWebhookController),
     DashboardController: Object.assign(DashboardController, DashboardController),
     SearchController: Object.assign(SearchController, SearchController),
     ActivityController: Object.assign(ActivityController, ActivityController),

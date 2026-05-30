@@ -94,7 +94,7 @@ class ItemController extends Controller
 
     public function show(Item $item): Response
     {
-        $item->load(['tags', 'images', 'customFieldValues.field']);
+        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks']);
         $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
         // Related items survive moves around the tree, so they're a separate
         // edge from `children`. Eager-load enough for the same card layout
@@ -116,6 +116,18 @@ class ItemController extends Controller
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
             'relatedItems' => $relatedItems->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            // Paperless-ngx documents the user linked this item to (#7).
+            // Each entry is a click-through to the Paperless UI; the URL is
+            // composed by the model from config('paperless.url'), so we
+            // skip rows where the integration is disabled and the URL
+            // would be null.
+            'paperlessLinks' => $item->paperlessLinks
+                ->map(fn ($link) => [
+                    'document_id' => $link->paperless_document_id,
+                    'url' => $link->paperlessUrl(),
+                ])
+                ->filter(fn ($l) => $l['url'] !== null)
+                ->values(),
             'activities' => $activities,
         ]);
     }
@@ -212,13 +224,23 @@ class ItemController extends Controller
 
     public function edit(Item $item): Response
     {
-        $item->load(['tags', 'images', 'customFieldValues.field']);
+        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks']);
 
         return Inertia::render('items/Edit', [
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
+            // Paperless links surface on Edit only — that's where the user
+            // can unlink. Show.vue lists the same docs (server passes a
+            // separate `paperlessLinks` prop there too) but read-only.
+            'paperlessLinks' => $item->paperlessLinks
+                ->map(fn ($link) => [
+                    'document_id' => $link->paperless_document_id,
+                    'url' => $link->paperlessUrl(),
+                ])
+                ->filter(fn ($l) => $l['url'] !== null)
+                ->values(),
         ]);
     }
 

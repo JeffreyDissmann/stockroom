@@ -100,6 +100,13 @@ return [
         'submit' => 'Move here',
     ],
 
+    'paperless' => [
+        'section_title' => 'From document',
+        'open_in_paperless' => 'Open in Paperless',
+        'unlink' => 'Unlink document',
+        'unlink_confirm' => 'Unlink this Paperless document from the item?',
+    ],
+
     'related' => [
         'section_title' => 'Related items',
         'empty' => 'No related items linked yet.',

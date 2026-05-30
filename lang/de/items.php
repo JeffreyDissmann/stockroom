@@ -100,6 +100,13 @@ return [
         'submit' => 'Hierher verschieben',
     ],
 
+    'paperless' => [
+        'section_title' => 'Aus Dokument',
+        'open_in_paperless' => 'In Paperless öffnen',
+        'unlink' => 'Dokument-Verknüpfung lösen',
+        'unlink_confirm' => 'Verknüpfung zum Paperless-Dokument lösen?',
+    ],
+
     'related' => [
         'section_title' => 'Verknüpfte Gegenstände',
         'empty' => 'Noch keine verknüpften Gegenstände.',
