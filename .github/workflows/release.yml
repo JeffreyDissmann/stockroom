@@ -118,6 +118,12 @@ jobs:
                   # each other's layer cache.
                   cache-from: type=gha,scope=${{ matrix.arch_tag }}
                   cache-to: type=gha,mode=max,scope=${{ matrix.arch_tag }}
+                  # Stamp the image with the release tag + commit SHA so
+                  # App\Support\AppVersion can read them at runtime (the
+                  # runtime image has no git + no .git directory).
+                  build-args: |
+                      APP_VERSION=${{ github.ref_name }}
+                      APP_COMMIT=${{ github.sha }}
 
             - name: Stash digest for merge job
               run: |

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Services\Brave\BraveImageSearchClient;
+use App\Support\AppVersion;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -30,7 +31,7 @@ class HandleInertiaRequests extends Middleware
      */
     private const TRANSLATION_GROUPS = [
         'common', 'nav', 'dashboard', 'items', 'search',
-        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums', 'assistant',
+        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums', 'assistant', 'auth',
     ];
 
     /**
@@ -83,6 +84,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'locale' => app()->getLocale(),
             'translations' => $this->translations(),
+            // Build info for the login-page context panel + future "about"
+            // surfaces. Tag and sha can independently be null on dev or in
+            // freshly-cloned trees without git metadata; the frontend hides
+            // the chip rather than rendering "unknown".
+            'version' => AppVersion::current(),
         ]);
     }
 

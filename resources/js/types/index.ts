@@ -36,6 +36,7 @@ export interface SharedData {
     flash: { backup: BackupResult | null; box_created_for: string | null };
     locale: string;
     translations: Record<string, string>;
+    version: { tag: string | null; sha: string | null };
 }
 
 export interface User {
