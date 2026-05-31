@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import ActivityFeed from '@/components/ActivityFeed.vue';
+import BulkActionBar from '@/components/BulkActionBar.vue';
+import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
 import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
@@ -14,7 +16,8 @@ import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import relatedItemsRoutes from '@/routes/items/related-items';
-import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
+import { useBulkSelection } from '@/composables/useBulkSelection';
+import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData, TagSummary } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, ChevronRight, FileText, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -31,6 +34,8 @@ const props = defineProps<{
     relatedItems: ItemSummary[];
     paperlessLinks: PaperlessLinkSummary[];
     activities: ActivityRow[];
+    // For the bulk-tag dialog launched from the Contents section.
+    tags?: TagSummary[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
@@ -41,6 +46,11 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
 });
 
 const page = usePage<SharedData>();
+
+// Bulk-select store wired to the Contents section. Cmd/Ctrl-A selects
+// the current item's direct children; out-of-mode clicks navigate
+// normally into each child.
+const bulk = useBulkSelection(() => props.children.map((c) => c.id));
 
 // One-shot success banner after the new box was created — Inertia's flash
 // payload carries the source item's name so the message can name the thing
@@ -364,6 +374,7 @@ function destroyItem() {
                 <div class="flex items-center justify-between mb-3 gap-3">
                     <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
                     <div class="flex items-center gap-2">
+                        <BulkSelectToggle v-if="children.length" />
                         <ItemViewToggle v-if="children.length" v-model="contentsView" />
                         <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
                             <Plus :size="14" />
@@ -376,7 +387,10 @@ function destroyItem() {
                     {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
                 </div>
 
-                <ItemCollection v-else :items="children" :view="contentsView" />
+                <!-- `selectable` participates in the same bulk-select store as
+                     Items/Index and Search — clicking a child in select mode
+                     toggles selection instead of navigating into it. -->
+                <ItemCollection v-else :items="children" :view="contentsView" selectable />
             </section>
 
             <!-- Related items: the durable many-to-many edge (separate from
@@ -411,6 +425,8 @@ function destroyItem() {
                 <ActivityFeed :rows="activities" :show-subject="false" />
             </section>
         </div>
+
+        <BulkActionBar v-if="bulk.isSelectMode.value" :tags="tags ?? []" />
     </AppLayout>
 </template>
 

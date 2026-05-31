@@ -5,8 +5,8 @@ import ActivityController from './ActivityController'
 import ItemController from './ItemController'
 import ItemPhotoAnalysisController from './ItemPhotoAnalysisController'
 import AssistantController from './AssistantController'
-import ImageSearchController from './ImageSearchController'
 import Items from './Items'
+import ImageSearchController from './ImageSearchController'
 import ItemImageController from './ItemImageController'
 import TagController from './TagController'
 import Settings from './Settings'
@@ -21,8 +21,8 @@ const Controllers = {
     ItemController: Object.assign(ItemController, ItemController),
     ItemPhotoAnalysisController: Object.assign(ItemPhotoAnalysisController, ItemPhotoAnalysisController),
     AssistantController: Object.assign(AssistantController, AssistantController),
-    ImageSearchController: Object.assign(ImageSearchController, ImageSearchController),
     Items: Object.assign(Items, Items),
+    ImageSearchController: Object.assign(ImageSearchController, ImageSearchController),
     ItemImageController: Object.assign(ItemImageController, ItemImageController),
     TagController: Object.assign(TagController, TagController),
     Settings: Object.assign(Settings, Settings),

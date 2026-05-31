@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import BulkActionBar from '@/components/BulkActionBar.vue';
+import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import TagFilter from '@/components/TagFilter.vue';
+import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
@@ -33,6 +36,7 @@ const props = defineProps<{
 
 const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.search'), href: search().url }];
 const paperlessEnabled = usePage<SharedData>().props.features.paperless;
+const bulk = useBulkSelection(() => props.items.data.map((i) => i.id));
 
 const term = ref(props.query);
 const view = ref<ItemViewMode>('list');
@@ -128,6 +132,7 @@ function searchNow() {
 
                 <div class="flex items-center gap-2" style="margin-left: auto">
                     <span class="section-label">{{ $tChoice('search.results', items.total) }}</span>
+                    <BulkSelectToggle />
                     <ItemViewToggle v-model="view" />
                 </div>
             </div>
@@ -138,7 +143,7 @@ function searchNow() {
             </div>
 
             <template v-else>
-                <ItemCollection :items="items.data" :view="view" />
+                <ItemCollection :items="items.data" :view="view" selectable />
 
                 <nav v-if="items.links.length > 3" class="flex flex-wrap gap-1 mt-6 justify-center">
                     <component
@@ -154,5 +159,7 @@ function searchNow() {
                 </nav>
             </template>
         </div>
+
+        <BulkActionBar v-if="bulk.isSelectMode.value" :tags="tags" />
     </AppLayout>
 </template>
