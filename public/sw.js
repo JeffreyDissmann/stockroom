@@ -19,6 +19,7 @@
 
 const APP_SHELL_VERSION = 'v1';
 const APP_SHELL = `stockroom-shell-${APP_SHELL_VERSION}`;
+const BUILD_CACHE = `stockroom-build-${APP_SHELL_VERSION}`;
 const LAST_ITEMS = 'stockroom-items';
 const LAST_ITEMS_MAX = 30;
 
@@ -35,17 +36,28 @@ const APP_SHELL_URLS = [
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(APP_SHELL).then((cache) => cache.addAll(APP_SHELL_URLS)),
+        // `Promise.allSettled` instead of `cache.addAll` because addAll is
+        // atomic — one missing icon (a custom build that drops a favicon
+        // size, a path-prefixed deploy that 404s a path) would fail the
+        // entire install and the user would sit on the previous SW
+        // indefinitely. Best-effort is the right shape for precaching.
+        caches.open(APP_SHELL).then((cache) =>
+            Promise.allSettled(APP_SHELL_URLS.map((url) => cache.add(url))),
+        ),
     );
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+    // Drop every cache that isn't part of the current version. Because
+    // BUILD_CACHE is named with APP_SHELL_VERSION, bumping the version
+    // implicitly purges old Vite asset hashes instead of accumulating
+    // them indefinitely.
     event.waitUntil(
         caches.keys().then((keys) =>
             Promise.all(
                 keys
-                    .filter((k) => k !== APP_SHELL && k !== LAST_ITEMS)
+                    .filter((k) => k !== APP_SHELL && k !== BUILD_CACHE && k !== LAST_ITEMS)
                     .map((k) => caches.delete(k)),
             ),
         ),
@@ -104,12 +116,27 @@ self.addEventListener('fetch', (event) => {
     // Webhook / API surfaces stay network-only.
     if (url.pathname.startsWith('/webhooks/') || url.pathname.startsWith('/assistant/')) return;
 
-    // App shell: try cache first, fall back to network. Covers /build/*
-    // (Vite assets) plus the static icons.
-    if (
-        url.pathname.startsWith('/build/') ||
-        APP_SHELL_URLS.includes(url.pathname)
-    ) {
+    // Vite-built assets land in their own versioned cache so old hashes
+    // get purged on activate when APP_SHELL_VERSION bumps. Cache-first
+    // because the file content is immutable per hash.
+    if (url.pathname.startsWith('/build/')) {
+        event.respondWith(
+            caches.open(BUILD_CACHE).then(async (cache) => {
+                const hit = await cache.match(request);
+                if (hit) return hit;
+                const fresh = await fetch(request);
+                if (fresh.ok && fresh.type === 'basic') {
+                    cache.put(request, fresh.clone());
+                }
+                return fresh;
+            }),
+        );
+        return;
+    }
+
+    // Static app-shell assets (manifest + icons) — cache-first against the
+    // precached set; fall back to network on a miss.
+    if (APP_SHELL_URLS.includes(url.pathname)) {
         event.respondWith(
             caches.match(request).then((hit) => hit || fetch(request)),
         );

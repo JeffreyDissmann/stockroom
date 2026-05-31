@@ -20,7 +20,7 @@ import { useBulkSelection } from '@/composables/useBulkSelection';
 import type { SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { ArrowLeftRight, Tag, Trash2, X } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 defineProps<{ tags: TagSummary[] }>();
 
@@ -51,8 +51,13 @@ watch(
             undoTimer = setTimeout(() => (undoMap.value = null), 6000);
         }
     },
-    { immediate: true },
 );
+
+// Tear down the pending timer if the bar unmounts mid-flight (e.g. the
+// user exits Select mode while the toast is still on screen) — otherwise
+// the setTimeout callback fires on a torn-down component and tries to
+// write to a stale ref.
+onBeforeUnmount(() => clearTimeout(undoTimer));
 
 const count = computed(() => bulk.count.value);
 

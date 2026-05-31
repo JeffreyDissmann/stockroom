@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Support;
 
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
+use Symfony\Component\Process\Process;
 
 /**
  * Resolves the running app's version + commit for display on the login
@@ -19,7 +22,9 @@ use Illuminate\Support\Facades\Cache;
  */
 class AppVersion
 {
-    private const CACHE_TTL = 60; // seconds — local git is fast, but no need to shell out per request
+    private const CACHE_TTL = 60;          // seconds — local git is fast, but no need to shell out per request
+
+    private const GIT_TIMEOUT = 2.0;       // seconds — a wedged git lock can hang forever otherwise
 
     /**
      * @return array{tag: string|null, sha: string|null}
@@ -32,8 +37,8 @@ class AppVersion
         // cached. The Dockerfile passes APP_VERSION / APP_COMMIT as
         // --build-arg, the entrypoint runs config:cache, and the chip
         // lights up.
-        $tag = (string) (config('stockroom.version.tag') ?? '');
-        $sha = (string) (config('stockroom.version.commit') ?? '');
+        $tag = (string) config('stockroom.version.tag');
+        $sha = (string) config('stockroom.version.commit');
 
         if ($tag !== '' || $sha !== '') {
             return [
@@ -69,29 +74,23 @@ class AppVersion
     }
 
     /**
+     * Run a short-lived git command with a hard timeout. A wedged git
+     * lock or a missing binary returns an empty string rather than
+     * propagating — the caller hides the chip on empty.
+     *
      * @param  list<string>  $cmd
      */
     private static function run(array $cmd): string
     {
-        // proc_open + trimmed stdout. Suppresses stderr so a missing tag
-        // ("fatal: No names found") doesn't pollute the log.
-        $proc = proc_open(
-            $cmd,
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-            $cmd[2] ?? null, // -C path is at index 2 for our calls
-        );
+        $process = new Process($cmd);
+        $process->setTimeout(self::GIT_TIMEOUT);
 
-        if (! is_resource($proc)) {
+        try {
+            $process->run();
+        } catch (ProcessTimedOutException|ProcessFailedException) {
             return '';
         }
 
-        $out = trim((string) stream_get_contents($pipes[1]));
-        foreach ($pipes as $pipe) {
-            fclose($pipe);
-        }
-        proc_close($proc);
-
-        return $out;
+        return $process->isSuccessful() ? trim($process->getOutput()) : '';
     }
 }
