@@ -20,8 +20,11 @@ import { computed } from 'vue';
 const page = usePage<SharedData>();
 const version = computed(() => page.props.version);
 
-// Show the chip only when at least one of tag / sha is known.
-const showVersion = computed(() => version.value?.tag !== null || version.value?.sha !== null);
+// Show the chip only when at least one of tag / sha is known. Truthy
+// check rather than `!== null` because the version prop itself can be
+// missing during the brief moment before SharedData is hydrated, in
+// which case `undefined !== null` would render an empty chip.
+const showVersion = computed(() => Boolean(version.value?.tag || version.value?.sha));
 
 // Composed version string. Prefers "<tag> · <sha>", falls back to whichever
 // field is present.
@@ -35,18 +38,18 @@ const versionLabel = computed(() => {
 
 <template>
     <aside class="auth-context" data-test="auth-context">
-        <h2 class="auth-context__pitch">{{ trans('auth.context.pitch') }}</h2>
-        <p class="auth-context__status">{{ trans('auth.context.status') }}</p>
+        <h2 class="auth-context__pitch">{{ trans('auth_context.pitch') }}</h2>
+        <p class="auth-context__status">{{ trans('auth_context.status') }}</p>
 
         <ul class="auth-context__links">
             <li>
                 <Heart :size="14" />
-                <span>{{ trans('auth.context.built_by') }}</span>
+                <span>{{ trans('auth_context.built_by') }}</span>
             </li>
             <li>
                 <Github :size="14" />
                 <a href="https://github.com/JeffreyDissmann/stockroom" target="_blank" rel="noopener">
-                    {{ trans('auth.context.github') }}
+                    {{ trans('auth_context.github') }}
                 </a>
             </li>
             <li>
@@ -56,7 +59,7 @@ const versionLabel = computed(() => {
                     target="_blank"
                     rel="noopener"
                 >
-                    {{ trans('auth.context.license') }}
+                    {{ trans('auth_context.license') }}
                 </a>
             </li>
         </ul>
