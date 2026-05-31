@@ -5,12 +5,36 @@ import CommandPalette from '@/components/CommandPalette.vue';
 import Topbar from '@/components/Topbar.vue';
 import TopNav from '@/components/TopNav.vue';
 import { useAssistant } from '@/composables/useAssistant';
+import { useBulkSelection } from '@/composables/useBulkSelection';
 import type { BreadcrumbItemType, SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { Sparkles } from 'lucide-vue-next';
+import { computed } from 'vue';
 
-const aiEnabled = usePage<SharedData>().props.features.ai;
+const page = usePage<SharedData>();
+const aiEnabled = page.props.features.ai;
 const { open: openAssistant } = useAssistant();
+const bulk = useBulkSelection();
+
+// Mobile assistant FAB only surfaces on the pages where you're actually
+// browsing items — Dashboard (the recent-activity feed) and Inventory
+// (the tree + per-item Show). Item create / edit forms already have
+// their own AI affordance (the photo-analyze button), and a floating
+// shortcut on top of a long form just covers fields. Settings /
+// Household / Search / Tags get nothing here either; the assistant is
+// still one tap away via the bottom-tabs "More" menu.
+const showAssistantFab = computed(() => {
+    if (!aiEnabled) return false;
+    // Bulk select mode parks its own floating action bar at the bottom of
+    // the viewport — the FAB and the bar would collide. Hide the FAB
+    // until selection mode exits.
+    if (bulk.isSelectMode.value) return false;
+    const url = page.url.split('?')[0]; // ignore query string for the route check
+    if (url.startsWith('/dashboard') || url.startsWith('/search')) return true;
+    if (!url.startsWith('/items')) return false;
+    // `/items`, `/items/123` → show; `/items/create` and `/items/123/edit` → hide.
+    return !url.endsWith('/create') && !url.endsWith('/edit');
+});
 
 withDefaults(
     defineProps<{
@@ -37,7 +61,7 @@ withDefaults(
         <CommandPalette />
         <AssistantPanel v-if="aiEnabled" />
         <button
-            v-if="aiEnabled"
+            v-if="showAssistantFab"
             type="button"
             class="assistant-fab inline-flex items-center justify-center md:hidden"
             :title="$t('nav.assistant')"

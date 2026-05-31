@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import ActivityFeed from '@/components/ActivityFeed.vue';
+import BulkActionBar from '@/components/BulkActionBar.vue';
+import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
 import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import LinkRelatedItemDialog from '@/components/LinkRelatedItemDialog.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
-import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useCurrency } from '@/composables/useCurrency';
@@ -15,9 +16,10 @@ import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import relatedItemsRoutes from '@/routes/items/related-items';
-import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData } from '@/types';
+import { useBulkSelection } from '@/composables/useBulkSelection';
+import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData, TagSummary } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckCircle2, ChevronRight, FileText, ImagePlus, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, FileText, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface PaperlessLinkSummary {
@@ -32,6 +34,8 @@ const props = defineProps<{
     relatedItems: ItemSummary[];
     paperlessLinks: PaperlessLinkSummary[];
     activities: ActivityRow[];
+    // For the bulk-tag dialog launched from the Contents section.
+    tags?: TagSummary[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
@@ -43,19 +47,10 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
 
 const page = usePage<SharedData>();
 
-// Auto-open SearchImageDialog when the URL says so. The "Create a box for
-// this item" action redirects here with ?focus=images because picking a
-// photo for the freshly-created box is the natural next step.
-//
-// Reading from page.url (Inertia's reactive URL incl. query string) rather
-// than window.location.search, because the latter isn't guaranteed to be
-// updated by the time the script setup runs after a programmatic redirect —
-// usePage().url is fed straight from the server response and is reliable
-// at component mount.
-const focusImages = computed(() => {
-    const queryString = page.url.split('?')[1] ?? '';
-    return new URLSearchParams(queryString).get('focus') === 'images';
-});
+// Bulk-select store wired to the Contents section. Cmd/Ctrl-A selects
+// the current item's direct children; out-of-mode clicks navigate
+// normally into each child.
+const bulk = useBulkSelection(() => props.children.map((c) => c.id));
 
 // One-shot success banner after the new box was created — Inertia's flash
 // payload carries the source item's name so the message can name the thing
@@ -64,10 +59,9 @@ const focusImages = computed(() => {
 const boxCreatedFor = computed(() => page.props.flash?.box_created_for ?? null);
 const boxBannerDismissed = ref(false);
 
-// Refs into the two dialog components so the mobile More-menu items can open
-// them imperatively (the inline trigger button is CSS-hidden below md).
+// Ref into the box dialog component so the mobile More-menu item can open
+// it imperatively (the inline trigger button is CSS-hidden below md).
 const createBoxDialog = ref<InstanceType<typeof CreateBoxDialog> | null>(null);
-const searchImageDialog = ref<InstanceType<typeof SearchImageDialog> | null>(null);
 
 const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
 const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
@@ -159,25 +153,20 @@ function destroyItem() {
             </Link>
             <MoveItemDialog :item="item" />
 
-            <!-- Secondary actions: visible inline on desktop, hidden on mobile
-                 and reachable via the More dropdown below. The dialogs stay
-                 mounted on both breakpoints; only their inline triggers are
-                 hidden — the mobile menu opens them via the exposed
-                 openDialog() method on each component. -->
+            <!-- Secondary actions: visible inline on wide desktops, hidden
+                 below `xl` (1280px) and reachable via the More dropdown.
+                 Raising the breakpoint from `md` to `xl` catches the
+                 deeply-nested-breadcrumb case where the action row would
+                 otherwise overflow past the right edge of the viewport.
+                 The dialogs stay mounted on both breakpoints; only their
+                 inline triggers are hidden — the mobile/narrow menu opens
+                 them via the exposed openDialog() method on each component. -->
             <!-- `!`-prefixed utilities so .btn-pill's `display: inline-flex`
                  in app.css (loaded after Tailwind) doesn't override the
-                 mobile-hide. The `!` adds !important which wins regardless
-                 of stylesheet order. -->
-            <CreateBoxDialog ref="createBoxDialog" :item="item" trigger-class="!hidden md:!inline-flex" />
-            <SearchImageDialog
-                v-if="page.props.features.imageSearch"
-                ref="searchImageDialog"
-                :item-id="item.id"
-                :item-name="item.name"
-                :auto-open="focusImages"
-                trigger-class="!hidden md:!inline-flex"
-            />
-            <button class="btn-pill btn-danger !hidden md:!inline-flex" type="button" @click="destroyItem">
+                 hide. The `!` adds !important which wins regardless of
+                 stylesheet order. -->
+            <CreateBoxDialog ref="createBoxDialog" :item="item" trigger-class="!hidden xl:!inline-flex" />
+            <button class="btn-pill btn-danger !hidden xl:!inline-flex" type="button" @click="destroyItem">
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
             </button>
@@ -187,11 +176,12 @@ function destroyItem() {
                 {{ $t('items.show.add_child') }}
             </Link>
 
-            <!-- Mobile-only More menu: surfaces Create box / Find image /
-                 Delete in a single tap target so the topbar doesn't wrap on a
-                 phone. Move and Edit are deliberately kept inline because
-                 they're the everyday actions when reorganising inventory.
-                 Right-alignment of the whole row is handled by
+            <!-- Narrow-viewport More menu: surfaces Create box / Delete in
+                 a single tap target so the topbar doesn't overflow on a
+                 phone OR a tablet OR a narrow desktop with a deep
+                 breadcrumb. Move and Edit are deliberately kept inline
+                 because they're the everyday actions when reorganising
+                 inventory. Right-alignment of the whole row is handled by
                  .topbar-actions { justify-content: flex-end }. -->
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
@@ -201,7 +191,7 @@ function destroyItem() {
                          padding. -->
                     <button
                         type="button"
-                        class="btn-pill md:!hidden"
+                        class="btn-pill xl:!hidden"
                         style="padding: 5px 8px"
                         data-test="item-actions-more"
                         :aria-label="$t('common.more')"
@@ -213,14 +203,6 @@ function destroyItem() {
                     <DropdownMenuItem data-test="item-actions-more-create-box" @click="createBoxDialog?.openDialog()">
                         <PackageOpen class="mr-2 h-4 w-4" />
                         {{ $t('items.box.trigger') }}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        v-if="page.props.features.imageSearch"
-                        data-test="item-actions-more-find-image"
-                        @click="searchImageDialog?.openDialog()"
-                    >
-                        <ImagePlus class="mr-2 h-4 w-4" />
-                        {{ $t('items.image_search.trigger') }}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -392,6 +374,7 @@ function destroyItem() {
                 <div class="flex items-center justify-between mb-3 gap-3">
                     <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
                     <div class="flex items-center gap-2">
+                        <BulkSelectToggle v-if="children.length" />
                         <ItemViewToggle v-if="children.length" v-model="contentsView" />
                         <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
                             <Plus :size="14" />
@@ -404,7 +387,10 @@ function destroyItem() {
                     {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
                 </div>
 
-                <ItemCollection v-else :items="children" :view="contentsView" />
+                <!-- `selectable` participates in the same bulk-select store as
+                     Items/Index and Search — clicking a child in select mode
+                     toggles selection instead of navigating into it. -->
+                <ItemCollection v-else :items="children" :view="contentsView" selectable />
             </section>
 
             <!-- Related items: the durable many-to-many edge (separate from
@@ -439,6 +425,8 @@ function destroyItem() {
                 <ActivityFeed :rows="activities" :show-subject="false" />
             </section>
         </div>
+
+        <BulkActionBar v-if="bulk.isSelectMode.value" :tags="tags ?? []" />
     </AppLayout>
 </template>
 

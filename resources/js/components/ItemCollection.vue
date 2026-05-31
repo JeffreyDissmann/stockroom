@@ -2,10 +2,11 @@
 import ItemCardCarousel from '@/components/ItemCardCarousel.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import TagBadge from '@/components/TagBadge.vue';
+import { useBulkSelection } from '@/composables/useBulkSelection';
 import itemRoutes from '@/routes/items';
 import type { ItemSummary, ItemViewMode } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { X } from 'lucide-vue-next';
+import { Check, X } from 'lucide-vue-next';
 
 const props = defineProps<{
     items: ItemSummary[];
@@ -13,11 +14,20 @@ const props = defineProps<{
     // When true, each row/card renders an × that emits `remove` with the
     // item. Used by the Related items section on item Show to unlink.
     removable?: boolean;
+    // When true, the collection participates in the bulk-select store: in
+    // Select mode rows show a checkbox and clicks toggle selection instead
+    // of navigating to the item. Set on the items index + search results;
+    // omitted on read-only embedded lists (e.g. Related items on Show).
+    selectable?: boolean;
 }>();
 
 const emit = defineEmits<{
     remove: [item: ItemSummary];
 }>();
+
+// Singleton store. ItemCollection is the only component that reads it for
+// row decoration; the topbar Select toggle and the action bar drive writes.
+const bulk = useBulkSelection(() => props.items.map((i) => i.id));
 
 // Stop the click on the × from bubbling to the parent row/card's
 // navigation handler — otherwise removing also opens the item.
@@ -27,46 +37,69 @@ function onRemoveClick(item: ItemSummary, event: MouseEvent) {
     emit('remove', item);
 }
 
-// Keep TS happy about the unused `props` when `removable` isn't read in
-// some template branches; this also serves as a clear contract surface.
-void props;
+// In Select mode, clicking a row toggles selection rather than navigating.
+// Bound on the <tr>/<a> via `@click.capture` so it short-circuits the
+// existing navigation handler.
+function onRowClick(item: ItemSummary, event: MouseEvent) {
+    if (props.selectable && bulk.isSelectMode.value) {
+        event.preventDefault();
+        event.stopPropagation();
+        bulk.toggleId(item.id);
+    }
+}
 </script>
 
 <template>
     <table v-if="view === 'list'" class="table card" style="border-radius: var(--radius)">
         <thead>
             <tr>
+                <th v-if="selectable && bulk.isSelectMode.value" class="num" style="width: 32px" />
                 <th>Item</th>
-                <th>Type</th>
-                <th>Tags</th>
-                <th class="num">Inside</th>
+                <th class="hide-on-mobile">Type</th>
+                <th class="hide-on-mobile">Tags</th>
+                <th class="num hide-on-mobile">Inside</th>
                 <th v-if="removable" class="num" />
             </tr>
         </thead>
         <tbody>
-            <tr v-for="item in items" :key="item.id" class="row-clickable" @click="router.visit(itemRoutes.show(item.id).url)">
+            <tr
+                v-for="item in items"
+                :key="item.id"
+                class="row-clickable"
+                :class="{ 'row-selected': selectable && bulk.isSelected(item.id) }"
+                @click="(e) => (selectable && bulk.isSelectMode.value ? onRowClick(item, e) : router.visit(itemRoutes.show(item.id).url))"
+            >
+                <td v-if="selectable && bulk.isSelectMode.value" class="num" @click.stop="bulk.toggleId(item.id)">
+                    <span class="bulk-check" :class="{ 'bulk-check--on': bulk.isSelected(item.id) }">
+                        <Check v-if="bulk.isSelected(item.id)" :size="12" />
+                    </span>
+                </td>
                 <td>
                     <div class="row-name">
                         <span class="row-thumb"><ItemThumbnail :item="item" size="sm" /></span>
-                        <div>
+                        <div class="row-name-body">
                             <div class="nm">{{ item.name }}</div>
-                            <div
-                                v-if="item.description"
-                                class="sub"
-                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px"
-                            >
+                            <!-- Inline tag row, mobile-only. Desktop keeps
+                                 the dedicated Tags column for sortable
+                                 visual alignment; on mobile that column
+                                 is hidden and tags surface here right
+                                 below the name. -->
+                            <div v-if="item.tags?.length" class="row-name-tags">
+                                <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
+                            </div>
+                            <div v-if="item.description" class="sub row-name-sub">
                                 {{ item.description }}
                             </div>
                         </div>
                     </div>
                 </td>
-                <td><span class="tag">{{ item.type.label }}</span></td>
-                <td>
+                <td class="hide-on-mobile"><span class="tag">{{ item.type.label }}</span></td>
+                <td class="hide-on-mobile">
                     <div class="flex flex-wrap gap-1">
                         <TagBadge v-for="tag in item.tags ?? []" :key="tag.id" :tag="tag" />
                     </div>
                 </td>
-                <td class="num mono">{{ item.children_count ?? 0 }}</td>
+                <td class="num mono hide-on-mobile">{{ item.children_count ?? 0 }}</td>
                 <td v-if="removable" class="num">
                     <button
                         type="button"
@@ -84,8 +117,35 @@ void props;
     </table>
 
     <div v-else class="items-grid">
-        <div v-for="item in items" :key="item.id" class="item-card-wrap">
-            <Link :href="itemRoutes.show(item.id).url" class="item-card">
+        <div
+            v-for="item in items"
+            :key="item.id"
+            class="item-card-wrap"
+            :class="{ 'item-card-wrap--selected': selectable && bulk.isSelected(item.id) }"
+        >
+            <!--
+                In Select mode we swap <Link> for a <button> rather than
+                relying on `event.preventDefault()` inside an @click on the
+                Link. Inertia's <Link> attaches its own click listener that
+                navigates regardless of whether the user's @click prevented
+                the default — they run as independent event listeners and
+                Vue's `@click.prevent` doesn't propagate to Inertia's. A
+                native <button> has no navigation behaviour to fight.
+            -->
+            <component
+                :is="selectable && bulk.isSelectMode.value ? 'button' : Link"
+                :href="selectable && bulk.isSelectMode.value ? undefined : itemRoutes.show(item.id).url"
+                :type="selectable && bulk.isSelectMode.value ? 'button' : undefined"
+                class="item-card"
+                @click="selectable && bulk.isSelectMode.value ? bulk.toggleId(item.id) : null"
+            >
+                <span
+                    v-if="selectable && bulk.isSelectMode.value"
+                    class="bulk-check bulk-check--on-card"
+                    :class="{ 'bulk-check--on': bulk.isSelected(item.id) }"
+                >
+                    <Check v-if="bulk.isSelected(item.id)" :size="12" />
+                </span>
                 <div class="thumb">
                     <ItemCardCarousel v-if="(item.image_thumbs?.length ?? 0) > 1" :thumbs="item.image_thumbs ?? []" :alt="item.name" />
                     <ItemThumbnail v-else :item="item" size="md" />
@@ -100,7 +160,7 @@ void props;
                         <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                     </div>
                 </div>
-            </Link>
+            </component>
             <button
                 v-if="removable"
                 type="button"
@@ -116,10 +176,22 @@ void props;
 </template>
 
 <style scoped>
-/* Wrapper around each card needed so we can absolutely-position the remove
-   button without disturbing the Link's clickable area. */
+/* Wrapper around each card needed so we can absolutely-position the
+   remove button without disturbing the Link's clickable area. Flex
+   column + height:100% so cards stretch to the grid-row height — the
+   grid cell stretches by default (align-items: stretch), but the card
+   inside it stayed content-sized, so a thumb-less / tag-less item ended
+   up shorter than its neighbours. .item-card already has
+   display: flex; flex-direction: column; we just need it to grow inside
+   the wrap. */
 .item-card-wrap {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.item-card-wrap > .item-card {
+    flex: 1;
 }
 .item-remove-btn {
     position: absolute;
@@ -146,5 +218,79 @@ void props;
 .item-remove-btn:hover {
     color: var(--neg);
     border-color: var(--neg);
+}
+
+/* Bulk-selection checkbox — drawn ourselves rather than using a native
+   input so the visual matches the mono theme and the row's hit area is
+   the entire cell, not just the 16px box. */
+.bulk-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4px;
+    background: var(--bg-elev);
+    color: var(--accent-fg);
+    transition: background-color 0.12s, border-color 0.12s;
+}
+.bulk-check--on {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.bulk-check--on-card {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    box-shadow: var(--shadow-sm);
+}
+.row-selected td {
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.item-card-wrap--selected .item-card {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* Truncate the description on desktop so a long line doesn't double the
+   row height — the full text is still on the item's Show page. Capped
+   at 320px (~ 2/3 of the row width on standard layouts). */
+.row-name-body { min-width: 0; }
+.row-name-sub {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+}
+
+/* Inline tag row in the Item cell — hidden on desktop (the dedicated
+   Tags column carries them there); surfaced on mobile where every other
+   column has collapsed. Small gap + flex-wrap so 3+ tags break to a
+   second line gracefully. */
+.row-name-tags {
+    display: none;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+/* Mobile: collapse the table to the Item column alone — Type, Tags, and
+   Inside go offscreen otherwise. Tags re-appear inline under the name
+   via `.row-name-tags`. The description switches from ellipsis-on-one-
+   line to a soft 2-line wrap so it stays useful even when the row is
+   the only thing visible. */
+@media (max-width: 880px) {
+    .hide-on-mobile { display: none; }
+    .row-name-tags { display: flex; }
+    .row-name-sub {
+        white-space: normal;
+        max-width: none;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
 }
 </style>

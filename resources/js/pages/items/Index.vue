@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import BulkActionBar from '@/components/BulkActionBar.vue';
+import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
+import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItemType, ItemSummary, ItemViewMode } from '@/types';
+import type { BreadcrumbItemType, ItemSummary, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { Pencil, Plus, Search } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -12,7 +15,12 @@ const props = defineProps<{
     parent: ItemSummary | null;
     breadcrumb: ItemSummary[];
     items: ItemSummary[];
+    // Tags are sent for the bulk-tag dialog. Controller passes the full
+    // list since the picker shows them all (paginating tags is overkill).
+    tags?: TagSummary[];
 }>();
+
+const bulk = useBulkSelection(() => props.items.map((i) => i.id));
 
 const view = ref<ItemViewMode>('grid');
 const search = ref('');
@@ -61,7 +69,10 @@ watch(
                     <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ pageTitle }}</h2>
                     <p v-if="parent?.description" class="mt-1 text-sm" style="color: var(--fg-muted)">{{ parent.description }}</p>
                 </div>
-                <ItemViewToggle v-model="view" />
+                <div class="flex items-center gap-2">
+                    <BulkSelectToggle />
+                    <ItemViewToggle v-model="view" />
+                </div>
             </div>
 
             <div class="filterbar" style="padding: 0; margin-bottom: 14px">
@@ -80,7 +91,7 @@ watch(
                 <p v-else style="margin: 0">{{ $t('items.index.no_match') }}</p>
             </div>
 
-            <ItemCollection v-else :items="filtered" :view="view" />
+            <ItemCollection v-else :items="filtered" :view="view" selectable />
 
             <div v-if="parent" class="flex justify-end mt-6">
                 <Link :href="`/items/${parent.id}/edit`" class="btn-ghost">
@@ -89,5 +100,7 @@ watch(
                 </Link>
             </div>
         </div>
+
+        <BulkActionBar v-if="bulk.isSelectMode.value" :tags="tags ?? []" />
     </AppLayout>
 </template>

@@ -10,6 +10,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\ItemPhotoAnalysisController;
 use App\Http\Controllers\Items\BoxController;
+use App\Http\Controllers\Items\BulkController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
 use App\Http\Controllers\PaperlessWebhookController;
@@ -48,6 +49,10 @@ Route::middleware('auth')->group(function () {
     Route::get('assistant/conversation', [AssistantController::class, 'conversation'])->name('assistant.conversation');
 
     Route::resource('items', ItemController::class);
+
+    // Bulk operations on selected items (delete / move / attach-tag /
+    // detach-tag). Single endpoint with action dispatch; see BulkController.
+    Route::post('items/bulk', BulkController::class)->name('items.bulk');
 
     // JSON-only endpoints used by item dialogs (search-as-you-type pickers).
     // Sit outside the resource because they're not REST verbs on the item itself.

@@ -58,6 +58,10 @@ class ItemController extends Controller
                 ? $parent->ancestors()->push($parent)->map(fn (Item $i) => $this->presentItem($i))->values()
                 : [],
             'items' => $items->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withThumbs: true))->values(),
+            // For the bulk-tag dialog. Sent unconditionally rather than
+            // lazy-loaded — tags are small (typically <100 rows) and the
+            // round-trip when entering Select mode would feel sluggish.
+            'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
         ]);
     }
 
@@ -127,6 +131,10 @@ class ItemController extends Controller
             // would be null.
             'paperlessLinks' => $this->presentPaperlessLinks($item),
             'activities' => $activities,
+            // For the bulk-tag dialog launched from the Contents section's
+            // Select mode. Sent unconditionally (tag count is small) so
+            // toggling Select doesn't need an extra round-trip.
+            'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
         ]);
     }
 

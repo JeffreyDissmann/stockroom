@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Services\Brave\BraveImageSearchClient;
+use App\Support\AppVersion;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -28,9 +29,16 @@ class HandleInertiaRequests extends Middleware
      *
      * @var list<string>
      */
+    /**
+     * Note: `auth` is intentionally not here. Laravel ships its own
+     * `auth.php` ("These credentials do not match…") and shipping that
+     * to the JS layer would let untranslated framework strings leak
+     * onto the auth pages. The login-page context copy lives in its
+     * own `auth_context` group instead.
+     */
     private const TRANSLATION_GROUPS = [
         'common', 'nav', 'dashboard', 'items', 'search',
-        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums', 'assistant',
+        'activity', 'tags', 'settings', 'household', 'members', 'login', 'enums', 'assistant', 'auth_context',
     ];
 
     /**
@@ -55,7 +63,6 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         return array_merge(parent::share($request), [
-            ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
@@ -83,6 +90,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'locale' => app()->getLocale(),
             'translations' => $this->translations(),
+            // Build info for the login-page context panel + future "about"
+            // surfaces. Tag and sha can independently be null on dev or in
+            // freshly-cloned trees without git metadata; the frontend hides
+            // the chip rather than rendering "unknown".
+            'version' => AppVersion::current(),
         ]);
     }
 

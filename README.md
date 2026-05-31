@@ -8,8 +8,9 @@ about it.
 [![Changelog](https://img.shields.io/badge/changelog-keep--a--changelog-orange)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-> **Status:** alpha. The data model is stable and the test suite is green,
-> but this is a one-person side project — expect rough edges and read the
+> **Status:** beta. The data model is stable, the test suite is green and
+> the daily-driver workflows have shipped — but this is a one-person side
+> project, so expect occasional rough edges and read the
 > [CHANGELOG](./CHANGELOG.md) before upgrading.
 
 ## Features
@@ -21,6 +22,10 @@ about it.
 - **Custom fields** — household-wide field definitions (text, number, date,
   boolean, URL) per item; searchable when flagged.
 - **Tags** — coloured labels with item counts.
+- **Bulk edit** — Select mode on the items index, search results, and any
+  item's Contents section lets you delete, move, attach, or detach tags on
+  many items at once. Keyboard shortcuts (`Cmd/Ctrl-A`, `Esc`) + a 6 s
+  undo toast on moves.
 - **Images** — multiple images per item, drag-to-reorder, optional
   "search for an image" via [Brave Search](https://brave.com/search/api/).
 - **Hybrid search** — Meilisearch keyword search plus app-side vector
@@ -32,6 +37,9 @@ about it.
   it elsewhere.
 - **Activity log** — every change is attributed to a user.
 - **Localization** — English and German; per-user locale.
+- **Installable** — ships a PWA manifest + service worker. Add to homescreen
+  on iOS / Android (or as a desktop app on Chromium) for a standalone window
+  and a small offline cache of recently viewed items.
 - **Backup / restore** — a single archive of the household.
 - **HomeBox import** — pull locations, items, photos, tags and custom
   fields from a running [HomeBox](https://github.com/sysadminsmedia/homebox)

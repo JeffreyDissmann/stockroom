@@ -90,13 +90,23 @@ RUN set -eux; \
              storage/framework/views storage/logs bootstrap/cache; \
     chown -R www-data:www-data storage bootstrap/cache
 
+# Build-time provenance: the release workflow passes the CalVer tag + the
+# commit SHA so the running container can identify itself (login page
+# chip, future "About" surfaces). Defaults are empty so local builds
+# without these args silently disable the version chip rather than
+# rendering "(unknown)".
+ARG APP_VERSION=""
+ARG APP_COMMIT=""
+
 # FrankenPHP listens on 8080 by default in this image; reverse-proxy in front
 # for TLS. Override with SERVER_NAME if you terminate TLS here.
 ENV SERVER_NAME=:8080 \
     APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
-    STOCKROOM_ROLE=web
+    STOCKROOM_ROLE=web \
+    APP_VERSION=${APP_VERSION} \
+    APP_COMMIT=${APP_COMMIT}
 
 EXPOSE 8080
 
