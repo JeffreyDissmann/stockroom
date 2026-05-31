@@ -39,3 +39,15 @@ createInertiaApp({
 
 // This will set light / dark mode on page load...
 initializeTheme();
+
+// Register the PWA service worker after the page has settled. We register
+// late + with a static path so Inertia's initial paint isn't delayed by it.
+// `prod` only — in dev Vite's HMR competes with cached app-shell responses.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+            // SW registration is opportunistic — a failure (corp proxy
+            // stripping it, browser flag off) shouldn't surface to the user.
+        });
+    });
+}
