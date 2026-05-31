@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Items\BulkController::__invoke
-* @see app/Http/Controllers/Items/BulkController.php:32
+* @see app/Http/Controllers/Items/BulkController.php:35
 * @route '/items/bulk'
 */
 const BulkController = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ BulkController.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\BulkController::__invoke
-* @see app/Http/Controllers/Items/BulkController.php:32
+* @see app/Http/Controllers/Items/BulkController.php:35
 * @route '/items/bulk'
 */
 BulkController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ BulkController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Items\BulkController::__invoke
-* @see app/Http/Controllers/Items/BulkController.php:32
+* @see app/Http/Controllers/Items/BulkController.php:35
 * @route '/items/bulk'
 */
 BulkController.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
