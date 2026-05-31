@@ -51,35 +51,44 @@ function initials(name: string): string {
         <Link href="/" class="topnav-logo">
             <AppLogoIcon class-name="size-3.5" />
         </Link>
-        <span class="topnav-house">Stockroom</span>
+        <!-- Wordmark drops first when the row gets tight (the logo already
+             names the app). Below `lg` (1024px) it hides; the logo + the
+             nav icons carry the brand. -->
+        <span class="topnav-house hidden lg:inline">Stockroom</span>
         <Link
             v-for="link in primary"
             :key="link.href"
             :href="link.href"
             :class="['topnav-item', link.matches(page.url) ? 'active' : '']"
+            :title="link.label"
         >
             <component :is="link.icon" />
-            <span>{{ link.label }}</span>
+            <!-- Below `xl` (1280px) we show icons only and rely on the
+                 `title` attribute for the tooltip. The labels eat the most
+                 horizontal space on a row this dense, so they're first to
+                 collapse before anything moves into a menu. -->
+            <span class="hidden lg:inline">{{ link.label }}</span>
         </Link>
         <div class="topnav-spacer" />
-        <button type="button" class="topnav-search" data-test="open-search" @click="open()">
+        <button type="button" class="topnav-search" :title="$t('nav.search')" data-test="open-search" @click="open()">
             <Search :size="14" />
-            <span>{{ $t('nav.search') }}</span>
-            <kbd>⌘K</kbd>
+            <span class="hidden lg:inline">{{ $t('nav.search') }}</span>
+            <kbd class="hidden lg:inline-flex">⌘K</kbd>
         </button>
         <button v-if="aiEnabled" type="button" class="topnav-item" :title="$t('nav.assistant')" data-test="open-assistant" @click="openAssistant()">
             <Sparkles :size="16" />
-            <span>{{ $t('nav.assistant') }}</span>
-            <kbd>⌘⇧A</kbd>
+            <span class="hidden lg:inline">{{ $t('nav.assistant') }}</span>
+            <kbd class="hidden lg:inline-flex">⌘⇧A</kbd>
         </button>
         <Link
             v-for="link in secondary"
             :key="link.href"
             :href="link.href"
             :class="['topnav-item', link.matches(page.url) ? 'active' : '']"
+            :title="link.label"
         >
             <component :is="link.icon" />
-            <span>{{ link.label }}</span>
+            <span class="hidden lg:inline">{{ link.label }}</span>
         </Link>
         <DropdownMenu v-if="user">
             <DropdownMenuTrigger as-child>

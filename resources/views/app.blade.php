@@ -2,7 +2,12 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {{-- `viewport-fit=cover` opts into edge-to-edge rendering on iOS so
+             `env(safe-area-inset-bottom)` returns the real home-indicator
+             height instead of 0. The .bottom-tabs CSS already pads by
+             that env() value; without `cover` the inset collapses and the
+             tab row sits over the rounded corner. --}}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
         <title inertia>{{ config('app.name', 'Stockroom') }}</title>
 

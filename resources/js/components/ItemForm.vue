@@ -4,6 +4,7 @@ import CustomFieldsInput from '@/components/CustomFieldsInput.vue';
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
+import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import { trans, transChoice } from '@/composables/useTranslations';
@@ -79,6 +80,7 @@ function onFilesUpdate(files: File[]) {
 // hard client-side timeout so the UI never hangs indefinitely.
 const aiEnabled = usePage<SharedData>().props.features.ai;
 const paperlessEnabled = usePage<SharedData>().props.features.paperless;
+const imageSearchEnabled = usePage<SharedData>().props.features.imageSearch;
 const analyzing = ref(false);
 const analyzeError = ref<string | null>(null);
 
@@ -321,6 +323,13 @@ function submit() {
             @update:files="onFilesUpdate"
         />
         <InputError :message="form.errors['images.0']" />
+
+        <!-- Find image — moved here from Show.vue per the UI cleanup. Only
+             shown when the item already exists (you can't attach a Brave
+             result to an unsaved form), and only when imageSearch is on. -->
+        <div v-if="mode === 'edit' && imageSearchEnabled && item" style="margin-top: 8px">
+            <SearchImageDialog :item-id="item.id" :item-name="item.name" />
+        </div>
 
         <div v-if="mode === 'create' && aiEnabled && queuedFiles.length > 0" class="ai-fill">
             <button type="button" class="btn-pill" :disabled="analyzing" data-test="ai-fill" @click="analyzeFromPhoto">
