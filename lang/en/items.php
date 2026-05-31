@@ -6,6 +6,8 @@ return [
     'inventory' => 'Inventory',
     'new_item' => 'New item',
     'cannot_delete_paperless_parent' => 'This room or container is currently set as the Paperless intake destination in household preferences. Change the preference first.',
+    'cannot_move_into_self' => 'An item cannot be moved into itself.',
+    'cannot_move_into_descendant' => 'An item cannot be moved into one of its own descendants.',
     'add_title' => 'Add item',
     'edit_breadcrumb' => 'Edit',
     'edit_title' => 'Edit :name',

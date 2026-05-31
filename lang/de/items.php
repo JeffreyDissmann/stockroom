@@ -6,6 +6,8 @@ return [
     'inventory' => 'Inventar',
     'new_item' => 'Neuer Gegenstand',
     'cannot_delete_paperless_parent' => 'Dieser Raum oder Behälter ist als Ziel für Paperless-Importe in den Haushaltseinstellungen festgelegt. Ändere zuerst die Einstellung.',
+    'cannot_move_into_self' => 'Ein Gegenstand kann nicht in sich selbst verschoben werden.',
+    'cannot_move_into_descendant' => 'Ein Gegenstand kann nicht in einen seiner Unterordner verschoben werden.',
     'add_title' => 'Gegenstand hinzufügen',
     'edit_breadcrumb' => 'Bearbeiten',
     'edit_title' => ':name bearbeiten',

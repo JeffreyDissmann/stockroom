@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Item\BulkRequest;
 use App\Jobs\ReindexItemsJob;
 use App\Models\Item;
+use App\Models\Setting;
 use App\Services\Items\ItemWriter;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Multi-item operations from the bulk-select UI on /items and /search.
@@ -49,17 +51,26 @@ class BulkController extends Controller
             'move' => $this->move($items, $request->integer('parent_id') ?: null),
             'attach-tag' => $this->attachTag($items, (int) $request->validated('tag_id')),
             'detach-tag' => $this->detachTag($items, (int) $request->validated('tag_id')),
-            // BulkRequest's enum rule guarantees we never get here, but the
-            // match arm is required to make the return type non-mixed.
-            default => back(),
         };
     }
 
     /**
      * @param  Collection<int, Item>  $items
      */
-    private function delete($items): RedirectResponse
+    private function delete(Collection $items): RedirectResponse
     {
+        // Mirror the single-item destroy guard: the room/container set as
+        // the Paperless intake destination can't be deleted while it's
+        // still pointed at — orphaning the preference would silently
+        // route future intakes back to the top level. Surfaces as a
+        // validation error so the action bar's error UI lights up.
+        $paperlessParentId = Setting::int('paperless_parent_id');
+        if ($paperlessParentId !== null && $items->contains('id', $paperlessParentId)) {
+            throw ValidationException::withMessages([
+                'ids' => __('items.cannot_delete_paperless_parent'),
+            ]);
+        }
+
         DB::transaction(function () use ($items): void {
             foreach ($items as $item) {
                 $this->writer->delete($item);
@@ -79,8 +90,10 @@ class BulkController extends Controller
      *
      * @param  Collection<int, Item>  $items
      */
-    private function move($items, ?int $parentId): RedirectResponse
+    private function move(Collection $items, ?int $parentId): RedirectResponse
     {
+        $this->guardMoveTarget($items, $parentId);
+
         $previous = $items->mapWithKeys(fn (Item $i) => [$i->id => $i->parent_id])->all();
 
         // Suppress Scout's per-save auto-index inside the loop. Each
@@ -90,9 +103,9 @@ class BulkController extends Controller
         // turned on. Per-item Eloquent events (saving/saved + activity-log
         // entries) still fire normally; only the search index is held back.
         //
-        // After the moves commit, push every affected id (movers + their
-        // subtrees) through `searchable()` once, so Scout sends a single
-        // bulk PUT to Meilisearch.
+        // After the moves commit, a ReindexItemsJob picks up every affected
+        // id (movers + their subtrees) on the queue worker. The slow part
+        // (embeddings + Meilisearch upsert) runs off the request thread.
         DB::transaction(function () use ($items, $parentId): void {
             Item::withoutSyncingToSearch(function () use ($items, $parentId): void {
                 foreach ($items as $item) {
@@ -114,14 +127,16 @@ class BulkController extends Controller
     /**
      * @param  Collection<int, Item>  $items
      */
-    private function attachTag($items, int $tagId): RedirectResponse
+    private function attachTag(Collection $items, int $tagId): RedirectResponse
     {
         DB::transaction(function () use ($items, $tagId): void {
             Item::withoutSyncingToSearch(function () use ($items, $tagId): void {
                 foreach ($items as $item) {
-                    // attach() is the right primitive here: idempotent enough
-                    // when paired with the unique pivot, and doesn't replace
-                    // an item's existing tags the way sync() would.
+                    // syncWithoutDetaching is idempotent against the unique
+                    // pivot and (unlike sync()) won't strip an item's
+                    // existing tags. The activity-log entry per item is
+                    // intentionally skipped — bulk tag ops have no clear
+                    // per-item story; a single aggregate is a future TODO.
                     $item->tags()->syncWithoutDetaching([$tagId]);
                 }
             });
@@ -139,7 +154,7 @@ class BulkController extends Controller
     /**
      * @param  Collection<int, Item>  $items
      */
-    private function detachTag($items, int $tagId): RedirectResponse
+    private function detachTag(Collection $items, int $tagId): RedirectResponse
     {
         DB::transaction(function () use ($items, $tagId): void {
             Item::withoutSyncingToSearch(function () use ($items, $tagId): void {
@@ -156,6 +171,36 @@ class BulkController extends Controller
             'count' => $items->count(),
             'tag_id' => $tagId,
         ]);
+    }
+
+    /**
+     * Refuse a move that would put an item inside itself or one of its
+     * descendants — the same cycle guard MoveItemRequest applies to single
+     * moves. Without this, `Rule::exists('items','id')` happily accepts a
+     * descendant id and corrupts the tree.
+     *
+     * @param  Collection<int, Item>  $items
+     */
+    private function guardMoveTarget(Collection $items, ?int $parentId): void
+    {
+        if ($parentId === null) {
+            return;
+        }
+
+        $selectedIds = $items->pluck('id')->all();
+        if (in_array($parentId, $selectedIds, true)) {
+            throw ValidationException::withMessages([
+                'parent_id' => __('items.cannot_move_into_self'),
+            ]);
+        }
+
+        foreach ($items as $item) {
+            if (in_array($parentId, $item->descendantIds(), true)) {
+                throw ValidationException::withMessages([
+                    'parent_id' => __('items.cannot_move_into_descendant'),
+                ]);
+            }
+        }
     }
 
     /**
@@ -183,7 +228,7 @@ class BulkController extends Controller
             }
         }
 
-        $ids = array_values(array_unique(array_map('intval', $ids)));
+        $ids = array_values(array_unique($ids));
         if ($ids === []) {
             return;
         }

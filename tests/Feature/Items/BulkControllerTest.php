@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\ItemType;
+use App\Jobs\ReindexItemsJob;
 use App\Models\Item;
+use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 
 uses(RefreshDatabase::class);
 
@@ -102,4 +106,70 @@ it('requires tag_id on tag operations', function () {
 
     $this->post('/items/bulk', ['action' => 'attach-tag', 'ids' => [$item->id]])
         ->assertSessionHasErrors('tag_id');
+});
+
+it('rejects an empty ids array', function () {
+    $this->post('/items/bulk', ['action' => 'delete', 'ids' => []])
+        ->assertSessionHasErrors('ids');
+});
+
+it('rejects non-existent item ids', function () {
+    $this->post('/items/bulk', ['action' => 'delete', 'ids' => [9999]])
+        ->assertSessionHasErrors('ids.0');
+});
+
+it('refuses to bulk-delete the item configured as the Paperless intake parent', function () {
+    $room = Item::factory()->room()->create();
+    $other = Item::factory()->create();
+    Setting::set('paperless_parent_id', $room->id);
+
+    $this->post('/items/bulk', ['action' => 'delete', 'ids' => [$room->id, $other->id]])
+        ->assertSessionHasErrors('ids');
+
+    // Both items still exist — the whole batch is refused, not just $room.
+    expect(Item::query()->whereIn('id', [$room->id, $other->id])->count())->toBe(2);
+});
+
+it('refuses to bulk-move an item into itself', function () {
+    $a = Item::factory()->create();
+    $b = Item::factory()->create();
+
+    $this->post('/items/bulk', ['action' => 'move', 'ids' => [$a->id, $b->id], 'parent_id' => $a->id])
+        ->assertSessionHasErrors('parent_id');
+
+    expect($b->fresh()->parent_id)->not->toBe($a->id);
+});
+
+it('refuses to bulk-move an item into one of its own descendants', function () {
+    $room = Item::factory()->room()->create();
+    $box = Item::factory()->create(['type' => ItemType::Container, 'parent_id' => $room->id]);
+
+    // Trying to move the room into the box (which is inside the room) should fail.
+    $this->post('/items/bulk', ['action' => 'move', 'ids' => [$room->id], 'parent_id' => $box->id])
+        ->assertSessionHasErrors('parent_id');
+
+    expect($room->fresh()->parent_id)->toBeNull();
+});
+
+it('dispatches a ReindexItemsJob after a successful bulk move', function () {
+    Bus::fake();
+
+    $room = Item::factory()->room()->create();
+    $a = Item::factory()->create();
+    $b = Item::factory()->create();
+
+    $this->post('/items/bulk', ['action' => 'move', 'ids' => [$a->id, $b->id], 'parent_id' => $room->id])
+        ->assertRedirect();
+
+    // The reindex job carries every moved item id; descendants would be
+    // added too but there aren't any here.
+    Bus::assertDispatched(ReindexItemsJob::class, function (ReindexItemsJob $job) use ($a, $b): bool {
+        // `itemIds` is readonly — copy before sorting.
+        $actual = $job->itemIds;
+        sort($actual);
+        $expected = [$a->id, $b->id];
+        sort($expected);
+
+        return $actual === $expected;
+    });
 });

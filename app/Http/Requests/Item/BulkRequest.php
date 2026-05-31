@@ -31,10 +31,13 @@ class BulkRequest extends FormRequest
             // Nullable so the picker can submit "(top level)" explicitly.
             'parent_id' => ['nullable', 'integer', Rule::exists('items', 'id')],
 
-            // For action=attach-tag / detach-tag: tag id.
+            // For action=attach-tag / detach-tag: tag id. Note the lack of
+            // `nullable` — pairing it with `required_if` lets a null value
+            // through (the framework treats nullable as "skip the rest of
+            // the rules when null"), so the tag-op paths would silently
+            // accept a missing tag_id.
             'tag_id' => [
-                Rule::requiredIf(fn () => in_array($this->input('action'), ['attach-tag', 'detach-tag'], true)),
-                'nullable',
+                'required_if:action,attach-tag,detach-tag',
                 'integer',
                 Rule::exists('tags', 'id'),
             ],
