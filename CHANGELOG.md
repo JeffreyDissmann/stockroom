@@ -7,6 +7,66 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.05.09] — 2026-05-31
+
+### Added
+
+- **Bulk edit on the items index, search, and item Show.** Toggle Select
+  mode and tap rows (or use `Cmd/Ctrl-A`) to multi-select; a sticky action
+  bar offers Delete, Move, Add tag and Remove tag. Move flashes a 6-second
+  Undo toast that reverses every item to its previous parent. Backend
+  defers the slow part (Ollama embeddings + Meilisearch upsert) to a
+  background `ReindexItemsJob`; the search index catches up on the queue worker
+  a couple seconds later.
+- **Installable PWA.** Manifest + icons (192 / 512 px, maskable-safe) +
+  a service worker that precaches the app shell and stale-while-revalidates
+  the last ~30 visited item pages and their images. Adds Stockroom to
+  iOS / Android homescreens or Chromium's "Install app" with a proper
+  standalone window. Service worker registers in production builds only.
+- **Login context panel.** Pitch, "Made by", GitHub link, MIT license,
+  and a `tag · commit` chip on `/login` / `/register` / `/forgot-password`.
+  Build provenance flows from `--build-arg APP_VERSION` + `APP_COMMIT`
+  in the release workflow → Dockerfile ENV → `config('stockroom.version.*')`
+  → Inertia shared prop, so it survives `php artisan config:cache` in
+  production. Dev environments fall back to a cached `git describe`.
+
+### Changed
+
+- **Project status** moved from alpha to beta. Data model has been stable
+  across several releases, daily-driver workflows are all in place.
+- **Topbar overflow** on item Show. Secondary actions (Create box, Delete)
+  now fold into the existing `⋮ More` menu below `xl` (1280 px) instead
+  of `md` (768 px), so a deeply-nested breadcrumb no longer pushes the
+  action row past the right edge of a narrow desktop.
+- **Breadcrumb truncation.** Chains > 4 entries collapse the middle into
+  a `…` dropdown. The first crumb, the parent, and the current item are
+  always visible; per-crumb ellipsis caps any single name at ~24ch so a
+  long item name can't take over the row.
+- **App-shell top nav.** Below `lg` (1024 px) the nav drops link labels
+  and kbd shortcut hints, falling back to icon-only with a `title`
+  tooltip. The "Stockroom" wordmark drops at the same breakpoint; the
+  logo carries the brand. Fits down to ~700 px without wrapping.
+- **Mobile assistant FAB** now only appears on Dashboard, Inventory
+  (browse + item Show), and Search — not on the create / edit forms,
+  Settings, Tags, Household, Activity, or while bulk Select mode is on.
+  Reachable from the bottom-tabs "More" menu everywhere else.
+- **Mobile list view** of items drops the Type / Tags / Inside columns
+  to fit a phone screen. Tags surface inline as small pills under the
+  item name; description softly clamps to two lines.
+- **iOS standalone mode** safe area. The viewport meta gains
+  `viewport-fit=cover` so `env(safe-area-inset-bottom)` returns a real
+  value and the bottom tab bar lifts above the home indicator instead
+  of sitting on the rounded corner.
+
+### Removed
+
+- **Find image** button on item Show — desktop topbar entry and the
+  mobile `⋮ More` row. The action moves into the Edit form's image
+  panel, where the user is already thinking about images. The same
+  `?focus=images` deep-link from Create-Box is dropped; the dialog
+  refs / orphaned `SearchImageDialog` import / unused `ImagePlus`
+  icon all go with it.
+
 ## [2026.05.08] — 2026-05-30
 
 ### Added
@@ -22,7 +82,7 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
   preferences walks every linked doc and re-applies the annotation
   (live progress bar, mirrors the search-index UX). Multi-item
   receipts produce one item per line; zero-extraction docs fall back
-  to a single placeholder so every tagged doc produces *something*.
+  to a single placeholder so every tagged doc produces _something_.
   Full walkthrough in
   [`docs/paperless-integration.md`](./docs/paperless-integration.md).
 - **`paperless:adopt-custom-field` command.** Migrates pre-existing
@@ -166,7 +226,7 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 - **Backup download button was missing from the consolidated Backup &
   import screen.** `BackupRestore.vue` called `backup.exportMethod()` on
   Wayfinder's default-export object, where the key is actually `export`
-  (suffixed only on the *named* exports because `export`/`import` are
+  (suffixed only on the _named_ exports because `export`/`import` are
   reserved at module top-level). The expression threw at render time and
   Vue silently bailed out of the subtree, leaving the rest of the page
   intact. Now uses the named exports directly.
@@ -273,7 +333,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.08...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.09...HEAD
+[2026.05.09]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.08...2026.05.09
 [2026.05.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.07...2026.05.08
 [2026.05.07]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.06...2026.05.07
 [2026.05.06]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.05...2026.05.06
