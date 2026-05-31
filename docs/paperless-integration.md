@@ -32,7 +32,7 @@ This page covers the setup, the data flow, and the operator tools.
 
 # 2. One-shot setup — creates the tags, custom field and workflow on Paperless,
 #    and seeds the webhook secret in .env.
-vendor/bin/sail artisan paperless:install
+php artisan paperless:install
 
 # 3. Tag any document in Paperless with "Add to Stockroom".
 #    Watch the queue worker — items appear on the Inventory page.
@@ -111,15 +111,15 @@ Many users were storing a Paperless link (URL or doc id) in a custom field befor
 
 ```bash
 # List every defined custom field with its key, type and item count.
-vendor/bin/sail artisan paperless:adopt-custom-field
+php artisan paperless:adopt-custom-field
 
 # Adopt from a specific field (by name or key).
-vendor/bin/sail artisan paperless:adopt-custom-field "Rechnung Paperless"
+php artisan paperless:adopt-custom-field "Rechnung Paperless"
 
 # Also push the Stockroom tag + back-link URL to Paperless on every adopted
 # doc afterwards. Runs RelinkAllPaperlessDocumentsJob synchronously, so no
 # queue worker is needed.
-vendor/bin/sail artisan paperless:adopt-custom-field "Rechnung Paperless" --relink
+php artisan paperless:adopt-custom-field "Rechnung Paperless" --relink
 ```
 
 The parser accepts a bare integer or any URL containing `/documents/{id}`. The command is idempotent (`firstOrCreate` on the unique `(item_id, paperless_document_id)` pair), so re-running is safe.
