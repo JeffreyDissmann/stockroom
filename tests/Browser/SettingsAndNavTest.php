@@ -29,6 +29,14 @@ it('loads the password settings page', function () {
         ->assertNoJavaScriptErrors();
 });
 
+it('loads the API tokens settings page', function () {
+    $page = visit('/settings/api-tokens');
+
+    $page->assertSee('API tokens')
+        ->assertPresent('@api-token-create')
+        ->assertNoJavaScriptErrors();
+});
+
 it('shows the bottom tab bar on a mobile viewport', function () {
     $page = visit('/dashboard')->on()->iPhone14Pro();
 

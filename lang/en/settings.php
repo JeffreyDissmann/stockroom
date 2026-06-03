@@ -10,6 +10,7 @@ return [
         'profile' => 'Profile',
         'password' => 'Password',
         'appearance' => 'Appearance',
+        'api_tokens' => 'API tokens',
     ],
 
     'language' => [
@@ -45,6 +46,28 @@ return [
         'confirm_label' => 'Confirm password',
         'confirm_placeholder' => 'Confirm password',
         'submit' => 'Save password',
+    ],
+
+    'api_tokens' => [
+        'breadcrumb' => 'API tokens',
+        'title' => 'API tokens',
+        'description' => 'Issue tokens for the Home Assistant integration (and other API clients). A token is shown only once — copy it now.',
+        'name_label' => 'Token name',
+        'name_placeholder' => 'e.g. Home Assistant',
+        'abilities_label' => 'Abilities',
+        'ability_read' => 'Read (statistics, items, search)',
+        'ability_write' => 'Write (create/update items, set Home Assistant links)',
+        'create' => 'Create token',
+        'created_title' => 'Copy your new token',
+        'created_hint' => "This is the only time you'll see this token. Store it somewhere safe.",
+        'copy' => 'Copy',
+        'copied' => 'Copied',
+        'existing_title' => 'Active tokens',
+        'empty' => 'No tokens yet.',
+        'last_used' => 'Last used :time',
+        'never_used' => 'Never used',
+        'created_at' => 'Created :time',
+        'revoke' => 'Revoke',
     ],
 
     'delete' => [

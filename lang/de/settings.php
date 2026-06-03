@@ -10,6 +10,7 @@ return [
         'profile' => 'Profil',
         'password' => 'Passwort',
         'appearance' => 'Darstellung',
+        'api_tokens' => 'API-Tokens',
     ],
 
     'language' => [
@@ -45,6 +46,28 @@ return [
         'confirm_label' => 'Passwort bestätigen',
         'confirm_placeholder' => 'Passwort bestätigen',
         'submit' => 'Passwort speichern',
+    ],
+
+    'api_tokens' => [
+        'breadcrumb' => 'API-Tokens',
+        'title' => 'API-Tokens',
+        'description' => 'Erstelle Tokens für die Home-Assistant-Integration (und andere API-Clients). Ein Token wird nur einmal angezeigt – kopiere es jetzt.',
+        'name_label' => 'Token-Name',
+        'name_placeholder' => 'z. B. Home Assistant',
+        'abilities_label' => 'Berechtigungen',
+        'ability_read' => 'Lesen (Statistiken, Objekte, Suche)',
+        'ability_write' => 'Schreiben (Objekte anlegen/ändern, Home-Assistant-Verknüpfungen setzen)',
+        'create' => 'Token erstellen',
+        'created_title' => 'Kopiere dein neues Token',
+        'created_hint' => 'Dies ist das einzige Mal, dass dieses Token angezeigt wird. Bewahre es sicher auf.',
+        'copy' => 'Kopieren',
+        'copied' => 'Kopiert',
+        'existing_title' => 'Aktive Tokens',
+        'empty' => 'Noch keine Tokens.',
+        'last_used' => 'Zuletzt verwendet :time',
+        'never_used' => 'Nie verwendet',
+        'created_at' => 'Erstellt :time',
+        'revoke' => 'Widerrufen',
     ],
 
     'delete' => [

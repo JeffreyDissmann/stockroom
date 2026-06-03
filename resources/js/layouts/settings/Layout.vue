@@ -23,6 +23,10 @@ const sidebarNavItems: NavItem[] = [
         title: trans('settings.language.title'),
         href: '/settings/language',
     },
+    {
+        title: trans('settings.nav.api_tokens'),
+        href: '/settings/api-tokens',
+    },
 ];
 
 const currentPath = window.location.pathname;
