@@ -50,6 +50,11 @@ about it.
   handed to the AI to extract inventory items, linked back to the doc, and
   (optionally) given Brave-sourced cover images. See
   [`docs/paperless-integration.md`](./docs/paperless-integration.md).
+- **Home Assistant integration** — a token-authenticated REST API surfaces
+  inventory statistics, search, and a 1:1 link between Home Assistant devices
+  and Stockroom items (each item carries a deep link back to its HA device
+  page). See [`docs/home-assistant-integration.md`](./docs/home-assistant-integration.md)
+  and the [`API reference`](./docs/api.md).
 
 ## Self-host with Docker
 
