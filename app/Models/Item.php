@@ -122,6 +122,16 @@ class Item extends Model
         return $this->hasMany(PaperlessLink::class);
     }
 
+    /**
+     * The Home Assistant entity this item is linked to (1:1). The HA
+     * integration writes this via the v1 API so the item carries a deep
+     * link back to its device page in Home Assistant.
+     */
+    public function homeAssistantLink(): HasOne
+    {
+        return $this->hasOne(HomeAssistantLink::class);
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ItemImage::class)->orderBy('sort_order');
