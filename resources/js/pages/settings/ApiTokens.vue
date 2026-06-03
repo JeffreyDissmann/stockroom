@@ -62,10 +62,42 @@ const revoke = (token: ApiToken) => {
 };
 
 const copied = ref(false);
+
+// Stockroom is commonly served over plain HTTP on a LAN/NAS, where the async
+// Clipboard API is unavailable (it's secure-context only). Fall back to a
+// hidden textarea + execCommand so Copy works there too.
+const writeToClipboard = async (text: string): Promise<boolean> => {
+    if (window.isSecureContext && navigator.clipboard) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch {
+            // fall through to the legacy path
+        }
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    let ok = false;
+    try {
+        ok = document.execCommand('copy');
+    } catch {
+        ok = false;
+    }
+    document.body.removeChild(textarea);
+    return ok;
+};
+
 const copyToken = async (token: string) => {
-    await navigator.clipboard.writeText(token);
-    copied.value = true;
-    window.setTimeout(() => (copied.value = false), 2000);
+    if (await writeToClipboard(token)) {
+        copied.value = true;
+        window.setTimeout(() => (copied.value = false), 2000);
+    }
 };
 </script>
 
