@@ -6,25 +6,25 @@ namespace App\Http\Controllers;
 
 use App\Enums\ItemType;
 use App\Models\Item;
-use App\Models\Tag;
 use App\Services\ActivityPresenter;
+use App\Services\InventoryStatistics;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
-    public function __construct(private readonly ActivityPresenter $presenter) {}
+    public function __construct(
+        private readonly ActivityPresenter $presenter,
+        private readonly InventoryStatistics $stats,
+    ) {}
 
     public function __invoke(): Response
     {
-        $byType = Item::query()
-            ->selectRaw('type, COUNT(*) as count')
-            ->groupBy('type')
-            ->pluck('count', 'type');
-
-        // Estimated value of what's currently owned (sold items excluded).
-        $value = (float) Item::query()->whereNull('sold_date')->sum('purchase_price');
+        // Counts/value/tag+room breakdowns are shared with the v1 API via
+        // InventoryStatistics; the dashboard takes the top-20 strips.
+        $byType = $this->stats->countsByType();
+        $value = $this->stats->ownedValue();
 
         $recent = Item::query()
             ->with(['parent:id,name,type', 'primaryImage'])
@@ -33,21 +33,10 @@ class DashboardController extends Controller
             ->get(['id', 'parent_id', 'type', 'name', 'icon', 'created_at']);
 
         // Top 20 tags, most-used first — drives the clickable dashboard tag strip.
-        $tags = Tag::query()
-            ->withCount('items')
-            ->orderByDesc('items_count')
-            ->orderBy('name')
-            ->limit(20)
-            ->get(['id', 'name', 'slug', 'color']);
+        $tags = $this->stats->tagsWithItemCounts(20);
 
         // Top 20 rooms, fullest first — drives the clickable dashboard room strip.
-        $rooms = Item::query()
-            ->where('type', ItemType::Room)
-            ->withCount('children')
-            ->orderByDesc('children_count')
-            ->orderBy('name')
-            ->limit(20)
-            ->get(['id', 'name', 'icon'])
+        $rooms = $this->stats->roomsWithChildCounts(20)
             ->map(fn (Item $r): array => [
                 'id' => $r->id,
                 'name' => $r->name,
