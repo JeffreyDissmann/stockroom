@@ -55,6 +55,16 @@ class ApiTokenManagementTest extends TestCase
 
         $token = $user->tokens()->sole();
         $this->assertSame(['read', 'write'], $token->abilities);
+
+        // The displayed token has the Sanctum "{id}|" prefix stripped...
+        $plainText = session('plainTextToken');
+        $this->assertStringNotContainsString('|', $plainText);
+
+        // ...and still authenticates against the API (Sanctum resolves the
+        // bare secret), proving the stripped token is fully usable.
+        $this->getJson('/api/v1/user', ['Authorization' => "Bearer {$plainText}"])
+            ->assertOk()
+            ->assertJsonPath('id', $user->id);
     }
 
     public function test_store_requires_a_name_and_at_least_one_ability(): void

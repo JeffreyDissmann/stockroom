@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreApiTokenRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -44,7 +45,12 @@ class ApiTokenController extends Controller
 
         $token = $request->user()->createToken($validated['name'], $validated['abilities']);
 
-        return to_route('api-tokens.index')->with('plainTextToken', $token->plainTextToken);
+        // Sanctum issues "{id}|{secret}"; the leading id is only a lookup hint —
+        // findToken() resolves the bare secret via the uniquely-indexed token
+        // column. Strip it so the user copies a clean token.
+        $plainTextToken = Str::after($token->plainTextToken, '|');
+
+        return to_route('api-tokens.index')->with('plainTextToken', $plainTextToken);
     }
 
     public function destroy(Request $request, int $token): RedirectResponse
