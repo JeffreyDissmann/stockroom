@@ -15,6 +15,7 @@ return [
     'delete_confirm' => 'Schlagwort „:name“ löschen? Es wird von :count Gegenstand/Gegenständen entfernt.',
     'cannot_delete_box_tag' => 'Dieses Schlagwort ist derzeit als Karton-Schlagwort in den Haushalts-Einstellungen festgelegt.',
     'cannot_delete_box_tag_cta' => 'Einstellung ändern.',
+    'cannot_delete_home_assistant_tag' => 'Dieses Schlagwort wird automatisch mit Home Assistant verknüpften Objekten zugewiesen und kann nicht gelöscht werden.',
 
     'filter' => [
         'all' => 'Alle Schlagwörter',

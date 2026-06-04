@@ -17,6 +17,7 @@
         "intervention/image": "^4.1",
         "laravel/ai": "^0.7.0",
         "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.0",
         "laravel/scout": "^11.2",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.20",

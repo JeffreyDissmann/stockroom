@@ -29,6 +29,26 @@ it('loads the password settings page', function () {
         ->assertNoJavaScriptErrors();
 });
 
+it('loads the API tokens settings page', function () {
+    $page = visit('/settings/api-tokens');
+
+    $page->assertSee('API tokens')
+        ->assertPresent('@api-token-create')
+        ->assertNoJavaScriptErrors();
+});
+
+it('creates an API token and shows it once', function () {
+    $page = visit('/settings/api-tokens');
+
+    // Name + the default `read` ability is enough; on success the one-time
+    // plaintext banner appears and the new token is listed.
+    $page->fill('#token_name', 'My HA token')
+        ->click('@api-token-create')
+        ->assertPresent('@api-token-plaintext')
+        ->assertSee('My HA token')
+        ->assertNoJavaScriptErrors();
+});
+
 it('shows the bottom tab bar on a mobile viewport', function () {
     $page = visit('/dashboard')->on()->iPhone14Pro();
 

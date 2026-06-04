@@ -27,6 +27,13 @@ class UpdatePreferencesRequest extends FormRequest
             // present it must point at an existing tag.
             'box_tag_id' => ['nullable', 'integer', 'exists:tags,id'],
 
+            // Which tag is auto-assigned to Home Assistant-linked items. There
+            // is no opt-out (linking always tags) — nullable only because the
+            // setting is unset until the first link creates the tag; the
+            // preferences picker only appears once it exists and offers no
+            // "none" choice, so it can only switch to another existing tag.
+            'home_assistant_tag_id' => ['nullable', 'integer', 'exists:tags,id'],
+
             // Paperless intake parent: nullable (opt out → items land at top
             // level), and when set must be a room or container — anything
             // else would mean dropping items inside another item, which the

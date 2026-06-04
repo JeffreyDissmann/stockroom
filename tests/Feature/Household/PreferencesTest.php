@@ -65,6 +65,22 @@ it('rejects an invalid tag id', function () {
         ->assertSessionHasErrors('box_tag_id');
 });
 
+it('updates the home assistant tag setting', function () {
+    $tag = Tag::factory()->create(['name' => 'Smart Home']);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['home_assistant_tag_id' => $tag->id])
+        ->assertRedirect();
+
+    expect(Setting::get('home_assistant_tag_id'))->toBe($tag->id);
+});
+
+it('rejects an invalid home assistant tag id', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['home_assistant_tag_id' => 99999])
+        ->assertSessionHasErrors('home_assistant_tag_id');
+});
+
 it('hydrates the picker with the currently selected parent', function () {
     $garage = Item::factory()->room()->create(['name' => 'Garage']);
     Setting::set('paperless_parent_id', $garage->id);

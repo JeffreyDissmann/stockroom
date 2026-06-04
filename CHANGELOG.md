@@ -7,6 +7,35 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.01] — 2026-06-04
+
+### Added
+
+- **Home Assistant integration.** A token-authenticated REST API (`/api/v1`)
+  lets the companion HACS integration
+  [`ha-stockroom`](https://github.com/JeffreyDissmann/ha-stockroom) connect
+  Home Assistant to your inventory: statistics, search, rooms/tags, and a
+  strict 1:1 link between an HA device (or entity) and a Stockroom item. Each
+  linked item carries a deep link back to its HA device page; HA can also
+  create items for unmatched devices. Endpoints include a one-call
+  `GET /api/v1/home-assistant-links` (every linked item with its link embedded)
+  for the integration's Repair feature. See
+  [`docs/home-assistant-integration.md`](./docs/home-assistant-integration.md)
+  and the [API reference](./docs/api.md).
+- **API tokens.** Manage personal access tokens under **Settings → API tokens**
+  — name them, scope them `read` and/or `write`, copy once, revoke any time.
+  Stateless Bearer auth, rate limited per token.
+- **Auto-assigned `HomeAssistant` tag.** Linking an item tags it (and unlinking
+  untags it) so you can filter everything tied to Home Assistant in one place.
+  The tag is created on first link and selectable in **Household preferences**;
+  once selected it's protected from deletion.
+- **Connections card.** The item page groups external links — Paperless
+  documents and the Home Assistant device — in one card (read-only on Show,
+  unlink on Edit).
+- **`home-assistant:adopt-custom-field` command.** Migrates manually-stored
+  Home Assistant device URLs (or entity ids) from a custom field into proper
+  links, idempotently and non-destructively, with `--dry-run`.
+
 ## [2026.05.09] — 2026-05-31
 
 ### Added
@@ -333,7 +362,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.09...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.01...HEAD
+[2026.06.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.09...2026.06.01
 [2026.05.09]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.08...2026.05.09
 [2026.05.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.07...2026.05.08
 [2026.05.07]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.06...2026.05.07

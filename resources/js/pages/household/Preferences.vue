@@ -26,6 +26,7 @@ interface ParentOption {
 
 interface Preferences {
     box_tag_id: number | null;
+    home_assistant_tag_id: number | null;
     paperless_parent_id: number | null;
 }
 
@@ -52,10 +53,16 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('household.nav.prefere
 // `null` is a valid choice for either field — admin opts out of auto-tagging
 // or chooses to drop intake at top level — so we preserve it through the
 // form rather than coercing to 0 or undefined.
-const form = useForm<{ box_tag_id: number | null; paperless_parent_id: number | null }>({
+const form = useForm<{ box_tag_id: number | null; home_assistant_tag_id: number | null; paperless_parent_id: number | null }>({
     box_tag_id: props.preferences.box_tag_id,
+    home_assistant_tag_id: props.preferences.home_assistant_tag_id,
     paperless_parent_id: props.preferences.paperless_parent_id,
 });
+
+// The Home Assistant tag is created the first time a device is linked, so the
+// picker only appears once one exists (the setting is non-null). Linking always
+// assigns a tag — there's no opt-out — so the picker only lets you switch tags.
+const showHomeAssistantTag = computed(() => props.preferences.home_assistant_tag_id !== null);
 
 // Local picker state. Hydrated from props so the page renders the current
 // selection without an extra fetch; once the user opens the picker we lazy-
@@ -157,6 +164,16 @@ function relinkAllPaperless() {
                         </select>
                         <InputError :message="form.errors.box_tag_id" />
                         <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.box_tag_help') }}</p>
+                    </div>
+
+                    <div v-if="showHomeAssistantTag" class="form-row">
+                        <label for="home-assistant-tag">{{ $t('household.preferences.home_assistant_tag') }}</label>
+                        <!-- No "none" option: linking always assigns a tag. The picker only switches which one. -->
+                        <select id="home-assistant-tag" v-model="form.home_assistant_tag_id" class="field" data-test="home-assistant-tag-select">
+                            <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
+                        </select>
+                        <InputError :message="form.errors.home_assistant_tag_id" />
+                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.home_assistant_tag_help') }}</p>
                     </div>
 
                     <div v-if="paperlessEnabled" class="form-row">

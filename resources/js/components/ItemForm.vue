@@ -9,10 +9,11 @@ import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
+import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
 import paperlessLinksRoutes from '@/routes/items/paperless-links';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
-import { Check, FileText, Loader2, Sparkles, X } from 'lucide-vue-next';
+import { Check, FileText, House, Loader2, Sparkles, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const currency = usePage<SharedData>().props.currency;
@@ -22,6 +23,13 @@ type Mode = 'create' | 'edit';
 interface PaperlessLinkSummary {
     document_id: number;
     url: string;
+}
+
+interface HomeAssistantLinkSummary {
+    entity_id: string | null;
+    device_id: string | null;
+    friendly_name: string | null;
+    url: string | null;
 }
 
 const props = defineProps<{
@@ -36,6 +44,9 @@ const props = defineProps<{
     // Paperless-ngx documents linked to this item (#7). Edit-page only —
     // Show.vue renders the same chips read-only. Empty array on create.
     paperlessLinks?: PaperlessLinkSummary[];
+    // The Home Assistant entity linked to this item (1:1), or null. Edit-page
+    // only — Show.vue renders it read-only. Unlinking removes the backlink.
+    homeAssistantLink?: HomeAssistantLinkSummary | null;
 }>();
 
 const form = useForm({
@@ -81,6 +92,12 @@ function onFilesUpdate(files: File[]) {
 const aiEnabled = usePage<SharedData>().props.features.ai;
 const paperlessEnabled = usePage<SharedData>().props.features.paperless;
 const imageSearchEnabled = usePage<SharedData>().props.features.imageSearch;
+
+// The combined "Connections" section shows when the item has a Paperless doc
+// and/or a Home Assistant link — one, both, or none.
+const hasConnections = computed(
+    () => (paperlessEnabled && (props.paperlessLinks?.length ?? 0) > 0) || props.homeAssistantLink != null,
+);
 const analyzing = ref(false);
 const analyzeError = ref<string | null>(null);
 
@@ -216,6 +233,17 @@ function unlinkPaperless(documentId: number) {
     if (!confirm(trans('items.paperless.unlink_confirm'))) return;
 
     router.delete(paperlessLinksRoutes.destroy([props.item.id, documentId]).url, {
+        preserveScroll: true,
+    });
+}
+
+// Remove the Home Assistant backlink. Edit-page only; Show is read-only. The
+// HA integration re-links on its next sync if the device still points here.
+function unlinkHomeAssistant() {
+    if (!props.item) return;
+    if (!confirm(trans('items.home_assistant.unlink_confirm'))) return;
+
+    router.delete(homeAssistantLinkRoutes.destroy(props.item.id).url, {
         preserveScroll: true,
     });
 }
@@ -420,15 +448,42 @@ function submit() {
             </div>
         </div>
 
-        <!-- Paperless documents linked to this item (#7). Edit-only surface,
-             so a destructive unlink requires the user to first click Edit.
-             Sits above Custom fields so the source-of-truth doc is the first
-             thing you see after the purchase block. Show.vue renders the same
-             chips read-only in their own card. -->
-        <template v-if="paperlessEnabled && mode === 'edit' && (paperlessLinks?.length ?? 0) > 0">
+        <!-- "Connections" section: external links this item has — a Home
+             Assistant device and/or Paperless documents — in one section,
+             matching the read-only Connections card on Show.vue. Edit-only,
+             so a destructive unlink requires entering Edit first. Sits above
+             Custom fields. An item may have one, both, or none. -->
+        <template v-if="mode === 'edit' && hasConnections">
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-            <p class="section-label">{{ $t('items.paperless.section_title') }}</p>
-            <ul class="paperless-list" data-test="paperless-edit-list">
+            <p class="section-label">{{ $t('items.links.section_title') }}</p>
+            <ul class="paperless-list" data-test="connections-edit-list">
+                <li v-if="homeAssistantLink" class="paperless-row" data-test="ha-edit-row">
+                    <a
+                        v-if="homeAssistantLink.url"
+                        :href="homeAssistantLink.url"
+                        target="_blank"
+                        rel="noopener"
+                        class="paperless-link"
+                    >
+                        <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
+                        <span class="paperless-host truncate">{{ $t('items.home_assistant.open_in_home_assistant') }}</span>
+                    </a>
+                    <span v-else class="paperless-link">
+                        <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
+                    </span>
+                    <button
+                        type="button"
+                        class="btn-ghost"
+                        style="padding: 4px 8px"
+                        data-test="ha-unlink"
+                        :aria-label="$t('items.home_assistant.unlink')"
+                        @click="unlinkHomeAssistant"
+                    >
+                        <X :size="14" />
+                    </button>
+                </li>
                 <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
                     <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
                         <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />

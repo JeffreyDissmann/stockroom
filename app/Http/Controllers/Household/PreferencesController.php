@@ -40,6 +40,7 @@ class PreferencesController extends Controller
         return Inertia::render('household/Preferences', [
             'preferences' => [
                 'box_tag_id' => Setting::get('box_tag_id'),
+                'home_assistant_tag_id' => Setting::get('home_assistant_tag_id'),
                 'paperless_parent_id' => $parentId,
             ],
             'tags' => Tag::query()
@@ -142,6 +143,9 @@ class PreferencesController extends Controller
         // missing, so we don't want a stored 0.
         $tagId = $request->input('box_tag_id');
         Setting::set('box_tag_id', $tagId === null ? null : (int) $tagId);
+
+        $haTagId = $request->input('home_assistant_tag_id');
+        Setting::set('home_assistant_tag_id', $haTagId === null ? null : (int) $haTagId);
 
         $parentId = $request->input('paperless_parent_id');
         Setting::set('paperless_parent_id', $parentId === null ? null : (int) $parentId);

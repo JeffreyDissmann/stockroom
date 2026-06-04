@@ -2,12 +2,62 @@
 
 declare(strict_types=1);
 
+use App\Models\HomeAssistantLink;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+});
+
+it('shows the Home Assistant link read-only in the connections card on Show', function () {
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    HomeAssistantLink::factory()->create([
+        'item_id' => $item->id,
+        'friendly_name' => 'Drill',
+        'url' => 'http://homeassistant.local:8123/config/devices/device/abc',
+    ]);
+
+    $page = visit("/items/{$item->id}");
+
+    // Read-only on Show — the unlink control lives on the Edit page.
+    $page->assertPresent('@connections-block')
+        ->assertPresent('@ha-link-row')
+        ->assertMissing('@ha-unlink')
+        ->assertSee('Drill')
+        ->assertNoJavaScriptErrors();
+});
+
+it('exposes the Home Assistant unlink control on the edit page', function () {
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    HomeAssistantLink::factory()->create(['item_id' => $item->id, 'friendly_name' => 'Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    $page->assertPresent('@connections-edit-list')
+        ->assertPresent('@ha-edit-row')
+        ->assertPresent('@ha-unlink')
+        ->assertSee('Drill')
+        ->assertNoJavaScriptErrors();
+});
+
+it('groups Home Assistant and Paperless into one Connections section on edit', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    $item->paperlessLinks()->create(['paperless_document_id' => 547]);
+    HomeAssistantLink::factory()->create(['item_id' => $item->id, 'friendly_name' => 'Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // Both links live under a single "Connections" list, each with its own unlink.
+    $page->assertSee('Connections')
+        ->assertPresent('@connections-edit-list')
+        ->assertPresent('@ha-unlink')
+        ->assertPresent('@paperless-unlink-547')
+        ->assertNoJavaScriptErrors();
 });
 
 it('lists items and filters with search across grid and list views', function () {
