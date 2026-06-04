@@ -69,7 +69,7 @@ moveTargets.head = (args: { item: number | { id: number } } | [item: number | { 
 
 /**
 * @see \App\Http\Controllers\ItemController::move
-* @see app/Http/Controllers/ItemController.php:328
+* @see app/Http/Controllers/ItemController.php:329
 * @route '/items/{item}/move'
 */
 export const move = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -84,7 +84,7 @@ move.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::move
-* @see app/Http/Controllers/ItemController.php:328
+* @see app/Http/Controllers/ItemController.php:329
 * @route '/items/{item}/move'
 */
 move.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -117,7 +117,7 @@ move.url = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\ItemController::move
-* @see app/Http/Controllers/ItemController.php:328
+* @see app/Http/Controllers/ItemController.php:329
 * @route '/items/{item}/move'
 */
 move.patch = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -385,7 +385,7 @@ edit.head = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:292
+* @see app/Http/Controllers/ItemController.php:293
 * @route '/items/{item}'
 */
 export const update = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -400,7 +400,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:292
+* @see app/Http/Controllers/ItemController.php:293
 * @route '/items/{item}'
 */
 update.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -433,7 +433,7 @@ update.url = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:292
+* @see app/Http/Controllers/ItemController.php:293
 * @route '/items/{item}'
 */
 update.put = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -443,7 +443,7 @@ update.put = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\ItemController::update
-* @see app/Http/Controllers/ItemController.php:292
+* @see app/Http/Controllers/ItemController.php:293
 * @route '/items/{item}'
 */
 update.patch = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -453,7 +453,7 @@ update.patch = (args: { item: number | { id: number } } | [item: number | { id: 
 
 /**
 * @see \App\Http\Controllers\ItemController::destroy
-* @see app/Http/Controllers/ItemController.php:307
+* @see app/Http/Controllers/ItemController.php:308
 * @route '/items/{item}'
 */
 export const destroy = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -468,7 +468,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\ItemController::destroy
-* @see app/Http/Controllers/ItemController.php:307
+* @see app/Http/Controllers/ItemController.php:308
 * @route '/items/{item}'
 */
 destroy.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -501,7 +501,7 @@ destroy.url = (args: { item: number | { id: number } } | [item: number | { id: n
 
 /**
 * @see \App\Http\Controllers\ItemController::destroy
-* @see app/Http/Controllers/ItemController.php:307
+* @see app/Http/Controllers/ItemController.php:308
 * @route '/items/{item}'
 */
 destroy.delete = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

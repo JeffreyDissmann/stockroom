@@ -26,7 +26,8 @@ interface PaperlessLinkSummary {
 }
 
 interface HomeAssistantLinkSummary {
-    entity_id: string;
+    entity_id: string | null;
+    device_id: string | null;
     friendly_name: string | null;
     url: string | null;
 }
@@ -465,12 +466,12 @@ function submit() {
                         class="paperless-link"
                     >
                         <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id }}</span>
+                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
                         <span class="paperless-host truncate">{{ $t('items.home_assistant.open_in_home_assistant') }}</span>
                     </a>
                     <span v-else class="paperless-link">
                         <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id }}</span>
+                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
                     </span>
                     <button
                         type="button"

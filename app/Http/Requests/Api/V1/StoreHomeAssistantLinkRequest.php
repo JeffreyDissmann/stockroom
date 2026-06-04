@@ -24,8 +24,10 @@ class StoreHomeAssistantLinkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'ha_entity_id' => ['required', 'string', 'max:255'],
-            'ha_device_id' => ['nullable', 'string', 'max:255'],
+            // A link must identify a target by entity id OR device id (an item
+            // often maps to a whole device). At least one is required.
+            'ha_entity_id' => ['nullable', 'required_without:ha_device_id', 'string', 'max:255'],
+            'ha_device_id' => ['nullable', 'required_without:ha_entity_id', 'string', 'max:255'],
             'friendly_name' => ['nullable', 'string', 'max:255'],
             'url' => ['nullable', 'url', 'max:2048'],
             'instance_id' => ['nullable', 'string', 'max:255'],

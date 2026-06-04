@@ -14,7 +14,8 @@ interface PaperlessLinkSummary {
 }
 
 interface HomeAssistantLinkSummary {
-    entity_id: string;
+    entity_id: string | null;
+    device_id: string | null;
     friendly_name: string | null;
     url: string | null;
 }

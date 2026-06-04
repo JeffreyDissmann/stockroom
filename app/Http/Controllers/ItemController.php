@@ -272,7 +272,7 @@ class ItemController extends Controller
      * null when unlinked. `url` (the deep link to the HA device page) is
      * nullable — the UI falls back to the entity id when it's absent.
      *
-     * @return array{entity_id: string, friendly_name: string|null, url: string|null}|null
+     * @return array{entity_id: string|null, device_id: string|null, friendly_name: string|null, url: string|null}|null
      */
     private function presentHomeAssistantLink(Item $item): ?array
     {
@@ -284,6 +284,7 @@ class ItemController extends Controller
 
         return [
             'entity_id' => $link->ha_entity_id,
+            'device_id' => $link->ha_device_id,
             'friendly_name' => $link->friendly_name,
             'url' => $link->url,
         ];

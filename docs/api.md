@@ -267,10 +267,13 @@ Linking also auto-assigns a **`HomeAssistant`** tag to the item (created on firs
 use and recorded as the household's selected Home Assistant tag). `DELETE`
 removes that tag from the item again. The item's other tags are never touched.
 
+A link must identify its target by an **entity id or a device id** — an item
+often maps to a whole device — so at least one of the two is required.
+
 | Field | Rules |
 | ----- | ----- |
-| `ha_entity_id` | required, string (e.g. `sensor.living_room_tv`) |
-| `ha_device_id` | optional, string |
+| `ha_entity_id` | string (e.g. `sensor.living_room_tv`). Required unless `ha_device_id` is given. |
+| `ha_device_id` | string — HA device id. Required unless `ha_entity_id` is given. |
 | `friendly_name` | optional, string |
 | `url` | optional, valid URL — deep link to the HA device page |
 | `instance_id` | optional, string — discriminator for multi-instance setups |

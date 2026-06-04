@@ -59,14 +59,30 @@ class ApiHomeAssistantLinkTest extends TestCase
         $this->assertDatabaseHas('home_assistant_links', ['item_id' => $item->id, 'ha_entity_id' => 'sensor.new']);
     }
 
-    public function test_put_validates_entity_id_required(): void
+    public function test_put_requires_an_entity_or_device_id(): void
     {
         $item = Item::factory()->create(['type' => ItemType::Item]);
         $this->actAsWriter();
 
+        // Neither identifier → both flagged (a link must target an entity or device).
         $this->putJson("/api/v1/items/{$item->id}/home-assistant-link", ['friendly_name' => 'x'])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('ha_entity_id');
+            ->assertJsonValidationErrors(['ha_entity_id', 'ha_device_id']);
+    }
+
+    public function test_put_accepts_a_device_only_link(): void
+    {
+        $item = Item::factory()->create(['type' => ItemType::Item]);
+        $this->actAsWriter();
+
+        // An item often maps to a whole device — no entity id required.
+        $this->putJson("/api/v1/items/{$item->id}/home-assistant-link", [
+            'ha_device_id' => 'fb0d054a0e7c035b297176db32aed45d',
+            'url' => 'https://home-assistant.example/config/devices/device/fb0d054a0e7c035b297176db32aed45d',
+        ])
+            ->assertSuccessful()
+            ->assertJsonPath('data.ha_device_id', 'fb0d054a0e7c035b297176db32aed45d')
+            ->assertJsonPath('data.ha_entity_id', null);
     }
 
     public function test_delete_removes_the_link(): void
