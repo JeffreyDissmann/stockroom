@@ -263,6 +263,10 @@ Sets or replaces the item's Home Assistant link. The relationship is strictly
 same link rather than creating a second. Returns `201 Created` the first time and
 `200 OK` when replacing.
 
+Linking also auto-assigns a **`HomeAssistant`** tag to the item (created on first
+use and recorded as the household's selected Home Assistant tag). `DELETE`
+removes that tag from the item again. The item's other tags are never touched.
+
 | Field | Rules |
 | ----- | ----- |
 | `ha_entity_id` | required, string (e.g. `sensor.living_room_tv`) |

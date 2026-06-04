@@ -18,6 +18,7 @@ This page is the operator-facing setup. The integration talks to Stockroom's
 | Lookup | A "where is X?" search service that returns an item's location path. |
 | Rooms ↔ Areas | Home Assistant areas map onto Stockroom **rooms**; items can be filtered by room. |
 | Auto-create | A device with no matching item can have a Stockroom item created for it. |
+| Auto-tag | Linking an item assigns a `HomeAssistant` tag (created on first use); unlinking removes it. Filter your inventory by it to see everything tied to Home Assistant. |
 
 ## Prerequisites
 

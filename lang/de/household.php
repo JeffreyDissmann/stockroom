@@ -19,6 +19,8 @@ return [
         'box_tag' => 'Karton-Schlagwort',
         'box_tag_none' => '(keines – Kartons nicht automatisch markieren)',
         'box_tag_help' => 'Wenn du über „Karton für diesen Gegenstand erstellen" ein Verpackungs-Inventar anlegst, wird dieses Schlagwort automatisch zugewiesen. So findest du alle aufbewahrten Originalverpackungen an einer Stelle.',
+        'home_assistant_tag' => 'Home-Assistant-Schlagwort',
+        'home_assistant_tag_help' => 'Das Schlagwort, das automatisch zugewiesen wird, wenn ein Objekt mit einem Home-Assistant-Gerät verknüpft wird. Hier kannst du wählen, welches Schlagwort verwendet wird. So findest du alles mit Home Assistant Verknüpfte an einer Stelle.',
         'paperless_parent' => 'Ziel für Paperless-Importe',
         'paperless_parent_none' => '(keines – auf oberster Ebene anlegen)',
         'paperless_parent_help' => 'Wenn Paperless-ngx ein Dokument an Stockroom übergibt, landen die daraus extrahierten Gegenstände in diesem Raum oder Behälter. Du kannst sie jederzeit verschieben – das hier legt nur fest, wo sie zuerst erscheinen.',

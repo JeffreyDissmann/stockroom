@@ -46,7 +46,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:112
+* @see app/Http/Controllers/Household/PreferencesController.php:113
 * @route '/household/preferences/paperless-parent-targets'
 */
 export const paperlessParentTargets = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -61,7 +61,7 @@ paperlessParentTargets.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:112
+* @see app/Http/Controllers/Household/PreferencesController.php:113
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.url = (options?: RouteQueryOptions) => {
@@ -70,7 +70,7 @@ paperlessParentTargets.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:112
+* @see app/Http/Controllers/Household/PreferencesController.php:113
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -80,7 +80,7 @@ paperlessParentTargets.get = (options?: RouteQueryOptions): RouteDefinition<'get
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:112
+* @see app/Http/Controllers/Household/PreferencesController.php:113
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -90,7 +90,7 @@ paperlessParentTargets.head = (options?: RouteQueryOptions): RouteDefinition<'he
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:138
+* @see app/Http/Controllers/Household/PreferencesController.php:139
 * @route '/household/preferences'
 */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -105,7 +105,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:138
+* @see app/Http/Controllers/Household/PreferencesController.php:139
 * @route '/household/preferences'
 */
 update.url = (options?: RouteQueryOptions) => {
@@ -114,7 +114,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:138
+* @see app/Http/Controllers/Household/PreferencesController.php:139
 * @route '/household/preferences'
 */
 update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({

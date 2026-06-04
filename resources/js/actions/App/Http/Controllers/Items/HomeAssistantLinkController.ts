@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Items\HomeAssistantLinkController::destroy
-* @see app/Http/Controllers/Items/HomeAssistantLinkController.php:19
+* @see app/Http/Controllers/Items/HomeAssistantLinkController.php:23
 * @route '/items/{item}/home-assistant-link'
 */
 export const destroy = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -16,7 +16,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\HomeAssistantLinkController::destroy
-* @see app/Http/Controllers/Items/HomeAssistantLinkController.php:19
+* @see app/Http/Controllers/Items/HomeAssistantLinkController.php:23
 * @route '/items/{item}/home-assistant-link'
 */
 destroy.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ destroy.url = (args: { item: number | { id: number } } | [item: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Items\HomeAssistantLinkController::destroy
-* @see app/Http/Controllers/Items/HomeAssistantLinkController.php:19
+* @see app/Http/Controllers/Items/HomeAssistantLinkController.php:23
 * @route '/items/{item}/home-assistant-link'
 */
 destroy.delete = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::relinkAll
-* @see app/Http/Controllers/Household/PreferencesController.php:83
+* @see app/Http/Controllers/Household/PreferencesController.php:84
 * @route '/household/preferences/paperless/relink-all'
 */
 export const relinkAll = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ relinkAll.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::relinkAll
-* @see app/Http/Controllers/Household/PreferencesController.php:83
+* @see app/Http/Controllers/Household/PreferencesController.php:84
 * @route '/household/preferences/paperless/relink-all'
 */
 relinkAll.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ relinkAll.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::relinkAll
-* @see app/Http/Controllers/Household/PreferencesController.php:83
+* @see app/Http/Controllers/Household/PreferencesController.php:84
 * @route '/household/preferences/paperless/relink-all'
 */
 relinkAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

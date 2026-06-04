@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\Setting;
+use App\Models\Tag;
 use App\Models\User;
 
 // Each Household subpage must render without JavaScript errors. This is the
@@ -67,7 +69,20 @@ it('renders the preferences page with the Box tag picker pre-selected', function
 
     $page->assertSee('Preferences')
         ->assertPresent('@box-tag-select')
+        // The Home Assistant tag picker is hidden until a tag has been created
+        // (the setting is null on a fresh install).
+        ->assertMissing('@home-assistant-tag-select')
         ->assertPresent('@preferences-save')
+        ->assertNoJavaScriptErrors();
+});
+
+it('shows the Home Assistant tag picker once a tag has been configured', function () {
+    $tag = Tag::factory()->create(['name' => 'HomeAssistant']);
+    Setting::set('home_assistant_tag_id', $tag->id);
+
+    $page = visit('/household/preferences');
+
+    $page->assertPresent('@home-assistant-tag-select')
         ->assertNoJavaScriptErrors();
 });
 

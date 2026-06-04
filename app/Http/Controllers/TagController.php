@@ -54,6 +54,14 @@ class TagController extends Controller
             ]);
         }
 
+        // The auto-managed Home Assistant tag is protected once it's been
+        // selected (recorded on the first device link), same as the Box tag.
+        if (Setting::get('home_assistant_tag_id') === $tag->id) {
+            throw ValidationException::withMessages([
+                'tag' => __('tags.cannot_delete_home_assistant_tag'),
+            ]);
+        }
+
         $tag->delete();
 
         return to_route('tags.index');

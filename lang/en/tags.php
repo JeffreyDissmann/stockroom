@@ -15,6 +15,7 @@ return [
     'delete_confirm' => 'Delete tag ":name"? It will be removed from :count item(s).',
     'cannot_delete_box_tag' => 'This tag is currently configured as the Box tag in household preferences.',
     'cannot_delete_box_tag_cta' => 'Change the preference first.',
+    'cannot_delete_home_assistant_tag' => 'This tag is auto-assigned to items linked to Home Assistant and cannot be deleted.',
 
     'filter' => [
         'all' => 'All tags',
