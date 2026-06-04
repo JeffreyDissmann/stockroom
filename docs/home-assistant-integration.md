@@ -60,6 +60,30 @@ Rooms are Stockroom items of type **room**; the integration lists them via
 `GET /api/v1/rooms` and can filter items by room (`GET /api/v1/items?room=…`) so
 an HA area lines up with the right slice of inventory.
 
+## Adopting existing links from a custom field
+
+If you tracked your Home Assistant devices by hand before this integration — for
+example a custom field holding each item's device-page URL
+(`https://home-assistant.example/config/devices/device/<id>`) — a one-shot
+artisan command converts them into real links:
+
+```bash
+# List custom fields (with how many items have a value) so you can pick the right one:
+php artisan home-assistant:adopt-custom-field
+
+# Preview what would be linked, without writing anything:
+php artisan home-assistant:adopt-custom-field "Home Assistant" --dry-run
+
+# Do it — creates a device-based link per item and assigns the HomeAssistant tag:
+php artisan home-assistant:adopt-custom-field "Home Assistant"
+```
+
+It accepts a device-page URL (→ device id + URL) or a bare entity id
+(`domain.object_id`). It's idempotent and non-destructive: items that already
+have a link are skipped, and the source custom-field values are left in place
+(delete the field yourself once you're happy). Each adopted item gets the same
+auto-assigned tag a live link would give it.
+
 ## Troubleshooting
 
 - **401 on setup** — the token is wrong, revoked, or not pasted in full. Mint a new one.
