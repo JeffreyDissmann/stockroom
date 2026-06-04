@@ -104,14 +104,13 @@ return [
     ],
 
     'paperless' => [
-        'section_title' => 'From document',
         'open_in_paperless' => 'Open in Paperless',
         'unlink' => 'Unlink document',
         'unlink_confirm' => 'Unlink this Paperless document from the item?',
     ],
 
-    // Shared "Connections" card that groups external links (Paperless docs +
-    // Home Assistant) on the item Show page.
+    // Shared "Connections" section that groups external links (Paperless docs +
+    // Home Assistant) — one card on Show, one section on the Edit form.
     'links' => [
         'section_title' => 'Connections',
     ],

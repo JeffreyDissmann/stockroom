@@ -48,6 +48,19 @@ class HomeAssistantLinkDisplayTest extends TestCase
                 ->where('homeAssistantLink', null));
     }
 
+    public function test_edit_passes_the_home_assistant_link_for_unlinking(): void
+    {
+        $item = Item::factory()->create(['type' => ItemType::Item]);
+        HomeAssistantLink::factory()->create(['item_id' => $item->id, 'ha_entity_id' => 'light.lamp']);
+
+        $this->actingAs(User::factory()->create())
+            ->get("/items/{$item->id}/edit")
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('items/Edit')
+                ->where('homeAssistantLink.entity_id', 'light.lamp'));
+    }
+
     public function test_unlink_removes_the_link(): void
     {
         $item = Item::factory()->create(['type' => ItemType::Item]);

@@ -15,7 +15,6 @@ import { trans } from '@/composables/useTranslations';
 import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
-import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
 import relatedItemsRoutes from '@/routes/items/related-items';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData, TagSummary } from '@/types';
@@ -140,13 +139,6 @@ const relatedView = ref<ItemViewMode>('grid');
 function unlinkRelated(related: ItemSummary) {
     if (!confirm(trans('items.related.unlink_confirm', { name: related.name }))) return;
     router.delete(relatedItemsRoutes.destroy([props.item.id, related.id]).url, { preserveScroll: true });
-}
-
-// Remove the Home Assistant link from the Stockroom side. The HA integration
-// re-links on its next sync if the device still points here.
-function unlinkHomeAssistant() {
-    if (!confirm(trans('items.home_assistant.unlink_confirm'))) return;
-    router.delete(homeAssistantLinkRoutes.destroy(props.item.id).url, { preserveScroll: true });
 }
 
 // The "Connections" card shows when the item has a Paperless doc and/or a
@@ -332,10 +324,10 @@ function destroyItem() {
 
                     <!-- "Connections" card: external links this item has — a
                          Home Assistant device and/or Paperless documents. An
-                         item may have one, both, or none. Paperless rows are
-                         read-only here (unlink lives on Edit); the Home
-                         Assistant row can be unlinked directly since it has no
-                         Edit-page equivalent. -->
+                         item may have one, both, or none. Read-only here;
+                         unlinking lives on the Edit page for both, so a
+                         destructive action requires an explicit edit-mode
+                         click first. -->
                     <div v-if="hasConnections" class="card" data-test="connections-block">
                         <div class="card-head">
                             <h3>{{ $t('items.links.section_title') }}</h3>
@@ -358,16 +350,6 @@ function destroyItem() {
                                         <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
                                         <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id }}</span>
                                     </span>
-                                    <button
-                                        type="button"
-                                        class="btn-ghost"
-                                        style="padding: 4px 8px"
-                                        data-test="ha-unlink"
-                                        :aria-label="$t('items.home_assistant.unlink')"
-                                        @click="unlinkHomeAssistant"
-                                    >
-                                        <X :size="14" />
-                                    </button>
                                 </li>
                                 <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row" data-test="paperless-row">
                                     <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">

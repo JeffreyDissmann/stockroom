@@ -104,14 +104,13 @@ return [
     ],
 
     'paperless' => [
-        'section_title' => 'Aus Dokument',
         'open_in_paperless' => 'In Paperless öffnen',
         'unlink' => 'Dokument-Verknüpfung lösen',
         'unlink_confirm' => 'Verknüpfung zum Paperless-Dokument lösen?',
     ],
 
-    // Gemeinsame "Verbindungen"-Karte für externe Verknüpfungen (Paperless +
-    // Home Assistant) auf der Objektseite.
+    // Gemeinsame "Verbindungen"-Sektion für externe Verknüpfungen (Paperless +
+    // Home Assistant) — eine Karte auf der Anzeige, eine Sektion im Bearbeiten.
     'links' => [
         'section_title' => 'Verbindungen',
     ],

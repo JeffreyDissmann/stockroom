@@ -234,17 +234,17 @@ class ItemController extends Controller
 
     public function edit(Item $item): Response
     {
-        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks']);
+        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks', 'homeAssistantLink']);
 
         return Inertia::render('items/Edit', [
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
-            // Paperless links surface on Edit only — that's where the user
-            // can unlink. Show.vue lists the same docs (server passes a
-            // separate `paperlessLinks` prop there too) but read-only.
+            // Paperless + Home Assistant links surface on Edit — that's where
+            // the user can unlink. Show.vue lists the same links read-only.
             'paperlessLinks' => $this->presentPaperlessLinks($item),
+            'homeAssistantLink' => $this->presentHomeAssistantLink($item),
         ]);
     }
 

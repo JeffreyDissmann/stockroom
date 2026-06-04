@@ -13,12 +13,19 @@ interface PaperlessLinkSummary {
     url: string;
 }
 
+interface HomeAssistantLinkSummary {
+    entity_id: string;
+    friendly_name: string | null;
+    url: string | null;
+}
+
 const props = defineProps<{
     item: ItemSummary;
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];
     paperlessLinks: PaperlessLinkSummary[];
+    homeAssistantLink: HomeAssistantLinkSummary | null;
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
@@ -42,7 +49,16 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
         <div class="page">
             <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.edit_title', { name: item.name }) }}</h2>
 
-            <ItemForm mode="edit" :item="item" :items="[]" :tags="tags" :types="types" :custom-fields="customFields" :paperless-links="paperlessLinks" />
+            <ItemForm
+                mode="edit"
+                :item="item"
+                :items="[]"
+                :tags="tags"
+                :types="types"
+                :custom-fields="customFields"
+                :paperless-links="paperlessLinks"
+                :home-assistant-link="homeAssistantLink"
+            />
         </div>
     </AppLayout>
 </template>
