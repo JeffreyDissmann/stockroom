@@ -53,7 +53,9 @@ about it.
 - **Home Assistant integration** — a token-authenticated REST API surfaces
   inventory statistics, search, and a 1:1 link between Home Assistant devices
   and Stockroom items (each item carries a deep link back to its HA device
-  page). See [`docs/home-assistant-integration.md`](./docs/home-assistant-integration.md)
+  page). Install the companion HACS integration
+  [`ha-stockroom`](https://github.com/JeffreyDissmann/ha-stockroom) in Home
+  Assistant to connect. See [`docs/home-assistant-integration.md`](./docs/home-assistant-integration.md)
   and the [`API reference`](./docs/api.md).
 
 ## Self-host with Docker

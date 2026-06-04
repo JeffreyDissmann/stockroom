@@ -1,10 +1,16 @@
 # Home Assistant integration
 
 Stockroom pairs with [Home Assistant](https://www.home-assistant.io/) through a
-custom integration (`ha-stockroom`, distributed via HACS). It surfaces your
-inventory in Home Assistant and links smart-home devices to the Stockroom items
-that represent them — so an HA device can deep-link to its item, and the
-Stockroom item carries a back-link to its HA device page.
+custom integration — [**`ha-stockroom`**](https://github.com/JeffreyDissmann/ha-stockroom),
+distributed via HACS. It surfaces your inventory in Home Assistant and links
+smart-home devices to the Stockroom items that represent them — so an HA device
+can deep-link to its item, and the Stockroom item carries a back-link to its HA
+device page.
+
+> **Want to connect Home Assistant?** Install
+> [`ha-stockroom`](https://github.com/JeffreyDissmann/ha-stockroom) in Home
+> Assistant (see [Quick start](#quick-start)). It's the client for the API
+> documented here — Stockroom itself only serves the API.
 
 This page is the operator-facing setup. The integration talks to Stockroom's
 [REST API](./api.md) — that page is the contract if you want the details.
@@ -34,8 +40,10 @@ This page is the operator-facing setup. The integration talks to Stockroom's
    `Home Assistant`, tick **Read** (and **Write** if you want linking), create it,
    and copy the token — it's shown only once.
 
-2. **Install the integration.** Add the `ha-stockroom` repository in HACS, install
-   it, and restart Home Assistant.
+2. **Install the integration.** In Home Assistant, open **HACS → Integrations →
+   ⋮ → Custom repositories**, add `https://github.com/JeffreyDissmann/ha-stockroom`
+   with category **Integration**, then install **Stockroom** and restart Home
+   Assistant.
 
 3. **Configure it.** Add the *Stockroom* integration in Home Assistant and enter:
    - **Host** — your Stockroom URL (e.g. `https://stockroom.example`).
