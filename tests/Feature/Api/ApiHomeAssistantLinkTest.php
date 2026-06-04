@@ -108,4 +108,21 @@ class ApiHomeAssistantLinkTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.home_assistant_link.ha_entity_id', 'light.lamp');
     }
+
+    public function test_show_surfaces_a_device_only_link(): void
+    {
+        $item = Item::factory()->create(['type' => ItemType::Item]);
+        HomeAssistantLink::factory()->create([
+            'item_id' => $item->id,
+            'ha_entity_id' => null,
+            'ha_device_id' => 'abc123def456',
+        ]);
+
+        Sanctum::actingAs(User::factory()->create(), ['read']);
+
+        $this->getJson("/api/v1/items/{$item->id}")
+            ->assertOk()
+            ->assertJsonPath('data.home_assistant_link.ha_entity_id', null)
+            ->assertJsonPath('data.home_assistant_link.ha_device_id', 'abc123def456');
+    }
 }

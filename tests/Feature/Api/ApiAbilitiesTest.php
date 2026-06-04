@@ -55,4 +55,24 @@ class ApiAbilitiesTest extends TestCase
         $this->postJson('/api/v1/items', ['name' => 'Allowed', 'type' => 'item'])
             ->assertCreated();
     }
+
+    public function test_write_only_token_cannot_read(): void
+    {
+        // Read endpoints require the `read` ability — a write-only token is
+        // scoped out of them, matching the documented contract.
+        Sanctum::actingAs(User::factory()->create(), ['write']);
+
+        $this->getJson('/api/v1/items')->assertForbidden();
+        $this->getJson('/api/v1/statistics')->assertForbidden();
+        $this->getJson('/api/v1/home-assistant-links')->assertForbidden();
+    }
+
+    public function test_read_only_token_can_use_all_read_endpoints(): void
+    {
+        Sanctum::actingAs(User::factory()->create(), ['read']);
+
+        $this->getJson('/api/v1/user')->assertOk();
+        $this->getJson('/api/v1/items')->assertOk();
+        $this->getJson('/api/v1/home-assistant-links')->assertOk();
+    }
 }

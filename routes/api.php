@@ -28,22 +28,24 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
     ->prefix('v1')
     ->as('api.v1.')
     ->group(function () {
-        // Token introspection — lets the HA config flow validate a pasted
-        // token and show "connected as".
-        Route::get('user', UserController::class)->name('user');
+        // Read endpoints — require a token with the `read` ability.
+        Route::middleware('abilities:read')->group(function () {
+            // Token introspection — lets the HA config flow validate a pasted
+            // token and show "connected as".
+            Route::get('user', UserController::class)->name('user');
 
-        // Read endpoints (a `read` token suffices).
-        Route::get('statistics', StatisticsController::class)->name('statistics');
-        Route::get('items', [ItemController::class, 'index'])->name('items.index');
-        Route::get('items/{item}', [ItemController::class, 'show'])->name('items.show');
-        Route::get('rooms', RoomController::class)->name('rooms.index');
-        Route::get('tags', TagController::class)->name('tags.index');
-        Route::get('search', SearchController::class)->name('search');
+            Route::get('statistics', StatisticsController::class)->name('statistics');
+            Route::get('items', [ItemController::class, 'index'])->name('items.index');
+            Route::get('items/{item}', [ItemController::class, 'show'])->name('items.show');
+            Route::get('rooms', RoomController::class)->name('rooms.index');
+            Route::get('tags', TagController::class)->name('tags.index');
+            Route::get('search', SearchController::class)->name('search');
 
-        // Every item with a Home Assistant link, embedded — one call for the
-        // integration's Repair feature (vs. list + per-item N+1).
-        Route::get('home-assistant-links', [HomeAssistantLinkController::class, 'index'])
-            ->name('home-assistant-links.index');
+            // Every item with a Home Assistant link, embedded — one call for the
+            // integration's Repair feature (vs. list + per-item N+1).
+            Route::get('home-assistant-links', [HomeAssistantLinkController::class, 'index'])
+                ->name('home-assistant-links.index');
+        });
 
         // Write endpoints — require a token with the `write` ability.
         Route::middleware('abilities:write')->group(function () {
