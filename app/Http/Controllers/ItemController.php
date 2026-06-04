@@ -102,7 +102,7 @@ class ItemController extends Controller
 
     public function show(Item $item): Response
     {
-        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks']);
+        $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks', 'homeAssistantLink']);
         $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
         // Related items survive moves around the tree, so they're a separate
         // edge from `children`. Eager-load enough for the same card layout
@@ -130,6 +130,10 @@ class ItemController extends Controller
             // skip rows where the integration is disabled and the URL
             // would be null.
             'paperlessLinks' => $this->presentPaperlessLinks($item),
+            // The Home Assistant entity this item is linked to (1:1), or null.
+            // Written by the HA integration via the v1 API; shown read-only here
+            // with an unlink control. Same "Connections" card as Paperless.
+            'homeAssistantLink' => $this->presentHomeAssistantLink($item),
             'activities' => $activities,
             // For the bulk-tag dialog launched from the Contents section's
             // Select mode. Sent unconditionally (tag count is small) so
@@ -261,6 +265,28 @@ class ItemController extends Controller
             ])
             ->filter(fn (array $l) => $l['url'] !== null)
             ->values();
+    }
+
+    /**
+     * The item's Home Assistant link as a flat array for the Show page, or
+     * null when unlinked. `url` (the deep link to the HA device page) is
+     * nullable — the UI falls back to the entity id when it's absent.
+     *
+     * @return array{entity_id: string, friendly_name: string|null, url: string|null}|null
+     */
+    private function presentHomeAssistantLink(Item $item): ?array
+    {
+        $link = $item->homeAssistantLink;
+
+        if ($link === null) {
+            return null;
+        }
+
+        return [
+            'entity_id' => $link->ha_entity_id,
+            'friendly_name' => $link->friendly_name,
+            'url' => $link->url,
+        ];
     }
 
     public function update(UpdateItemRequest $request, Item $item): RedirectResponse

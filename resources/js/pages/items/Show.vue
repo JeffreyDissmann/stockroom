@@ -15,16 +15,23 @@ import { trans } from '@/composables/useTranslations';
 import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
+import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
 import relatedItemsRoutes from '@/routes/items/related-items';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData, TagSummary } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckCircle2, ChevronRight, FileText, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface PaperlessLinkSummary {
     document_id: number;
     url: string;
+}
+
+interface HomeAssistantLinkSummary {
+    entity_id: string;
+    friendly_name: string | null;
+    url: string | null;
 }
 
 const props = defineProps<{
@@ -33,6 +40,7 @@ const props = defineProps<{
     children: ItemSummary[];
     relatedItems: ItemSummary[];
     paperlessLinks: PaperlessLinkSummary[];
+    homeAssistantLink: HomeAssistantLinkSummary | null;
     activities: ActivityRow[];
     // For the bulk-tag dialog launched from the Contents section.
     tags?: TagSummary[];
@@ -133,6 +141,18 @@ function unlinkRelated(related: ItemSummary) {
     if (!confirm(trans('items.related.unlink_confirm', { name: related.name }))) return;
     router.delete(relatedItemsRoutes.destroy([props.item.id, related.id]).url, { preserveScroll: true });
 }
+
+// Remove the Home Assistant link from the Stockroom side. The HA integration
+// re-links on its next sync if the device still points here.
+function unlinkHomeAssistant() {
+    if (!confirm(trans('items.home_assistant.unlink_confirm'))) return;
+    router.delete(homeAssistantLinkRoutes.destroy(props.item.id).url, { preserveScroll: true });
+}
+
+// The "Connections" card shows when the item has a Paperless doc and/or a
+// Home Assistant link — one, both, or none.
+const hasPaperlessLinks = computed(() => page.props.features.paperless && props.paperlessLinks.length > 0);
+const hasConnections = computed(() => hasPaperlessLinks.value || props.homeAssistantLink !== null);
 
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
@@ -310,19 +330,46 @@ function destroyItem() {
                         </div>
                     </div>
 
-                    <!-- Paperless documents linked to this item (#7).
-                         Sits above the custom fields card. Each chip is a
-                         click-through to the doc in Paperless. Read-only on
-                         Show; unlinking lives on the Edit page so a
-                         destructive action requires an explicit edit-mode
-                         click first. -->
-                    <div v-if="page.props.features.paperless && paperlessLinks.length" class="card" data-test="paperless-block">
+                    <!-- "Connections" card: external links this item has — a
+                         Home Assistant device and/or Paperless documents. An
+                         item may have one, both, or none. Paperless rows are
+                         read-only here (unlink lives on Edit); the Home
+                         Assistant row can be unlinked directly since it has no
+                         Edit-page equivalent. -->
+                    <div v-if="hasConnections" class="card" data-test="connections-block">
                         <div class="card-head">
-                            <h3>{{ $t('items.paperless.section_title') }}</h3>
+                            <h3>{{ $t('items.links.section_title') }}</h3>
                         </div>
                         <div class="card-pad">
-                            <ul class="paperless-list" data-test="paperless-list">
-                                <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
+                            <ul class="paperless-list">
+                                <li v-if="homeAssistantLink" class="paperless-row" data-test="ha-link-row">
+                                    <a
+                                        v-if="homeAssistantLink.url"
+                                        :href="homeAssistantLink.url"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="paperless-link"
+                                    >
+                                        <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id }}</span>
+                                        <span class="paperless-host truncate">{{ $t('items.home_assistant.open_in_home_assistant') }}</span>
+                                    </a>
+                                    <span v-else class="paperless-link">
+                                        <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id }}</span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="btn-ghost"
+                                        style="padding: 4px 8px"
+                                        data-test="ha-unlink"
+                                        :aria-label="$t('items.home_assistant.unlink')"
+                                        @click="unlinkHomeAssistant"
+                                    >
+                                        <X :size="14" />
+                                    </button>
+                                </li>
+                                <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row" data-test="paperless-row">
                                     <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
                                         <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
                                         <span class="paperless-id">#{{ link.document_id }}</span>

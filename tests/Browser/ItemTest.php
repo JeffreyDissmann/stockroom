@@ -2,12 +2,30 @@
 
 declare(strict_types=1);
 
+use App\Models\HomeAssistantLink;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+});
+
+it('shows the Home Assistant link in the connections card with an unlink control', function () {
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    HomeAssistantLink::factory()->create([
+        'item_id' => $item->id,
+        'friendly_name' => 'Drill',
+        'url' => 'http://homeassistant.local:8123/config/devices/device/abc',
+    ]);
+
+    $page = visit("/items/{$item->id}");
+
+    $page->assertPresent('@connections-block')
+        ->assertPresent('@ha-link-row')
+        ->assertPresent('@ha-unlink')
+        ->assertSee('Drill')
+        ->assertNoJavaScriptErrors();
 });
 
 it('lists items and filters with search across grid and list views', function () {

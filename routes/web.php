@@ -11,6 +11,7 @@ use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\ItemPhotoAnalysisController;
 use App\Http\Controllers\Items\BoxController;
 use App\Http\Controllers\Items\BulkController;
+use App\Http\Controllers\Items\HomeAssistantLinkController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
 use App\Http\Controllers\PaperlessWebhookController;
@@ -79,6 +80,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('items/{item}/paperless-links/{document}', [PaperlessLinkController::class, 'destroy'])
         ->whereNumber('document')
         ->name('items.paperless-links.destroy');
+
+    // Home Assistant link maintenance. The link is created by the HA
+    // integration via the v1 API; the user can remove it from the item page.
+    Route::delete('items/{item}/home-assistant-link', [HomeAssistantLinkController::class, 'destroy'])
+        ->name('items.home-assistant-link.destroy');
 
     Route::scopeBindings()->group(function () {
         Route::post('items/{item}/images', [ItemImageController::class, 'store'])->name('items.images.store');

@@ -110,6 +110,18 @@ return [
         'unlink_confirm' => 'Verknüpfung zum Paperless-Dokument lösen?',
     ],
 
+    // Gemeinsame "Verbindungen"-Karte für externe Verknüpfungen (Paperless +
+    // Home Assistant) auf der Objektseite.
+    'links' => [
+        'section_title' => 'Verbindungen',
+    ],
+
+    'home_assistant' => [
+        'open_in_home_assistant' => 'In Home Assistant öffnen',
+        'unlink' => 'Home-Assistant-Verknüpfung entfernen',
+        'unlink_confirm' => 'Home-Assistant-Verknüpfung von diesem Objekt entfernen?',
+    ],
+
     'related' => [
         'section_title' => 'Verknüpfte Gegenstände',
         'empty' => 'Noch keine verknüpften Gegenstände.',
