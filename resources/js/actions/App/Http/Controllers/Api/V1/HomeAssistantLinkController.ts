@@ -1,7 +1,51 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
+* @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::index
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:28
+* @route '/api/v1/home-assistant-links'
+*/
+export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index.url(options),
+    method: 'get',
+})
+
+index.definition = {
+    methods: ["get","head"],
+    url: '/api/v1/home-assistant-links',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::index
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:28
+* @route '/api/v1/home-assistant-links'
+*/
+index.url = (options?: RouteQueryOptions) => {
+    return index.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::index
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:28
+* @route '/api/v1/home-assistant-links'
+*/
+index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::index
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:28
+* @route '/api/v1/home-assistant-links'
+*/
+index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: index.url(options),
+    method: 'head',
+})
+
+/**
 * @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::update
-* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:22
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:50
 * @route '/api/v1/items/{item}/home-assistant-link'
 */
 export const update = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -16,7 +60,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::update
-* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:22
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:50
 * @route '/api/v1/items/{item}/home-assistant-link'
 */
 update.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +93,7 @@ update.url = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::update
-* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:22
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:50
 * @route '/api/v1/items/{item}/home-assistant-link'
 */
 update.put = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -59,7 +103,7 @@ update.put = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::destroy
-* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:27
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:55
 * @route '/api/v1/items/{item}/home-assistant-link'
 */
 export const destroy = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -74,7 +118,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::destroy
-* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:27
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:55
 * @route '/api/v1/items/{item}/home-assistant-link'
 */
 destroy.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -107,7 +151,7 @@ destroy.url = (args: { item: number | { id: number } } | [item: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Api\V1\HomeAssistantLinkController::destroy
-* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:27
+* @see app/Http/Controllers/Api/V1/HomeAssistantLinkController.php:55
 * @route '/api/v1/items/{item}/home-assistant-link'
 */
 destroy.delete = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -115,6 +159,6 @@ destroy.delete = (args: { item: number | { id: number } } | [item: number | { id
     method: 'delete',
 })
 
-const HomeAssistantLinkController = { update, destroy }
+const HomeAssistantLinkController = { index, update, destroy }
 
 export default HomeAssistantLinkController

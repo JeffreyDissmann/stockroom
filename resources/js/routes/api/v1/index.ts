@@ -2,6 +2,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../
 import items from './items'
 import rooms from './rooms'
 import tags from './tags'
+import homeAssistantLinks from './home-assistant-links'
 /**
 * @see \App\Http\Controllers\Api\V1\UserController::__invoke
 * @see app/Http/Controllers/Api/V1/UserController.php:17
@@ -141,6 +142,7 @@ const v1 = {
     rooms: Object.assign(rooms, rooms),
     tags: Object.assign(tags, tags),
     search: Object.assign(search, search),
+    homeAssistantLinks: Object.assign(homeAssistantLinks, homeAssistantLinks),
 }
 
 export default v1

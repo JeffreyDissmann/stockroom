@@ -40,6 +40,11 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
         Route::get('tags', TagController::class)->name('tags.index');
         Route::get('search', SearchController::class)->name('search');
 
+        // Every item with a Home Assistant link, embedded — one call for the
+        // integration's Repair feature (vs. list + per-item N+1).
+        Route::get('home-assistant-links', [HomeAssistantLinkController::class, 'index'])
+            ->name('home-assistant-links.index');
+
         // Write endpoints — require a token with the `write` ability.
         Route::middleware('abilities:write')->group(function () {
             Route::post('items', [ItemController::class, 'store'])->name('items.store');

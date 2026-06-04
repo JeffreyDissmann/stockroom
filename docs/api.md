@@ -66,6 +66,7 @@ the route requires.
 | GET | `/rooms` | read | All rooms (top-level locations) with child counts. |
 | GET | `/tags` | read | All tags. |
 | GET | `/search?q=` | read | Hybrid keyword + semantic search. |
+| GET | `/home-assistant-links` | read | Every item that has a Home Assistant link, with the link embedded. |
 | POST | `/items` | write | Create an item. |
 | PATCH | `/items/{item}` | write | Partially update an item. |
 | PUT | `/items/{item}/home-assistant-link` | write | Set or replace the item's Home Assistant link. |
@@ -218,6 +219,51 @@ curl -s "https://stockroom.example/api/v1/search?q=drill" \
       "thumb_url": "https://stockroom.example/storage/item-images/9/thumb.webp"
     }
   ]
+}
+```
+
+### `GET /home-assistant-links`
+
+Every item that currently has a Home Assistant link, each with the **full**
+`home_assistant_link` embedded — one call instead of `GET /items?has_ha_link=1`
+followed by a per-item `GET /items/{id}` (N+1). Built for the integration's
+Repair feature. Each element is the same `ItemResource` as `GET /items/{id}`, so
+the item and link shapes are identical.
+
+Query parameters (all optional):
+
+| Param | Type | Effect |
+| ----- | ---- | ------ |
+| `instance_id` | string | Only links whose `instance_id` equals this — lets one HA instance fetch just its own links. |
+| `per_page` | int | Page size (default 50, max 100). |
+| `page` | int | Page number. |
+
+```bash
+curl -s "https://stockroom.example/api/v1/home-assistant-links?instance_id=5b1e7c2a-…" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "name": "Cordless Drill",
+      "type": { "value": "item", "label": "Item" },
+      "location_path": "Garage / Tool Cabinet",
+      "home_assistant_link": {
+        "ha_entity_id": "sensor.cordless_drill_battery",
+        "ha_device_id": "9f8c0a3b1d2e4f50",
+        "friendly_name": "Cordless Drill",
+        "url": "https://ha.example/config/devices/device/9f8c0a3b1d2e4f50",
+        "instance_id": "5b1e7c2a-…",
+        "created_at": "2026-06-01T10:00:00+00:00",
+        "updated_at": "2026-06-02T12:00:00+00:00"
+      }
+    }
+  ],
+  "links": { "first": "…", "last": "…", "prev": null, "next": null },
+  "meta": { "current_page": 1, "per_page": 50, "total": 1, "last_page": 1 }
 }
 ```
 
