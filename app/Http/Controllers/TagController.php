@@ -48,7 +48,7 @@ class TagController extends Controller
         // violation on the next box-create). The admin has to change the
         // preference first; a one-trip-deletion is worth less than not having
         // to silently null user-configured settings.
-        if (Setting::get('box_tag_id') === $tag->id) {
+        if (Setting::int('box_tag_id') === $tag->id) {
             throw ValidationException::withMessages([
                 'tag' => __('tags.cannot_delete_box_tag'),
             ]);
@@ -56,7 +56,7 @@ class TagController extends Controller
 
         // The auto-managed Home Assistant tag is protected once it's been
         // selected (recorded on the first device link), same as the Box tag.
-        if (Setting::get('home_assistant_tag_id') === $tag->id) {
+        if (Setting::int('home_assistant_tag_id') === $tag->id) {
             throw ValidationException::withMessages([
                 'tag' => __('tags.cannot_delete_home_assistant_tag'),
             ]);

@@ -46,7 +46,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::show
-* @see app/Http/Controllers/Api/V1/ItemController.php:65
+* @see app/Http/Controllers/Api/V1/ItemController.php:63
 * @route '/api/v1/items/{item}'
 */
 export const show = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -61,7 +61,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::show
-* @see app/Http/Controllers/Api/V1/ItemController.php:65
+* @see app/Http/Controllers/Api/V1/ItemController.php:63
 * @route '/api/v1/items/{item}'
 */
 show.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -94,7 +94,7 @@ show.url = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::show
-* @see app/Http/Controllers/Api/V1/ItemController.php:65
+* @see app/Http/Controllers/Api/V1/ItemController.php:63
 * @route '/api/v1/items/{item}'
 */
 show.get = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -104,7 +104,7 @@ show.get = (args: { item: number | { id: number } } | [item: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::show
-* @see app/Http/Controllers/Api/V1/ItemController.php:65
+* @see app/Http/Controllers/Api/V1/ItemController.php:63
 * @route '/api/v1/items/{item}'
 */
 show.head = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -114,7 +114,7 @@ show.head = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::store
-* @see app/Http/Controllers/Api/V1/ItemController.php:75
+* @see app/Http/Controllers/Api/V1/ItemController.php:73
 * @route '/api/v1/items'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -129,7 +129,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::store
-* @see app/Http/Controllers/Api/V1/ItemController.php:75
+* @see app/Http/Controllers/Api/V1/ItemController.php:73
 * @route '/api/v1/items'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -138,7 +138,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::store
-* @see app/Http/Controllers/Api/V1/ItemController.php:75
+* @see app/Http/Controllers/Api/V1/ItemController.php:73
 * @route '/api/v1/items'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -148,7 +148,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::update
-* @see app/Http/Controllers/Api/V1/ItemController.php:92
+* @see app/Http/Controllers/Api/V1/ItemController.php:90
 * @route '/api/v1/items/{item}'
 */
 export const update = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -163,7 +163,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::update
-* @see app/Http/Controllers/Api/V1/ItemController.php:92
+* @see app/Http/Controllers/Api/V1/ItemController.php:90
 * @route '/api/v1/items/{item}'
 */
 update.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -196,7 +196,7 @@ update.url = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::update
-* @see app/Http/Controllers/Api/V1/ItemController.php:92
+* @see app/Http/Controllers/Api/V1/ItemController.php:90
 * @route '/api/v1/items/{item}'
 */
 update.patch = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({

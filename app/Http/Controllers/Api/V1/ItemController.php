@@ -30,13 +30,11 @@ class ItemController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $type = in_array($request->query('type'), array_column(ItemType::cases(), 'value'), true)
-            ? $request->query('type')
-            : null;
+        $type = $request->enum('type', ItemType::class);
 
         $items = Item::query()
             ->with(['primaryImage', 'homeAssistantLink'])
-            ->when($type !== null, fn ($q) => $q->where('type', $type))
+            ->when($type, fn ($q) => $q->where('type', $type))
             ->when(
                 $request->filled('parent'),
                 fn ($q) => $q->where('parent_id', $request->integer('parent')),

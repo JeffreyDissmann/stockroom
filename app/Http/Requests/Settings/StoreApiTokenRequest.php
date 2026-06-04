@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Settings;
 
+use App\Enums\TokenAbility;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +23,7 @@ class StoreApiTokenRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'abilities' => ['required', 'array', 'min:1'],
-            'abilities.*' => [Rule::in(['read', 'write'])],
+            'abilities.*' => [Rule::enum(TokenAbility::class)],
         ];
     }
 }

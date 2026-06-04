@@ -45,10 +45,11 @@ class HomeAssistantLinker
         // through Eloquent; first() keeps this safe under shouldBeStrict().
         $item->homeAssistantLink()->first()?->delete();
 
+        // Reindex only when the tag was actually removed — detach() returns
+        // the number of pivot rows deleted, so a no-op unlink skips the work.
         $tagId = Setting::int('home_assistant_tag_id');
 
-        if ($tagId !== null) {
-            $item->tags()->detach($tagId);
+        if ($tagId !== null && $item->tags()->detach($tagId) > 0) {
             $item->searchable();
         }
     }

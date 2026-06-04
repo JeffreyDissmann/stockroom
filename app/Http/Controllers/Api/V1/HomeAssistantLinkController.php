@@ -27,14 +27,13 @@ class HomeAssistantLinkController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $instanceId = $request->query('instance_id');
-
         $items = Item::query()
-            ->whereHas('homeAssistantLink', function ($query) use ($instanceId): void {
-                if ($instanceId !== null && $instanceId !== '') {
-                    $query->where('instance_id', $instanceId);
-                }
-            })
+            ->when(
+                $request->filled('instance_id'),
+                fn ($q) => $q->whereHas('homeAssistantLink',
+                    fn ($link) => $link->where('instance_id', $request->string('instance_id'))),
+                fn ($q) => $q->has('homeAssistantLink'),
+            )
             ->with(['homeAssistantLink', 'primaryImage'])
             ->orderBy('name')
             ->paginate(min($request->integer('per_page', 50), 100))
