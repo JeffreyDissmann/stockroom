@@ -12,6 +12,7 @@ use App\Http\Controllers\ItemPhotoAnalysisController;
 use App\Http\Controllers\Items\BoxController;
 use App\Http\Controllers\Items\BulkController;
 use App\Http\Controllers\Items\HomeAssistantLinkController;
+use App\Http\Controllers\Items\MaintenanceEntryController;
 use App\Http\Controllers\Items\MaintenanceTaskController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
@@ -102,6 +103,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('items/{item}/maintenance-tasks/{maintenanceTask}', [MaintenanceTaskController::class, 'destroy'])->name('items.maintenance-tasks.destroy');
         Route::post('items/{item}/maintenance-tasks/{maintenanceTask}/complete', [MaintenanceTaskController::class, 'complete'])->name('items.maintenance-tasks.complete');
         Route::post('items/{item}/maintenance-tasks/{maintenanceTask}/skip', [MaintenanceTaskController::class, 'skip'])->name('items.maintenance-tasks.skip');
+
+        // Ad-hoc maintenance history (entries without a schedule); task
+        // completions are created via the complete endpoint above.
+        Route::post('items/{item}/maintenance-entries', [MaintenanceEntryController::class, 'store'])->name('items.maintenance-entries.store');
+        Route::delete('items/{item}/maintenance-entries/{maintenanceEntry}', [MaintenanceEntryController::class, 'destroy'])->name('items.maintenance-entries.destroy');
     });
 
     // Anyone may browse tags; only admins create/edit/delete them.

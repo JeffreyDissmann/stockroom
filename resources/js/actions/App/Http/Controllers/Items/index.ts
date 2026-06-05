@@ -4,6 +4,7 @@ import RelatedItemController from './RelatedItemController'
 import PaperlessLinkController from './PaperlessLinkController'
 import HomeAssistantLinkController from './HomeAssistantLinkController'
 import MaintenanceTaskController from './MaintenanceTaskController'
+import MaintenanceEntryController from './MaintenanceEntryController'
 
 const Items = {
     BulkController: Object.assign(BulkController, BulkController),
@@ -12,6 +13,7 @@ const Items = {
     PaperlessLinkController: Object.assign(PaperlessLinkController, PaperlessLinkController),
     HomeAssistantLinkController: Object.assign(HomeAssistantLinkController, HomeAssistantLinkController),
     MaintenanceTaskController: Object.assign(MaintenanceTaskController, MaintenanceTaskController),
+    MaintenanceEntryController: Object.assign(MaintenanceEntryController, MaintenanceEntryController),
 }
 
 export default Items

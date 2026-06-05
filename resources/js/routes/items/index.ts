@@ -5,6 +5,7 @@ import relatedItems from './related-items'
 import paperlessLinks from './paperless-links'
 import homeAssistantLink from './home-assistant-link'
 import maintenanceTasks from './maintenance-tasks'
+import maintenanceEntries from './maintenance-entries'
 /**
 * @see \App\Http\Controllers\ItemController::moveTargets
 * @see app/Http/Controllers/ItemController.php:151
@@ -739,6 +740,7 @@ const items = {
     paperlessLinks: Object.assign(paperlessLinks, paperlessLinks),
     homeAssistantLink: Object.assign(homeAssistantLink, homeAssistantLink),
     maintenanceTasks: Object.assign(maintenanceTasks, maintenanceTasks),
+    maintenanceEntries: Object.assign(maintenanceEntries, maintenanceEntries),
 }
 
 export default items
