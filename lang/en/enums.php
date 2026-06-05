@@ -15,4 +15,15 @@ return [
         'boolean' => 'Yes / No',
         'url' => 'Link',
     ],
+    'maintenance_schedule_type' => [
+        'interval' => 'After completion',
+        'calendar' => 'Fixed schedule',
+        'one_off' => 'Once',
+    ],
+    'maintenance_interval_unit' => [
+        'days' => 'Days',
+        'weeks' => 'Weeks',
+        'months' => 'Months',
+        'years' => 'Years',
+    ],
 ];
