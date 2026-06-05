@@ -11,6 +11,11 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use InvalidArgumentException;
 use LogicException;
+use Recurr\Rule;
+use Recurr\Transformer\ArrayTransformer;
+use Recurr\Transformer\ArrayTransformerConfig;
+use Recurr\Transformer\Constraint\AfterConstraint;
+use RuntimeException;
 
 /**
  * The single writer of MaintenanceTask scheduling state. All transitions
@@ -52,8 +57,11 @@ class MaintenanceSchedule
         $task->next_due_at = match ($task->schedule_type) {
             MaintenanceScheduleType::Interval => $this->nextDueAfter($task, $completedOn),
             // Completing early/late must not pull occurrences off the
-            // calendar — the next due is the next occurrence after today.
-            MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, today()->toImmutable()),
+            // calendar. The pending occurrence is spent either way, so roll
+            // from whichever is later: today (catches up an overdue task)
+            // or the stored due date (an early completion consumes the
+            // upcoming occurrence instead of leaving it to nag).
+            MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, $this->calendarCompletionAnchor($task)),
             MaintenanceScheduleType::OneOff => null,
         };
 
@@ -93,18 +101,53 @@ class MaintenanceSchedule
                 $task,
                 ($task->last_completed_at ?? today())->toImmutable()->startOfDay(),
             ),
-            MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, today()->toImmutable()),
+            // Inclusive: a freshly created/edited rule that matches today IS
+            // due today — unlike after a completion or a skip, where the
+            // current occurrence is spent and only the future counts.
+            MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, today()->toImmutable(), inclusive: true),
             MaintenanceScheduleType::OneOff => $task->next_due_at,
         };
     }
 
-    /**
-     * RRULE evaluation lands with the calendar schedule type (next step);
-     * the seam exists so the public API is already complete.
-     */
-    private function nextCalendarOccurrenceAfter(MaintenanceTask $task, CarbonImmutable $from): CarbonImmutable
+    private function calendarCompletionAnchor(MaintenanceTask $task): CarbonImmutable
     {
-        throw new LogicException('Calendar (RRULE) schedules are not implemented yet.');
+        $today = today()->toImmutable()->startOfDay();
+        $dueAt = $task->next_due_at?->toImmutable()->startOfDay();
+
+        return $dueAt !== null && $dueAt->gt($today) ? $dueAt : $today;
+    }
+
+    /**
+     * First RRULE occurrence after $from, evaluated by recurr. The rule is
+     * anchored at the task's creation date (today for unsaved tasks) — the
+     * anchor must be STABLE across completions, otherwise "every 3 months"
+     * would re-phase to the completion date and become an interval schedule
+     * in disguise.
+     */
+    private function nextCalendarOccurrenceAfter(MaintenanceTask $task, CarbonImmutable $from, bool $inclusive = false): CarbonImmutable
+    {
+        $rrule = $task->rrule
+            ?? throw new LogicException("Calendar task #{$task->id} has no rrule.");
+
+        $anchor = ($task->created_at?->toImmutable() ?? today()->toImmutable())->startOfDay();
+        $rule = new Rule($rrule, $anchor, null, config('app.timezone'));
+
+        // We only ever need the first matching occurrence; a tiny virtual
+        // limit stops the transformer from materialising hundreds of them.
+        // recurr's own 300-iteration brake terminates impossible rules
+        // (e.g. Feb 31) with an empty collection, which we surface loudly.
+        $config = new ArrayTransformerConfig;
+        $config->setVirtualLimit(1);
+
+        $first = (new ArrayTransformer($config))
+            ->transform($rule, new AfterConstraint($from->startOfDay(), $inclusive), countConstraintFailures: false)
+            ->first();
+
+        if ($first === false || $first === null) {
+            throw new RuntimeException("RRULE '{$rrule}' yields no occurrence after {$from->toDateString()}.");
+        }
+
+        return CarbonImmutable::instance($first->getStart())->startOfDay();
     }
 
     private function intervalValue(MaintenanceTask $task): int
