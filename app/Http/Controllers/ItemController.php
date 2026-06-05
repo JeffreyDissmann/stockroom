@@ -12,12 +12,15 @@ use App\Models\CustomField;
 use App\Models\CustomFieldValue;
 use App\Models\Item;
 use App\Models\ItemImage;
+use App\Models\MaintenanceEntry;
+use App\Models\MaintenanceTask;
 use App\Models\PaperlessLink;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
 use App\Services\ItemImageProcessor;
 use App\Services\Items\ItemWriter;
+use App\Services\Maintenance\MaintenancePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +36,7 @@ class ItemController extends Controller
         private readonly ItemImageProcessor $imageProcessor,
         private readonly ActivityPresenter $activityPresenter,
         private readonly ItemWriter $writer,
+        private readonly MaintenancePresenter $maintenancePresenter,
     ) {}
 
     public function index(Request $request): Response
@@ -134,6 +138,16 @@ class ItemController extends Controller
             // Written by the HA integration via the v1 API; shown read-only here
             // with an unlink control. Same "Connections" card as Paperless.
             'homeAssistantLink' => $this->presentHomeAssistantLink($item),
+            // Active schedules + full history (completions and ad-hoc
+            // repairs). Archived one-offs only surface through their entry.
+            'maintenance' => [
+                'tasks' => $item->maintenanceTasks()->active()->get()
+                    ->map(fn (MaintenanceTask $task) => $this->maintenancePresenter->presentTask($task))
+                    ->values(),
+                'entries' => $item->maintenanceEntries()->with(['performer', 'task'])->get()
+                    ->map(fn (MaintenanceEntry $entry) => $this->maintenancePresenter->presentEntry($entry))
+                    ->values(),
+            ],
             'activities' => $activities,
             // For the bulk-tag dialog launched from the Contents section's
             // Select mode. Sent unconditionally (tag count is small) so
