@@ -137,6 +137,24 @@ class Item extends Model
         return $this->hasMany(ItemImage::class)->orderBy('sort_order');
     }
 
+    /**
+     * Recurring/one-off maintenance schedules on this item, soonest due
+     * first (nulls — archived one-offs — sort last on pgsql).
+     */
+    public function maintenanceTasks(): HasMany
+    {
+        return $this->hasMany(MaintenanceTask::class)->orderBy('next_due_at');
+    }
+
+    /**
+     * Maintenance history (task completions and ad-hoc repair records),
+     * newest first.
+     */
+    public function maintenanceEntries(): HasMany
+    {
+        return $this->hasMany(MaintenanceEntry::class)->orderByDesc('completed_at');
+    }
+
     public function customFieldValues(): HasMany
     {
         return $this->hasMany(CustomFieldValue::class);

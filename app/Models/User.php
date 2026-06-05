@@ -31,6 +31,7 @@ class User extends Authenticatable
         'password',
         'locale',
         'is_admin',
+        'maintenance_digest_opt_in',
     ];
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'maintenance_digest_opt_in' => 'boolean',
         ];
     }
 
