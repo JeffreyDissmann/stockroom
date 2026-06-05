@@ -14,6 +14,12 @@ return [
         'moved' => 'Verschoben',
         'linked' => 'Verknüpft',
         'unlinked' => 'Verknüpfung gelöst',
+        'maintenance_scheduled' => 'Wartung geplant',
+        'maintenance_completed' => 'Erledigt',
+        'maintenance_skipped' => 'Übersprungen',
+        'maintenance_logged' => 'Wartung erfasst',
+        'maintenance_task_deleted' => 'Wartungsplan entfernt',
+        'maintenance_entry_deleted' => 'Verlaufseintrag entfernt',
     ],
 
     'words' => [

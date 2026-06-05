@@ -155,6 +155,8 @@ export interface ActivityRow {
     // For link_added / link_removed: the partner item's name + url.
     related_label: string | null;
     related_url: string | null;
+    // For maintenance_* events: the task title (or ad-hoc notes excerpt).
+    task_title: string | null;
     at: string | null;
 }
 

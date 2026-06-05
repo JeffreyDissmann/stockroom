@@ -62,6 +62,8 @@ class MaintenanceTaskController extends Controller
         // Entries survive as ad-hoc history via the FK's nullOnDelete.
         $maintenanceTask->delete();
 
+        $item->logMaintenanceActivity('maintenance_task_deleted', ['task_title' => $maintenanceTask->title]);
+
         return back();
     }
 

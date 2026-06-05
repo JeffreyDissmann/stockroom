@@ -66,3 +66,20 @@ it('ships empty collections when an item has no maintenance', function () {
             ->has('maintenance.entries', 0)
         );
 });
+
+it('presents maintenance activity rows with their task title', function () {
+    $task = MaintenanceTask::factory()->for($this->item)->create(['title' => 'Descale']);
+    $this->actingAs($this->user)->post(route('items.maintenance-tasks.complete', [$this->item, $task]));
+    $this->actingAs($this->user)->post(route('items.maintenance-entries.store', $this->item), [
+        'notes' => 'Replaced the drawer handle.',
+    ]);
+
+    $this->actingAs($this->user)->get(route('items.show', $this->item))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            // Newest first: the ad-hoc log, then the completion.
+            ->where('activities.0.event', 'maintenance_logged')
+            ->where('activities.0.task_title', 'Replaced the drawer handle.')
+            ->where('activities.1.event', 'maintenance_completed')
+            ->where('activities.1.task_title', 'Descale')
+        );
+});

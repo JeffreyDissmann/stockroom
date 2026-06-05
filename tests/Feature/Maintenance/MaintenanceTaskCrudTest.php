@@ -179,8 +179,8 @@ describe('update', function () {
 });
 
 describe('destroy', function () {
-    it('deletes the task but keeps its entries as ad-hoc history', function () {
-        $task = MaintenanceTask::factory()->for($this->item)->create();
+    it('deletes the task but keeps its entries as ad-hoc history, and logs the removal', function () {
+        $task = MaintenanceTask::factory()->for($this->item)->create(['title' => 'Descale']);
         $entry = MaintenanceEntry::factory()->forTask($task)->create();
 
         $this->actingAs($this->user)
@@ -189,6 +189,10 @@ describe('destroy', function () {
 
         expect(MaintenanceTask::count())->toBe(0)
             ->and($entry->fresh())->maintenance_task_id->toBeNull();
+
+        $activity = Activity::where('event', 'maintenance_task_deleted')->sole();
+        expect($activity->subject_id)->toBe($this->item->id)
+            ->and($activity->properties->get('task_title'))->toBe('Descale');
     });
 
     it('404s when the task belongs to a different item', function () {

@@ -67,14 +67,31 @@ describe('store (ad-hoc)', function () {
 });
 
 describe('destroy', function () {
-    it('removes an entry', function () {
-        $entry = MaintenanceEntry::factory()->for($this->item)->create();
+    it('removes an entry and logs the removal', function () {
+        $entry = MaintenanceEntry::factory()->for($this->item)->create(['notes' => 'Old repair record.']);
 
         $this->actingAs($this->user)
             ->delete(route('items.maintenance-entries.destroy', [$this->item, $entry]))
             ->assertRedirect();
 
         expect(MaintenanceEntry::count())->toBe(0);
+
+        // Removing history is itself history.
+        $activity = Activity::where('event', 'maintenance_entry_deleted')->sole();
+        expect($activity->subject_id)->toBe($this->item->id)
+            ->and($activity->properties->get('notes'))->toBe('Old repair record.');
+    });
+
+    it('logs the task title when deleting a completion entry', function () {
+        $task = MaintenanceTask::factory()->for($this->item)->create(['title' => 'Descale']);
+        $entry = MaintenanceEntry::factory()->forTask($task)->create();
+
+        $this->actingAs($this->user)
+            ->delete(route('items.maintenance-entries.destroy', [$this->item, $entry]))
+            ->assertRedirect();
+
+        expect(Activity::where('event', 'maintenance_entry_deleted')->sole()->properties->get('task_title'))
+            ->toBe('Descale');
     });
 
     it('leaves the task schedule untouched when deleting a completion entry', function () {

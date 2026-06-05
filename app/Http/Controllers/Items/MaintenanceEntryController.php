@@ -30,6 +30,14 @@ class MaintenanceEntryController extends Controller
 
     public function destroy(Item $item, MaintenanceEntry $maintenanceEntry): RedirectResponse
     {
+        // Removing history is itself history — log what the entry was
+        // about (its task title, or the notes for ad-hoc entries).
+        $maintenanceEntry->loadMissing('task');
+        $item->logMaintenanceActivity('maintenance_entry_deleted', [
+            'task_title' => $maintenanceEntry->task?->title,
+            'notes' => $maintenanceEntry->notes,
+        ]);
+
         $maintenanceEntry->delete();
 
         return back();

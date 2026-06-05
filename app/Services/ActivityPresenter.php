@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityPresenter
@@ -53,6 +54,11 @@ class ActivityPresenter
             // historical activity rows survive).
             'related_label' => $properties->get('related_name'),
             'related_url' => $relatedId !== null ? "/items/{$relatedId}" : null,
+            // For maintenance_* events: what the event was about — the
+            // task's title, or (for ad-hoc maintenance_logged entries) a
+            // trimmed excerpt of the notes, which are their only label.
+            'task_title' => $properties->get('task_title')
+                ?? (filled($properties->get('notes')) ? Str::limit((string) $properties->get('notes'), 80) : null),
             'at' => $activity->created_at?->toIso8601String(),
         ];
     }
