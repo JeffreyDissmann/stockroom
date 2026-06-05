@@ -7,6 +7,24 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.02] — 2026-06-04
+
+### Fixed
+
+- **Every `/api/v1/*` request returned 500 on existing deployments after
+  upgrading to 2026.06.01.** `bootstrap/cache` is a persisted volume shared
+  with the worker containers, so it shadows the package-discovery manifest
+  baked into the image — and Laravel trusts an existing `packages.php`
+  without ever staleness-checking it against `vendor/`. An image upgrade
+  that adds a package (Sanctum, in this case) therefore never registered
+  its service provider: the `sanctum` auth guard stayed undefined and every
+  API route 500'd before auth even ran, while the web app kept working.
+  The entrypoint now runs `php artisan package:discover` on every web boot,
+  re-deriving the manifest from the image's `vendor/` so upgrades are
+  immune to the stale volume. Existing broken installs heal on the next
+  container restart with this image; the one-off manual fix is
+  `docker compose exec app php artisan package:discover` + restart.
+
 ## [2026.06.01] — 2026-06-04
 
 ### Added
@@ -362,7 +380,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.01...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.02...HEAD
+[2026.06.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.01...2026.06.02
 [2026.06.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.09...2026.06.01
 [2026.05.09]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.08...2026.05.09
 [2026.05.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.07...2026.05.08

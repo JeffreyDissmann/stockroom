@@ -67,6 +67,17 @@ if [ "${STOCKROOM_ROLE:-web}" = "web" ]; then
         fi
     fi
 
+    # Refresh the package-discovery manifest BEFORE anything framework-heavy
+    # runs. bootstrap/cache is a persisted volume shared with the workers, so
+    # it shadows the manifest baked into the image at build time — after an
+    # image upgrade that adds a package (e.g. Sanctum in 2026.06.01), the stale
+    # packages.php/services.php in the volume would silently skip the new
+    # provider (Laravel trusts an existing manifest, it never staleness-checks
+    # it) and every route depending on it 500s. Discover re-derives both files
+    # from the image's vendor/, making upgrades immune to the stale volume.
+    echo "stockroom: refreshing package discovery manifest"
+    php artisan package:discover --ansi
+
     wait_for_db
 
     echo "stockroom: running migrations"
