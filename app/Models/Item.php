@@ -381,6 +381,23 @@ class Item extends Model
     }
 
     /**
+     * Record a maintenance event (task added, completed, skipped, ad-hoc
+     * entry logged) on this item's activity feed. Maintenance models aren't
+     * activity-logged themselves — like images, they surface on the item.
+     *
+     * @param  array<string, mixed>  $properties
+     */
+    public function logMaintenanceActivity(string $event, array $properties = []): void
+    {
+        activity()
+            ->useLog('item')
+            ->performedOn($this)
+            ->event($event)
+            ->withProperties($properties)
+            ->log($event);
+    }
+
+    /**
      * Record on the activity log that images were attached to this item. (Images
      * aren't a logged model themselves, so we note the addition against the item.)
      */

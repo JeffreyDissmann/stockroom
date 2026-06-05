@@ -139,6 +139,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'schedule_preset' => [
+            'impossible_date' => 'Diesen Tag gibt es im gewählten Monat nicht.',
+        ],
     ],
 
     'attributes' => [
