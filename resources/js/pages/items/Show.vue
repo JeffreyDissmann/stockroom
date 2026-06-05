@@ -7,17 +7,19 @@ import ItemCollection from '@/components/ItemCollection.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import LinkRelatedItemDialog from '@/components/LinkRelatedItemDialog.vue';
+import MaintenanceHistory from '@/components/MaintenanceHistory.vue';
+import MaintenanceSection from '@/components/MaintenanceSection.vue';
 import MoveItemDialog from '@/components/MoveItemDialog.vue';
 import TagBadge from '@/components/TagBadge.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useBulkSelection } from '@/composables/useBulkSelection';
 import { useCurrency } from '@/composables/useCurrency';
 import { trans } from '@/composables/useTranslations';
-import { itemIconMap } from '@/lib/itemIcons';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { itemIconMap } from '@/lib/itemIcons';
 import itemRoutes from '@/routes/items';
 import relatedItemsRoutes from '@/routes/items/related-items';
-import { useBulkSelection } from '@/composables/useBulkSelection';
-import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, SharedData, TagSummary } from '@/types';
+import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, MaintenanceData, SharedData, TagSummary } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -41,6 +43,7 @@ const props = defineProps<{
     relatedItems: ItemSummary[];
     paperlessLinks: PaperlessLinkSummary[];
     homeAssistantLink: HomeAssistantLinkSummary | null;
+    maintenance: MaintenanceData;
     activities: ActivityRow[];
     // For the bulk-tag dialog launched from the Contents section.
     tags?: TagSummary[];
@@ -74,9 +77,7 @@ const createBoxDialog = ref<InstanceType<typeof CreateBoxDialog> | null>(null);
 const images = computed<ItemImageSummary[]>(() => props.item.images ?? []);
 const initialActive = computed<ItemImageSummary | null>(() => images.value.find((i) => i.is_primary) ?? images.value[0] ?? null);
 const activeImageId = ref<number | null>(initialActive.value?.id ?? null);
-const activeImage = computed<ItemImageSummary | null>(
-    () => images.value.find((i) => i.id === activeImageId.value) ?? initialActive.value,
-);
+const activeImage = computed<ItemImageSummary | null>(() => images.value.find((i) => i.id === activeImageId.value) ?? initialActive.value);
 
 watch(initialActive, (img) => {
     if (img && (activeImageId.value === null || !images.value.find((i) => i.id === activeImageId.value))) {
@@ -89,7 +90,12 @@ const isPlace = computed(() => props.item.type.value === 'room' || props.item.ty
 const heroIcon = computed(() => (props.item.icon ? (itemIconMap[props.item.icon] ?? null) : null));
 const initials = computed(() => {
     const words = props.item.name.trim().split(/\s+/).filter(Boolean);
-    return (words.slice(0, 2).map((w) => [...w][0]).join('') || '?').toUpperCase();
+    return (
+        words
+            .slice(0, 2)
+            .map((w) => [...w][0])
+            .join('') || '?'
+    ).toUpperCase();
 });
 
 const { format: fmtMoney } = useCurrency();
@@ -218,11 +224,7 @@ function destroyItem() {
                         {{ $t('items.box.trigger') }}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        data-test="item-actions-more-delete"
-                        class="text-destructive focus:text-destructive"
-                        @click="destroyItem"
-                    >
+                    <DropdownMenuItem data-test="item-actions-more-delete" class="text-destructive focus:text-destructive" @click="destroyItem">
                         <Trash2 class="mr-2 h-4 w-4" />
                         {{ $t('common.delete') }}
                     </DropdownMenuItem>
@@ -238,7 +240,15 @@ function destroyItem() {
                 v-if="boxCreatedFor && !boxBannerDismissed"
                 data-test="box-created-banner"
                 role="status"
-                style="display: flex; gap: 10px; padding: 12px 14px; margin-bottom: 16px; border-radius: 8px; background: color-mix(in srgb, var(--pos) 12%, transparent); color: var(--pos)"
+                style="
+                    display: flex;
+                    gap: 10px;
+                    padding: 12px 14px;
+                    margin-bottom: 16px;
+                    border-radius: 8px;
+                    background: color-mix(in srgb, var(--pos) 12%, transparent);
+                    color: var(--pos);
+                "
             >
                 <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
                 <p style="font-size: 13px; line-height: 1.5; margin: 0; flex: 1; color: var(--fg)">
@@ -283,7 +293,7 @@ function destroyItem() {
                         <p class="section-label">{{ item.type.label }}</p>
                         <h1 style="margin: 4px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">{{ item.name }}</h1>
                         <p v-if="item.description" style="margin: 12px 0 0; color: var(--fg-muted); font-size: 14px">{{ item.description }}</p>
-                        <div v-if="item.tags?.length" class="flex flex-wrap gap-1 mt-3">
+                        <div v-if="item.tags?.length" class="mt-3 flex flex-wrap gap-1">
                             <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                         </div>
                     </div>
@@ -293,8 +303,10 @@ function destroyItem() {
                             <h3>{{ $t('items.show.where') }}</h3>
                         </div>
                         <div class="card-pad">
-                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">{{ $t('items.show.top_level_none') }}</div>
-                            <div v-else class="flex items-center flex-wrap gap-1.5" style="font-size: 13px">
+                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">
+                                {{ $t('items.show.top_level_none') }}
+                            </div>
+                            <div v-else class="flex flex-wrap items-center gap-1.5" style="font-size: 13px">
                                 <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
                                     <ChevronRight v-if="i > 0" :size="12" style="color: var(--fg-subtle)" />
                                     <Link :href="itemRoutes.show(crumb.id).url" class="flex items-center gap-1.5">
@@ -344,12 +356,16 @@ function destroyItem() {
                                         class="paperless-link"
                                     >
                                         <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
+                                        <span class="paperless-id">{{
+                                            homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id
+                                        }}</span>
                                         <span class="paperless-host truncate">{{ $t('items.home_assistant.open_in_home_assistant') }}</span>
                                     </a>
                                     <span v-else class="paperless-link">
                                         <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
+                                        <span class="paperless-id">{{
+                                            homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id
+                                        }}</span>
                                     </span>
                                 </li>
                                 <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row" data-test="paperless-row">
@@ -373,7 +389,9 @@ function destroyItem() {
                                     <dt>{{ field.name }}</dt>
                                     <dd v-if="field.type === 'boolean'">{{ field.value ? $t('common.yes') : $t('common.no') }}</dd>
                                     <dd v-else-if="field.type === 'url'">
-                                        <a :href="String(field.value)" target="_blank" rel="noopener noreferrer" style="color: var(--accent)">{{ field.value }}</a>
+                                        <a :href="String(field.value)" target="_blank" rel="noopener noreferrer" style="color: var(--accent)">{{
+                                            field.value
+                                        }}</a>
                                     </dd>
                                     <dd v-else>{{ field.value }}</dd>
                                 </template>
@@ -400,60 +418,68 @@ function destroyItem() {
                 </div>
             </div>
 
-            <section class="mt-8">
-                <div class="flex items-center justify-between mb-3 gap-3">
-                    <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
-                    <div class="flex items-center gap-2">
-                        <BulkSelectToggle v-if="children.length" />
-                        <ItemViewToggle v-if="children.length" v-model="contentsView" />
-                        <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
-                            <Plus :size="14" />
-                            {{ $t('items.show.add_child') }}
-                        </Link>
+            <!-- Contents | Related side by side on wide screens — they're
+                 sibling collections of the same shape, and pairing them
+                 halves the scroll distance to Maintenance/Activity below. -->
+            <div class="section-split mt-8">
+                <section>
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
+                        <div class="flex items-center gap-2">
+                            <BulkSelectToggle v-if="children.length" />
+                            <ItemViewToggle v-if="children.length" v-model="contentsView" />
+                            <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
+                                <Plus :size="14" />
+                                {{ $t('items.show.add_child') }}
+                            </Link>
+                        </div>
                     </div>
-                </div>
 
-                <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                    {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
-                </div>
-
-                <!-- `selectable` participates in the same bulk-select store as
-                     Items/Index and Search — clicking a child in select mode
-                     toggles selection instead of navigating into it. -->
-                <ItemCollection v-else :items="children" :view="contentsView" selectable />
-            </section>
-
-            <!-- Related items: the durable many-to-many edge (separate from
-                 the parent/child tree). Auto-populated when you create a box
-                 for an item; can also be linked manually via the dialog.
-                 Matches the Contents section's grid/list toggle so the two
-                 sibling lists feel like the same UI element. -->
-            <section class="mt-8" data-test="related-items-section">
-                <div class="flex items-center justify-between mb-3 gap-3">
-                    <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
-                    <div class="flex items-center gap-2">
-                        <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
-                        <LinkRelatedItemDialog :item="item" />
+                    <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
+                        {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
                     </div>
-                </div>
 
-                <div v-if="relatedItems.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
-                    {{ $t('items.related.empty') }}
-                </div>
+                    <!-- `selectable` participates in the same bulk-select store as
+                         Items/Index and Search — clicking a child in select mode
+                         toggles selection instead of navigating into it. -->
+                    <ItemCollection v-else :items="children" :view="contentsView" selectable />
+                </section>
 
-                <ItemCollection
-                    v-else
-                    :items="relatedItems"
-                    :view="relatedView"
-                    removable
-                    @remove="unlinkRelated"
-                />
-            </section>
+                <!-- Related items: the durable many-to-many edge (separate from
+                     the parent/child tree). Auto-populated when you create a box
+                     for an item; can also be linked manually via the dialog.
+                     Matches the Contents section's grid/list toggle so the two
+                     sibling lists feel like the same UI element. -->
+                <section data-test="related-items-section">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
+                        <div class="flex items-center gap-2">
+                            <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
+                            <LinkRelatedItemDialog :item="item" />
+                        </div>
+                    </div>
 
-            <section v-if="activities.length" class="mt-8">
-                <h3 class="section-label mb-3" style="margin: 0 0 12px">{{ $t('activity.title') }}</h3>
-                <ActivityFeed :rows="activities" :show-subject="false" />
-            </section>
+                    <div v-if="relatedItems.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+                        {{ $t('items.related.empty') }}
+                    </div>
+
+                    <ItemCollection v-else :items="relatedItems" :view="relatedView" removable @remove="unlinkRelated" />
+                </section>
+            </div>
+
+            <!-- Maintenance schedules, full width — the actionable block.
+                 Below it the two audit trails (maintenance history and
+                 activity) pair up side by side. -->
+            <MaintenanceSection :item="item" :tasks="maintenance.tasks" />
+
+            <div class="mt-8" :class="{ 'section-split': activities.length }">
+                <MaintenanceHistory :item="item" :entries="maintenance.entries" />
+
+                <section v-if="activities.length">
+                    <h3 class="section-label mb-3" style="margin: 0 0 12px">{{ $t('activity.title') }}</h3>
+                    <ActivityFeed :rows="activities" :show-subject="false" />
+                </section>
+            </div>
         </div>
 
         <BulkActionBar v-if="bulk.isSelectMode.value" :tags="tags ?? []" />
@@ -461,6 +487,21 @@ function destroyItem() {
 </template>
 
 <style scoped>
+/* Contents | Related two-up on wide screens (the app's single 880px
+   breakpoint); stacked below it. align-items: start keeps a short list
+   from stretching to its neighbour's height. */
+.section-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px 28px;
+    align-items: start;
+}
+@media (min-width: 881px) {
+    .section-split {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 /* Paperless link chips. One row per linked doc: id + open-in-Paperless.
    Lives in its own card above the custom fields card. */
 .paperless-list {
@@ -490,10 +531,21 @@ function destroyItem() {
     text-decoration: none;
     font-size: 13px;
 }
-.paperless-link:hover .paperless-host { color: var(--accent); }
-.paperless-id { font-family: var(--font-mono, monospace); color: var(--fg); }
-.paperless-host { color: var(--fg-muted); }
-.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paperless-link:hover .paperless-host {
+    color: var(--accent);
+}
+.paperless-id {
+    font-family: var(--font-mono, monospace);
+    color: var(--fg);
+}
+.paperless-host {
+    color: var(--fg-muted);
+}
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* Place initials shown big when a room/container has no photo and no chosen icon. */
 .main-img-initials {

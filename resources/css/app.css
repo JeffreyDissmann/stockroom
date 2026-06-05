@@ -234,6 +234,15 @@
     transition: opacity 0.12s;
 }
 .btn-primary:hover { opacity: 0.9; }
+/* Disabled buttons must read as inert — dimmed, no pointer, no hover
+   effect. Applies app-wide (dialog submits gate on form completeness). */
+.btn-primary:disabled, .btn-pill:disabled, .btn-ghost:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.btn-primary:disabled:hover { opacity: 0.45; }
+.btn-pill:disabled:hover { color: var(--fg-muted); border-color: var(--border); }
+.btn-ghost:disabled:hover { color: var(--fg-muted); background: transparent; }
 .btn-ghost {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 10px;

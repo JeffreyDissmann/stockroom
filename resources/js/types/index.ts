@@ -158,3 +158,53 @@ export interface ActivityRow {
     at: string | null;
 }
 
+export type MaintenanceIntervalUnit = 'days' | 'weeks' | 'months' | 'years';
+
+// The schedule-builder payload the dialog edits and the server converts to
+// an RRULE (and reverse-parses for re-hydration). Shapes per `preset`:
+// every → interval + unit; yearly_on → month + day; nth_weekday →
+// ordinal + weekday (+ month, null = every month).
+export interface MaintenanceSchedulePreset {
+    preset: 'every' | 'yearly_on' | 'nth_weekday';
+    interval?: number;
+    unit?: MaintenanceIntervalUnit;
+    month?: number | null;
+    day?: number;
+    ordinal?: number;
+    weekday?: 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
+}
+
+export interface MaintenanceTaskRow {
+    id: number;
+    title: string;
+    description: string | null;
+    schedule_type: 'interval' | 'calendar' | 'one_off';
+    schedule_summary: string;
+    next_due_at: string | null;
+    due_in_days: number | null;
+    is_overdue: boolean;
+    last_completed_at: string | null;
+    reminder_lead_days: number;
+    can_skip: boolean;
+    // Dialog re-hydration fields. schedule_preset null on a calendar task
+    // = a rule beyond the presets; the dialog renders it read-only.
+    interval_value: number | null;
+    interval_unit: MaintenanceIntervalUnit | null;
+    schedule_preset: MaintenanceSchedulePreset | null;
+}
+
+export interface MaintenanceEntryRow {
+    id: number;
+    completed_at: string;
+    notes: string | null;
+    cost: string | null;
+    // Null = the user has since been deleted.
+    performed_by_name: string | null;
+    // Null = ad-hoc entry (or its task was deleted).
+    task_title: string | null;
+}
+
+export interface MaintenanceData {
+    tasks: MaintenanceTaskRow[];
+    entries: MaintenanceEntryRow[];
+}
