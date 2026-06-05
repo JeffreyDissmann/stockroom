@@ -187,6 +187,10 @@ return [
         'schedule_preset' => [
             'impossible_date' => 'This day does not exist in the chosen month.',
         ],
+        'maintenance_task' => [
+            'archived' => 'This task has already been completed.',
+            'not_skippable' => 'Only tasks on a fixed schedule can skip an occurrence.',
+        ],
     ],
 
     /*

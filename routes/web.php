@@ -100,6 +100,8 @@ Route::middleware('auth')->group(function () {
         Route::post('items/{item}/maintenance-tasks', [MaintenanceTaskController::class, 'store'])->name('items.maintenance-tasks.store');
         Route::patch('items/{item}/maintenance-tasks/{maintenanceTask}', [MaintenanceTaskController::class, 'update'])->name('items.maintenance-tasks.update');
         Route::delete('items/{item}/maintenance-tasks/{maintenanceTask}', [MaintenanceTaskController::class, 'destroy'])->name('items.maintenance-tasks.destroy');
+        Route::post('items/{item}/maintenance-tasks/{maintenanceTask}/complete', [MaintenanceTaskController::class, 'complete'])->name('items.maintenance-tasks.complete');
+        Route::post('items/{item}/maintenance-tasks/{maintenanceTask}/skip', [MaintenanceTaskController::class, 'skip'])->name('items.maintenance-tasks.skip');
     });
 
     // Anyone may browse tags; only admins create/edit/delete them.
