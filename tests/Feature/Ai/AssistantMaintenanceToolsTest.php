@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ai;
 
+use App\Ai\Tools\GetItem;
 use App\Ai\Tools\MaintenanceOverview;
 use App\Models\Item;
+use App\Models\MaintenanceEntry;
 use App\Models\MaintenanceTask;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Ai\Tools\Request;
 use Tests\TestCase;
@@ -55,6 +58,58 @@ class AssistantMaintenanceToolsTest extends TestCase
 
         $this->assertStringContainsString('Descale machine', $result);
         $this->assertStringNotContainsString('Old chore', $result);
+    }
+
+    public function test_get_item_lists_active_schedules_and_recent_history(): void
+    {
+        $item = Item::factory()->create(['name' => 'Heating']);
+        $task = MaintenanceTask::factory()->for($item)->create(['title' => 'Annual service']);
+        // Archived (completed one-off) schedules are history, not plans.
+        MaintenanceTask::factory()->inactive()->for($item)->create(['title' => 'Install filter']);
+
+        $user = User::factory()->create(['name' => 'Jeff']);
+        MaintenanceEntry::factory()->forTask($task)->create([
+            'performed_by' => $user->id,
+            'completed_at' => '2026-05-01',
+            'notes' => 'Replaced the seal too.',
+            'cost' => 120,
+        ]);
+
+        $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
+
+        $this->assertStringContainsString("Task #{$task->id} \"Annual service\"", $result);
+        $this->assertStringContainsString($task->next_due_at->toDateString(), $result);
+        $this->assertStringNotContainsString('Install filter', $result);
+        $this->assertStringContainsString('2026-05-01: Annual service; by Jeff; cost 120', $result);
+        $this->assertStringContainsString('Replaced the seal too.', $result);
+    }
+
+    public function test_get_item_caps_history_at_the_five_newest_entries(): void
+    {
+        $item = Item::factory()->create();
+
+        foreach (range(1, 6) as $day) {
+            MaintenanceEntry::factory()->for($item)->create([
+                'completed_at' => "2026-03-0{$day}",
+                'notes' => "entry-{$day}",
+            ]);
+        }
+
+        $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
+
+        $this->assertStringContainsString('entry-6', $result);
+        $this->assertStringContainsString('entry-2', $result);
+        $this->assertStringNotContainsString('entry-1', $result);
+    }
+
+    public function test_get_item_omits_maintenance_sections_when_there_is_nothing(): void
+    {
+        $item = Item::factory()->create();
+
+        $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
+
+        $this->assertStringNotContainsString('Maintenance schedules:', $result);
+        $this->assertStringNotContainsString('maintenance history', $result);
     }
 
     public function test_maintenance_overview_reports_empty_states_per_scope(): void
