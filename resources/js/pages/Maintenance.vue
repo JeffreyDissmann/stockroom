@@ -23,7 +23,7 @@ const props = defineProps<{
     tasks: GlobalTaskRow[];
 }>();
 
-const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('maintenance.page.title'), href: '/maintenance' }];
+const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('maintenance.page.title'), href: maintenance().url }];
 
 const { formatDate: fmtDate } = useDateFormat();
 const { dueBadge, isDueSoon } = useMaintenanceDue();

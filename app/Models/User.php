@@ -6,6 +6,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, LogsActivity, Notifiable;
@@ -76,5 +77,14 @@ class User extends Authenticatable
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('user');
+    }
+
+    /**
+     * Mail (e.g. the maintenance digest) renders in the user's chosen UI
+     * language; null falls back to the app locale.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
     }
 }

@@ -14,6 +14,15 @@ return [
         'due_soon' => 'Bald fällig',
     ],
 
+    'digest' => [
+        'subject' => 'Stockroom: :count Wartungsaufgabe wartet|Stockroom: :count Wartungsaufgaben warten',
+        'intro' => 'Im Haushalt stehen folgende Wartungen an.',
+        'overdue_heading' => 'Überfällig',
+        'due_soon_heading' => 'Bald fällig',
+        'task_line' => '- :task — :item (:due)',
+        'action' => 'Wartungsübersicht öffnen',
+    ],
+
     'section_title' => 'Wartung',
     'add_task' => 'Aufgabe anlegen',
     'log_entry' => 'Eintrag erfassen',

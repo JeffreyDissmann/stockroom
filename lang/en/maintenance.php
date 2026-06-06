@@ -14,6 +14,15 @@ return [
         'due_soon' => 'Due soon',
     ],
 
+    'digest' => [
+        'subject' => 'Stockroom: :count maintenance task needs attention|Stockroom: :count maintenance tasks need attention',
+        'intro' => 'The following maintenance is due in your household.',
+        'overdue_heading' => 'Overdue',
+        'due_soon_heading' => 'Due soon',
+        'task_line' => '- :task — :item (:due)',
+        'action' => 'Open maintenance overview',
+    ],
+
     'section_title' => 'Maintenance',
     'add_task' => 'Add task',
     'log_entry' => 'Log entry',
