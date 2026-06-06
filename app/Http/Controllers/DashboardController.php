@@ -55,16 +55,10 @@ class DashboardController extends Controller
             ->get()
             ->map(fn (Activity $activity): array => $this->presenter->present($activity));
 
-        // Maintenance needing attention: overdue or inside the task's own
-        // reminder window — the same definition as the badge, the global
-        // page and the digest. The card shows the five most urgent; the
-        // count tells the user whether the list was truncated.
-        $attention = MaintenanceTask::query()
-            ->active()
-            ->with('item')
-            ->orderBy('next_due_at')
-            ->get()
-            ->filter(fn (MaintenanceTask $task): bool => $task->needsAttention());
+        // Maintenance needing attention — the shared pipeline the digest
+        // uses too. The card shows the five most urgent; the count tells
+        // the user whether the list was truncated.
+        $attention = MaintenanceTask::needingAttention();
 
         return Inertia::render('Dashboard', [
             'stats' => [

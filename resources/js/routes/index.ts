@@ -227,7 +227,7 @@ activity.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 export const maintenance = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -242,7 +242,7 @@ maintenance.definition = {
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 maintenance.url = (options?: RouteQueryOptions) => {
@@ -251,7 +251,7 @@ maintenance.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 maintenance.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -261,7 +261,7 @@ maintenance.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 maintenance.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

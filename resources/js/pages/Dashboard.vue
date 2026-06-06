@@ -2,7 +2,6 @@
 import ActivityFeed from '@/components/ActivityFeed.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
-import { useMaintenanceDue } from '@/composables/useMaintenanceDue';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { itemIconMap } from '@/lib/itemIcons';
@@ -48,8 +47,6 @@ const props = defineProps<{
     activity: ActivityRow[];
     maintenance: { count: number; tasks: DueTaskRow[] };
 }>();
-
-const { dueBadge } = useMaintenanceDue();
 
 const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('nav.dashboard'), href: '/dashboard' }];
 
@@ -152,7 +149,7 @@ const valueLabel = computed(() =>
                 <ul class="dash-mnt">
                     <li v-for="task in maintenance.tasks" :key="task.id">
                         <Link :href="itemRoutes.show(task.item.id).url" class="dash-mnt-row" data-test="dashboard-maintenance-row">
-                            <span class="mnt-badge" :class="task.is_overdue ? 'is-overdue' : 'is-due-soon'">{{ dueBadge(task) }}</span>
+                            <span class="mnt-badge" :class="task.is_overdue ? 'is-overdue' : 'is-due-soon'">{{ task.due_label }}</span>
                             <span class="dash-mnt-title">{{ task.title }}</span>
                             <span class="dash-mnt-item">{{ task.item.name }}</span>
                         </Link>

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 const MaintenanceController = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ MaintenanceController.definition = {
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 MaintenanceController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ MaintenanceController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 MaintenanceController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ MaintenanceController.get = (options?: RouteQueryOptions): RouteDefinition<'get'
 
 /**
 * @see \App\Http\Controllers\MaintenanceController::__invoke
-* @see app/Http/Controllers/MaintenanceController.php:29
+* @see app/Http/Controllers/MaintenanceController.php:30
 * @route '/maintenance'
 */
 MaintenanceController.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

@@ -185,7 +185,11 @@ export interface MaintenanceTaskRow {
     schedule_summary: string;
     next_due_at: string | null;
     due_in_days: number | null;
+    // Due state is server-computed (MaintenancePresenter) so the badge
+    // text and colours can never drift from the digest/window logic.
+    due_label: string;
     is_overdue: boolean;
+    is_due_soon: boolean;
     last_completed_at: string | null;
     reminder_lead_days: number;
     can_skip: boolean;

@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\ItemImageProcessor;
+use App\Services\Maintenance\MaintenanceSchedule;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -157,24 +158,26 @@ class DatabaseSeeder extends Seeder
     /**
      * One task of each schedule type plus an ad-hoc history entry, so the
      * maintenance UI has something to show on a fresh install. next_due_at
-     * is set by hand here — the demo data predates any completions, and the
-     * MaintenanceSchedule service owns the value from the first real write.
+     * is derived through MaintenanceSchedule like every real write — the
+     * service stays the single writer of the stored projection.
      */
     private function seedDemoMaintenance(Item $lawnmower, Item $coffeeMaker, Item $bicycle): void
     {
         $admin = User::where('email', config('stockroom.admin.email'))->first();
+        $schedule = app(MaintenanceSchedule::class);
 
         // Interval: descale rolls forward from whenever it was last done.
-        $descale = $coffeeMaker->maintenanceTasks()->create([
+        $descale = $coffeeMaker->maintenanceTasks()->make([
             'title' => 'Descale',
             'description' => 'Run the descale program with the Breville solution.',
             'schedule_type' => MaintenanceScheduleType::Interval,
             'interval_value' => 1,
             'interval_unit' => MaintenanceIntervalUnit::Months,
             'last_completed_at' => today()->subWeeks(3),
-            'next_due_at' => today()->subWeeks(3)->addMonthNoOverflow(),
             'reminder_lead_days' => 3,
         ]);
+        $schedule->recompute($descale);
+        $descale->save();
         $coffeeMaker->maintenanceEntries()->create([
             'maintenance_task_id' => $descale->id,
             'performed_by' => $admin?->id,
@@ -184,18 +187,15 @@ class DatabaseSeeder extends Seeder
 
         // Calendar: spring service happens every April no matter when the
         // previous one actually got done.
-        $nextSpring = today()->startOfYear()->addMonths(3);
-        if ($nextSpring->isPast()) {
-            $nextSpring = $nextSpring->addYear();
-        }
-        $lawnmower->maintenanceTasks()->create([
+        $springService = $lawnmower->maintenanceTasks()->make([
             'title' => 'Spring service',
             'description' => 'Air filter, spark plug, oil change before the mowing season.',
             'schedule_type' => MaintenanceScheduleType::Calendar,
             'rrule' => 'FREQ=YEARLY;BYMONTH=4;BYMONTHDAY=1',
-            'next_due_at' => $nextSpring,
             'reminder_lead_days' => 14,
         ]);
+        $schedule->recompute($springService);
+        $springService->save();
 
         // Ad-hoc history: a repair that never had a schedule.
         $bicycle->maintenanceEntries()->create([

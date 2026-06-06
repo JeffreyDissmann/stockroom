@@ -8,6 +8,7 @@ use App\Enums\MaintenanceIntervalUnit;
 use App\Enums\MaintenanceScheduleType;
 use Database\Factories\MaintenanceTaskFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,12 +78,14 @@ class MaintenanceTask extends Model
 
     /**
      * Strictly past due. Composes with active(): Task::active()->overdue().
+     * Plain where(): the column is already DATE, so whereDate()'s cast
+     * would be a no-op anyway.
      *
      * @param  Builder<self>  $query
      */
     public function scopeOverdue(Builder $query): void
     {
-        $query->whereDate('next_due_at', '<', today());
+        $query->where('next_due_at', '<', today());
     }
 
     /**
@@ -93,8 +96,33 @@ class MaintenanceTask extends Model
      */
     public function scopeDueWithin(Builder $query, int $days): void
     {
-        $query->whereDate('next_due_at', '>=', today())
-            ->whereDate('next_due_at', '<=', today()->addDays($days));
+        $query->where('next_due_at', '>=', today())
+            ->where('next_due_at', '<=', today()->addDays($days));
+    }
+
+    /**
+     * Every task that currently wants the user's attention (overdue or
+     * inside its reminder window), items eager-loaded, soonest due first.
+     * THE shared pipeline behind the dashboard card and the daily digest:
+     * an indexed prefilter on the widest reminder window, then each task's
+     * own needsAttention() in PHP (the per-row window arithmetic isn't
+     * portable SQL).
+     *
+     * @return Collection<int, self>
+     */
+    public static function needingAttention(): Collection
+    {
+        $maxLead = (int) self::query()->active()->max('reminder_lead_days');
+
+        return self::query()
+            ->active()
+            ->whereNotNull('next_due_at')
+            ->where('next_due_at', '<=', today()->addDays($maxLead))
+            ->with('item')
+            ->orderBy('next_due_at')
+            ->get()
+            ->filter(fn (self $task): bool => $task->needsAttention())
+            ->values();
     }
 
     public function isOverdue(): bool

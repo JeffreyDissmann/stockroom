@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Item;
 use App\Models\MaintenanceTask;
 use App\Services\Maintenance\MaintenancePresenter;
 use Illuminate\Http\Request;
@@ -52,6 +53,10 @@ class MaintenanceController extends Controller
             default => $tasks,
         };
 
+        // One query per tree level instead of one per ancestor per row —
+        // see Item::locationPathsFor.
+        $locations = Item::locationPathsFor($visible->pluck('item')->unique('id')->values());
+
         return Inertia::render('Maintenance', [
             'filter' => $filter,
             'counts' => [
@@ -64,7 +69,7 @@ class MaintenanceController extends Controller
                 'item' => [
                     'id' => $task->item->id,
                     'name' => $task->item->name,
-                    'location' => $task->item->locationPath(),
+                    'location' => $locations[$task->item->id] ?? '',
                 ],
             ]),
         ]);

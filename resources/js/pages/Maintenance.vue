@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { useMaintenanceDue } from '@/composables/useMaintenanceDue';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { maintenance } from '@/routes';
@@ -26,7 +25,6 @@ const props = defineProps<{
 const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('maintenance.page.title'), href: maintenance().url }];
 
 const { formatDate: fmtDate } = useDateFormat();
-const { dueBadge, isDueSoon } = useMaintenanceDue();
 
 const filters: { key: Filter; label: string; count: number }[] = [
     { key: 'all', label: trans('maintenance.filters.all'), count: props.counts.all },
@@ -88,10 +86,10 @@ function openMarkDone(task: GlobalTaskRow) {
                     <div class="mnt-due">
                         <span
                             class="mnt-badge"
-                            :class="{ 'is-overdue': task.is_overdue, 'is-due-soon': !task.is_overdue && isDueSoon(task) }"
+                            :class="{ 'is-overdue': task.is_overdue, 'is-due-soon': task.is_due_soon }"
                             data-test="maintenance-due-badge"
                         >
-                            {{ dueBadge(task) }}
+                            {{ task.due_label }}
                         </span>
                         <span v-if="task.next_due_at" class="mnt-date">{{ fmtDate(task.next_due_at) }}</span>
                     </div>
@@ -108,40 +106,11 @@ function openMarkDone(task: GlobalTaskRow) {
 </template>
 
 <style scoped>
-/* Same row anatomy as the item page's maintenance section, plus the
-   item + location line that gives each task its context here. */
-.mnt-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.mnt-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elev);
-}
-.mnt-main {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.mnt-title {
-    font-size: 14px;
-    font-weight: 500;
-}
-.mnt-summary {
-    font-size: 12.5px;
-    color: var(--fg-muted);
+/* Row anatomy (.mnt-list/.mnt-row/…) is global in app.css, shared with
+   the item-page section. Scoped here: the item + location line and a
+   wrap tweak for this page's badge column. */
+.mnt-due {
+    margin-left: auto;
 }
 .mnt-item-link {
     display: inline-flex;
@@ -159,18 +128,5 @@ function openMarkDone(task: GlobalTaskRow) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-.mnt-due {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    flex-shrink: 0;
-    margin-left: auto;
-}
-/* .mnt-badge styles are global (app.css) — shared across surfaces. */
-.mnt-date {
-    font-size: 11.5px;
-    color: var(--fg-subtle);
 }
 </style>

@@ -32,7 +32,12 @@ class MaintenancePresenter
             'schedule_summary' => $this->scheduleSummary($task),
             'next_due_at' => $task->next_due_at?->toDateString(),
             'due_in_days' => $task->dueInDays(),
+            // Due state is computed ONCE here, server-side — the badge
+            // text, the digest line and the colour states all read these
+            // instead of re-deriving the window per consumer.
+            'due_label' => $this->dueLabel($task),
             'is_overdue' => $task->isOverdue(),
+            'is_due_soon' => $task->needsAttention() && ! $task->isOverdue(),
             'last_completed_at' => $task->last_completed_at?->toDateString(),
             'reminder_lead_days' => $task->reminder_lead_days,
             'can_skip' => $task->is_active && $task->schedule_type->isSkippable(),
@@ -60,6 +65,23 @@ class MaintenancePresenter
             // Null title = ad-hoc entry (or its task was deleted).
             'task_title' => $entry->task?->title,
         ];
+    }
+
+    /**
+     * The localized due-state wording ("Due in 3 days", "2 days overdue",
+     * "Due today") — the single source for the UI badge AND the digest
+     * email's task lines.
+     */
+    public function dueLabel(MaintenanceTask $task): string
+    {
+        $days = $task->dueInDays();
+
+        return match (true) {
+            $days === null => __('maintenance.due.none'),
+            $days < 0 => trans_choice('maintenance.due.overdue', -$days),
+            $days === 0 => __('maintenance.due.today'),
+            default => trans_choice('maintenance.due.in_days', $days),
+        };
     }
 
     /**

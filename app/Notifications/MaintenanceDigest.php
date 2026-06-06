@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\MaintenanceTask;
+use App\Services\Maintenance\MaintenancePresenter;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Collection;
@@ -65,26 +66,17 @@ class MaintenanceDigest extends Notification
     /**
      * One markdown bullet per task: "Change batteries — [Smoke detector]
      * (3 days overdue)", with the item name linking to its page. The due
-     * wording reuses the badge translations so email and UI never phrase
-     * the same state differently.
+     * wording comes from MaintenancePresenter::dueLabel — the same source
+     * as the UI badge, evaluated here under the recipient's locale.
      */
     private function taskLine(MaintenanceTask $task): string
     {
-        $days = $task->dueInDays();
-
-        $due = match (true) {
-            $days === null => __('maintenance.due.none'),
-            $days < 0 => trans_choice('maintenance.due.overdue', -$days),
-            $days === 0 => __('maintenance.due.today'),
-            default => trans_choice('maintenance.due.in_days', $days),
-        };
-
         return __('maintenance.digest.task_line', [
             'task' => $task->title,
             // Markdown link assembled here, not in the translation —
             // translators only ever see the :item placeholder.
             'item' => sprintf('[%s](%s)', $task->item->name, route('items.show', $task->item)),
-            'due' => $due,
+            'due' => app(MaintenancePresenter::class)->dueLabel($task),
         ]);
     }
 }

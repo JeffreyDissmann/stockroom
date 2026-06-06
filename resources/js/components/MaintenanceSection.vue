@@ -3,7 +3,6 @@ import MaintenanceTaskDialog from '@/components/MaintenanceTaskDialog.vue';
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { useMaintenanceDue } from '@/composables/useMaintenanceDue';
 import { trans } from '@/composables/useTranslations';
 import maintenanceTaskRoutes from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
@@ -22,7 +21,6 @@ const props = defineProps<{
 
 const page = usePage<SharedData>();
 const { formatDate: fmtDate } = useDateFormat();
-const { dueBadge, isDueSoon } = useMaintenanceDue();
 
 // Stale-page guard errors from complete/skip (ValidationException key
 // 'task') — shown as a banner above the list since they belong to no form.
@@ -87,10 +85,10 @@ function deleteTask(task: MaintenanceTaskRow) {
                 <div class="mnt-due">
                     <span
                         class="mnt-badge"
-                        :class="{ 'is-overdue': task.is_overdue, 'is-due-soon': !task.is_overdue && isDueSoon(task) }"
+                        :class="{ 'is-overdue': task.is_overdue, 'is-due-soon': task.is_due_soon }"
                         data-test="maintenance-due-badge"
                     >
-                        {{ dueBadge(task) }}
+                        {{ task.due_label }}
                     </span>
                     <span v-if="task.next_due_at" class="mnt-date">{{ fmtDate(task.next_due_at) }}</span>
                 </div>
@@ -149,55 +147,11 @@ function deleteTask(task: MaintenanceTaskRow) {
     color: var(--neg);
     background: color-mix(in srgb, var(--neg) 10%, transparent);
 }
-.mnt-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.mnt-row {
-    display: flex;
-    align-items: center;
-    /* Wrap by available width, not viewport, so narrow phones drop the
-       actions onto their own line. */
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elev);
-}
-.mnt-main {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.mnt-title {
-    font-size: 14px;
-    font-weight: 500;
-}
-.mnt-summary {
-    font-size: 12.5px;
-    color: var(--fg-muted);
-}
+/* .mnt-list/.mnt-row/.mnt-badge etc. are global (app.css) — shared with
+   the /maintenance page and the dashboard card. Only this section's own
+   pieces stay scoped. */
 .mnt-last {
     font-size: 12px;
-    color: var(--fg-subtle);
-}
-.mnt-due {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    flex-shrink: 0;
-}
-/* .mnt-badge styles are global (app.css) — shared across surfaces. */
-.mnt-date {
-    font-size: 11.5px;
     color: var(--fg-subtle);
 }
 .mnt-actions {

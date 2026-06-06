@@ -368,6 +368,49 @@ class Item extends Model
     }
 
     /**
+     * locationPath() for MANY items at once: one query per tree LEVEL
+     * (≤ tree depth) instead of one per ancestor per item. Used by list
+     * pages that show a location line per row (e.g. /maintenance).
+     *
+     * @param  Collection<int, self>  $items
+     * @return array<int, string> item id => "Room / Container"
+     */
+    public static function locationPathsFor(Collection $items): array
+    {
+        // Everything we already know: the items themselves plus each
+        // ancestor layer as we fetch it. id => [parent_id, name].
+        $known = [];
+        foreach ($items as $item) {
+            $known[$item->id] = ['parent_id' => $item->parent_id, 'name' => $item->name];
+        }
+
+        $frontier = $items->pluck('parent_id')->filter()->unique()
+            ->reject(fn (int $id): bool => isset($known[$id]))->values();
+
+        while ($frontier->isNotEmpty()) {
+            $rows = self::query()->whereIn('id', $frontier)->get(['id', 'parent_id', 'name']);
+            foreach ($rows as $row) {
+                $known[$row->id] = ['parent_id' => $row->parent_id, 'name' => $row->name];
+            }
+            $frontier = $rows->pluck('parent_id')->filter()->unique()
+                ->reject(fn (int $id): bool => isset($known[$id]))->values();
+        }
+
+        $paths = [];
+        foreach ($items as $item) {
+            $names = [];
+            $parentId = $item->parent_id;
+            while ($parentId !== null && isset($known[$parentId])) {
+                array_unshift($names, $known[$parentId]['name']);
+                $parentId = $known[$parentId]['parent_id'];
+            }
+            $paths[$item->id] = implode(' / ', $names);
+        }
+
+        return $paths;
+    }
+
+    /**
      * A sensible default image-search query: maker + name + model number.
      * The description is intentionally left out — long prose hurts image results.
      */

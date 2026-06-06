@@ -17,19 +17,7 @@ class SendMaintenanceDigest extends Command
 {
     public function handle(): int
     {
-        // Indexed prefilter using the WIDEST reminder window, then the
-        // exact per-task test in PHP (the per-row window arithmetic isn't
-        // portable SQL) — same two-step the dashboard partition uses.
-        $maxLead = (int) MaintenanceTask::query()->active()->max('reminder_lead_days');
-
-        $tasks = MaintenanceTask::query()
-            ->active()
-            ->whereNotNull('next_due_at')
-            ->whereDate('next_due_at', '<=', today()->addDays($maxLead))
-            ->with('item')
-            ->orderBy('next_due_at')
-            ->get()
-            ->filter(fn (MaintenanceTask $task): bool => $task->needsAttention());
+        $tasks = MaintenanceTask::needingAttention();
 
         // Anti-spam: an all-clear household gets no email at all. Overdue
         // tasks keep reappearing daily until done — that nag is the point.

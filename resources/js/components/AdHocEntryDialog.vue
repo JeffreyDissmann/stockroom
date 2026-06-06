@@ -10,12 +10,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { useMaintenanceEntryForm } from '@/composables/useMaintenanceEntryForm';
 import { localToday } from '@/lib/date';
 import maintenanceEntries from '@/routes/items/maintenance-entries';
 import type { ItemSummary, SharedData } from '@/types';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { NotebookPen } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { ref } from 'vue';
 
 /**
  * Log a one-time maintenance/repair entry that never had a schedule —
@@ -32,39 +33,10 @@ const open = ref(false);
 // purchase/sold price fields on the item form.
 const currency = usePage<SharedData>().props.currency;
 
-const form = useForm({
-    completed_at: localToday(),
-    notes: '',
-    cost: '',
-});
-
-form.transform((data) => ({
-    completed_at: data.completed_at,
-    notes: data.notes,
-    cost: data.cost === '' ? null : data.cost,
-}));
-
-watch(open, (isOpen) => {
-    if (!isOpen) return;
-    form.reset();
-    form.clearErrors();
-    form.completed_at = localToday();
-});
-
-// Inert until the payload is valid: notes are mandatory (they're the only
-// description of what was done), the date exists and isn't in the future,
-// and the cost is empty or a non-negative number.
-const canSubmit = computed(
-    () => form.notes.trim() !== '' && form.completed_at !== '' && form.completed_at <= localToday() && (form.cost === '' || Number(form.cost) >= 0),
-);
+const { form, canSubmit, submit: submitTo } = useMaintenanceEntryForm(open, { requireNotes: true });
 
 function submit() {
-    form.post(maintenanceEntries.store(props.item.id).url, {
-        preserveScroll: true,
-        onSuccess: () => {
-            open.value = false;
-        },
-    });
+    submitTo(maintenanceEntries.store(props.item.id).url);
 }
 </script>
 

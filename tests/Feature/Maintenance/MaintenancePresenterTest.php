@@ -68,8 +68,11 @@ describe('schedule summaries (en)', function () {
 });
 
 describe('task rows', function () {
-    it('serialises the dialog re-hydration fields', function () {
-        $task = MaintenanceTask::factory()->calendar('FREQ=YEARLY;BYMONTH=4;BYMONTHDAY=1')->dueSoon(3)->create();
+    it('serialises the dialog re-hydration fields and server-computed due state', function () {
+        app()->setLocale('en');
+        $task = MaintenanceTask::factory()->calendar('FREQ=YEARLY;BYMONTH=4;BYMONTHDAY=1')->dueSoon(3)->create([
+            'reminder_lead_days' => 7,
+        ]);
 
         $row = $this->presenter->presentTask($task);
 
@@ -77,7 +80,9 @@ describe('task rows', function () {
             ->schedule_type->toBe('calendar')
             ->next_due_at->toBe(today()->addDays(3)->toDateString())
             ->due_in_days->toBe(3)
+            ->due_label->toBe('Due in 3 days')
             ->is_overdue->toBeFalse()
+            ->is_due_soon->toBeTrue()
             ->can_skip->toBeTrue()
             ->schedule_preset->toBe(['preset' => 'yearly_on', 'month' => 4, 'day' => 1]);
     });

@@ -34,6 +34,18 @@ it('lists every active task soonest-first with item context', function () {
         );
 });
 
+it('builds deep location paths with the batched helper', function () {
+    $garage = Item::factory()->room()->create(['name' => 'Garage']);
+    $toolbox = Item::factory()->container()->create(['name' => 'Toolbox', 'parent_id' => $garage->id]);
+    $drill = Item::factory()->create(['name' => 'Drill', 'parent_id' => $toolbox->id]);
+    MaintenanceTask::factory()->for($drill)->dueSoon(5)->create();
+
+    $this->actingAs($this->user)->get(route('maintenance'))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('tasks.0.item.location', 'Garage / Toolbox')
+        );
+});
+
 it('partitions counts by the same window the badge and digest use', function () {
     MaintenanceTask::factory()->overdue(2)->create();
     MaintenanceTask::factory()->dueSoon(3)->create(['reminder_lead_days' => 7]);  // inside window

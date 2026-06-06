@@ -25,21 +25,70 @@ const open = defineModel<boolean>('open', { required: true });
 
 const page = usePage<SharedData>();
 
+// The builder's state for ALL preset shapes at once — only the fields of
+// the chosen preset are serialized (see buildPresetPayload). in_month null
+// = "every month" for the nth-weekday preset.
+interface PresetFields {
+    preset: NonNullable<MaintenanceSchedulePreset['preset']>;
+    interval: number | null;
+    unit: MaintenanceIntervalUnit;
+    month: number;
+    day: number | null;
+    ordinal: number;
+    weekday: NonNullable<MaintenanceSchedulePreset['weekday']>;
+    in_month: number | null;
+}
+
+const presetDefaults = (): PresetFields => ({
+    preset: 'every',
+    interval: 3,
+    unit: 'months',
+    month: 1,
+    day: 1,
+    ordinal: 1,
+    weekday: 'MO',
+    in_month: null,
+});
+
+/** Re-hydrate the builder fields from a stored task's preset payload. */
+function presetFromTask(preset: MaintenanceSchedulePreset | null | undefined): PresetFields {
+    const fields = presetDefaults();
+    if (!preset) return fields;
+
+    fields.preset = preset.preset;
+    if (preset.preset === 'every') {
+        fields.interval = preset.interval ?? 1;
+        fields.unit = preset.unit ?? 'months';
+    } else if (preset.preset === 'yearly_on') {
+        fields.month = preset.month ?? 1;
+        fields.day = preset.day ?? 1;
+    } else {
+        fields.ordinal = preset.ordinal ?? 1;
+        fields.weekday = preset.weekday ?? 'MO';
+        fields.in_month = preset.month ?? null;
+    }
+    return fields;
+}
+
+/** The server payload for the chosen preset shape. */
+function buildPresetPayload(fields: PresetFields): MaintenanceSchedulePreset {
+    switch (fields.preset) {
+        case 'every':
+            return { preset: 'every', interval: fields.interval ?? 1, unit: fields.unit };
+        case 'yearly_on':
+            return { preset: 'yearly_on', month: fields.month, day: fields.day ?? 1 };
+        case 'nth_weekday':
+            return { preset: 'nth_weekday', ordinal: fields.ordinal, weekday: fields.weekday, month: fields.in_month };
+    }
+}
+
 const form = useForm({
     title: '',
     description: '',
     schedule_type: 'interval' as MaintenanceTaskRow['schedule_type'],
     interval_value: 6 as number | null,
     interval_unit: 'months' as MaintenanceIntervalUnit,
-    preset: 'every' as NonNullable<MaintenanceSchedulePreset['preset']>,
-    preset_interval: 3 as number | null,
-    preset_unit: 'months' as MaintenanceIntervalUnit,
-    preset_month: 1,
-    preset_day: 1,
-    preset_ordinal: 1,
-    preset_weekday: 'MO' as NonNullable<MaintenanceSchedulePreset['weekday']>,
-    // null = "every month" for the nth-weekday preset.
-    preset_in_month: null as number | null,
+    schedule_preset: presetDefaults(),
     next_due_at: localToday(),
     reminder_lead_days: 7 as number | null,
 });
@@ -65,12 +114,14 @@ const canSubmit = computed(() => {
             return isPositiveInt(form.interval_value) && (form.interval_value as number) <= 999;
         case 'one_off':
             return form.next_due_at !== '';
-        case 'calendar':
+        case 'calendar': {
             if (isCustomRule.value) return true;
-            if (form.preset === 'every') return isPositiveInt(form.preset_interval) && (form.preset_interval as number) <= 999;
-            if (form.preset === 'yearly_on') return isPositiveInt(form.preset_day) && form.preset_day <= 31;
+            const preset = form.schedule_preset;
+            if (preset.preset === 'every') return isPositiveInt(preset.interval) && (preset.interval as number) <= 999;
+            if (preset.preset === 'yearly_on') return isPositiveInt(preset.day) && (preset.day as number) <= 31;
             // nth_weekday: every field is a select that always holds a value.
             return true;
+        }
     }
     return false;
 });
@@ -93,14 +144,7 @@ form.transform((data) => {
         return base;
     }
 
-    const preset: MaintenanceSchedulePreset =
-        data.preset === 'every'
-            ? { preset: 'every', interval: data.preset_interval ?? 1, unit: data.preset_unit }
-            : data.preset === 'yearly_on'
-              ? { preset: 'yearly_on', month: data.preset_month, day: data.preset_day }
-              : { preset: 'nth_weekday', ordinal: data.preset_ordinal, weekday: data.preset_weekday, month: data.preset_in_month };
-
-    return { ...base, schedule_preset: preset };
+    return { ...base, schedule_preset: buildPresetPayload(data.schedule_preset) };
 });
 
 // Re-prime whenever the dialog opens: hydrate from the task being edited,
@@ -117,16 +161,7 @@ watch(open, (isOpen) => {
     form.interval_unit = task?.interval_unit ?? 'months';
     form.next_due_at = (task?.schedule_type === 'one_off' ? task.next_due_at : null) ?? localToday();
     form.reminder_lead_days = task?.reminder_lead_days ?? 7;
-
-    const preset = task?.schedule_preset;
-    form.preset = preset?.preset ?? 'every';
-    form.preset_interval = preset?.preset === 'every' ? (preset.interval ?? 1) : 3;
-    form.preset_unit = preset?.preset === 'every' ? (preset.unit ?? 'months') : 'months';
-    form.preset_month = preset?.preset === 'yearly_on' ? (preset.month ?? 1) : 1;
-    form.preset_day = preset?.preset === 'yearly_on' ? (preset.day ?? 1) : 1;
-    form.preset_ordinal = preset?.preset === 'nth_weekday' ? (preset.ordinal ?? 1) : 1;
-    form.preset_weekday = preset?.preset === 'nth_weekday' ? (preset.weekday ?? 'MO') : 'MO';
-    form.preset_in_month = preset?.preset === 'nth_weekday' ? (preset.month ?? null) : null;
+    form.schedule_preset = presetFromTask(task?.schedule_preset);
 });
 
 // First nested schedule_preset.* error, surfaced under the builder as one
@@ -235,19 +270,19 @@ function submit() {
                     <template v-else>
                         <div class="form-row">
                             <label for="task-preset">{{ $t('maintenance.dialog.preset_label') }}</label>
-                            <select id="task-preset" v-model="form.preset" class="field" data-test="maintenance-task-preset">
+                            <select id="task-preset" v-model="form.schedule_preset.preset" class="field" data-test="maintenance-task-preset">
                                 <option value="every">{{ $t('maintenance.dialog.preset_every') }}</option>
                                 <option value="yearly_on">{{ $t('maintenance.dialog.preset_yearly_on') }}</option>
                                 <option value="nth_weekday">{{ $t('maintenance.dialog.preset_nth_weekday') }}</option>
                             </select>
                         </div>
 
-                        <div v-if="form.preset === 'every'" class="form-row">
+                        <div v-if="form.schedule_preset.preset === 'every'" class="form-row">
                             <label for="task-preset-interval">{{ $t('maintenance.dialog.interval_label') }}</label>
                             <div class="flex gap-2">
                                 <input
                                     id="task-preset-interval"
-                                    v-model.number="form.preset_interval"
+                                    v-model.number="form.schedule_preset.interval"
                                     type="number"
                                     min="1"
                                     max="999"
@@ -256,7 +291,7 @@ function submit() {
                                     data-test="maintenance-task-preset-interval"
                                 />
                                 <select
-                                    v-model="form.preset_unit"
+                                    v-model="form.schedule_preset.unit"
                                     class="field"
                                     style="flex: 1"
                                     :aria-label="$t('maintenance.dialog.interval_label')"
@@ -268,12 +303,12 @@ function submit() {
                             </div>
                         </div>
 
-                        <div v-else-if="form.preset === 'yearly_on'" class="flex gap-2">
+                        <div v-else-if="form.schedule_preset.preset === 'yearly_on'" class="flex gap-2">
                             <div class="form-row" style="flex: 1">
                                 <label for="task-preset-month">{{ $t('maintenance.dialog.month_label') }}</label>
                                 <select
                                     id="task-preset-month"
-                                    v-model.number="form.preset_month"
+                                    v-model.number="form.schedule_preset.month"
                                     class="field"
                                     data-test="maintenance-task-preset-month"
                                 >
@@ -284,7 +319,7 @@ function submit() {
                                 <label for="task-preset-day">{{ $t('maintenance.dialog.day_label') }}</label>
                                 <input
                                     id="task-preset-day"
-                                    v-model.number="form.preset_day"
+                                    v-model.number="form.schedule_preset.day"
                                     type="number"
                                     min="1"
                                     max="31"
@@ -300,7 +335,7 @@ function submit() {
                                     <label for="task-preset-ordinal">{{ $t('maintenance.dialog.ordinal_label') }}</label>
                                     <select
                                         id="task-preset-ordinal"
-                                        v-model.number="form.preset_ordinal"
+                                        v-model.number="form.schedule_preset.ordinal"
                                         class="field"
                                         data-test="maintenance-task-preset-ordinal"
                                     >
@@ -313,7 +348,7 @@ function submit() {
                                     <label for="task-preset-weekday">{{ $t('maintenance.dialog.weekday_label') }}</label>
                                     <select
                                         id="task-preset-weekday"
-                                        v-model="form.preset_weekday"
+                                        v-model="form.schedule_preset.weekday"
                                         class="field"
                                         data-test="maintenance-task-preset-weekday"
                                     >
@@ -327,7 +362,7 @@ function submit() {
                                 <label for="task-preset-in-month">{{ $t('maintenance.dialog.month_label') }}</label>
                                 <select
                                     id="task-preset-in-month"
-                                    v-model="form.preset_in_month"
+                                    v-model="form.schedule_preset.in_month"
                                     class="field"
                                     data-test="maintenance-task-preset-in-month"
                                 >

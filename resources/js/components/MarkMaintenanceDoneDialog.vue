@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useMaintenanceEntryForm } from '@/composables/useMaintenanceEntryForm';
 import { localToday } from '@/lib/date';
 import maintenanceTasks from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
-import { computed, watch } from 'vue';
 
 /**
  * "Mark done" dialog: records a completion entry and rolls the schedule.
@@ -27,38 +27,11 @@ const open = defineModel<boolean>('open', { required: true });
 // purchase/sold price fields on the item form.
 const currency = usePage<SharedData>().props.currency;
 
-const form = useForm({
-    completed_at: localToday(),
-    notes: '',
-    cost: '',
-});
-
-form.transform((data) => ({
-    completed_at: data.completed_at,
-    notes: data.notes || null,
-    cost: data.cost === '' ? null : data.cost,
-}));
-
-watch(open, (isOpen) => {
-    if (!isOpen) return;
-    form.reset();
-    form.clearErrors();
-    form.completed_at = localToday();
-});
-
-// Inert until the payload is valid: a date that exists and isn't in the
-// future (ISO strings compare lexicographically), and a cost that is empty
-// or a non-negative number.
-const canSubmit = computed(() => form.completed_at !== '' && form.completed_at <= localToday() && (form.cost === '' || Number(form.cost) >= 0));
+const { form, canSubmit, submit: submitTo } = useMaintenanceEntryForm(open, { requireNotes: false });
 
 function submit() {
     if (!props.task) return;
-    form.post(maintenanceTasks.complete([props.item.id, props.task.id]).url, {
-        preserveScroll: true,
-        onSuccess: () => {
-            open.value = false;
-        },
-    });
+    submitTo(maintenanceTasks.complete([props.item.id, props.task.id]).url);
 }
 </script>
 
