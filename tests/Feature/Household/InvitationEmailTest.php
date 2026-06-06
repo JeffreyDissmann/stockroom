@@ -87,6 +87,63 @@ it('keeps the invite and flashes a failure when the mail transport throws', func
     expect(Invitation::sole()->email)->toBe('anna@example.com');
 });
 
+describe('resend', function () {
+    it('re-mails a pending emailed invite', function () {
+        Notification::fake();
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->emailed('anna@example.com')->create(['created_by' => $admin->id]);
+
+        $this->actingAs($admin)
+            ->post("/household/invitations/{$invitation->id}/resend")
+            ->assertRedirect()
+            ->assertSessionHas('invitation_mail', 'sent');
+
+        Notification::assertSentOnDemand(
+            InvitationInvite::class,
+            fn (InvitationInvite $n, array $c, AnonymousNotifiable $notifiable): bool => $notifiable->routes['mail'] === 'anna@example.com',
+        );
+    });
+
+    it('403s for invites without an address — the UI never offers that', function () {
+        Notification::fake();
+        $admin = User::factory()->admin()->create();
+        $invitation = Invitation::factory()->create(); // copy-paste invite
+
+        $this->actingAs($admin)
+            ->post("/household/invitations/{$invitation->id}/resend")
+            ->assertForbidden();
+
+        Notification::assertNothingSent();
+    });
+
+    it('rejects no-longer-pending invites with a validation error (stale page)', function (Invitation $invitation) {
+        Notification::fake();
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post("/household/invitations/{$invitation->id}/resend")
+            ->assertRedirect()
+            ->assertSessionHasErrors('invitation');
+
+        Notification::assertNothingSent();
+    })->with([
+        'expired emailed invite' => fn () => Invitation::factory()->emailed()->expired()->create(),
+        'accepted emailed invite' => fn () => Invitation::factory()->emailed()->accepted()->create(),
+    ]);
+
+    it('is admin-gated', function () {
+        Notification::fake();
+        $member = User::factory()->create();
+        $invitation = Invitation::factory()->emailed()->create();
+
+        $this->actingAs($member)
+            ->post("/household/invitations/{$invitation->id}/resend")
+            ->assertForbidden();
+
+        Notification::assertNothingSent();
+    });
+});
+
 it('shares the invite email on the members page payload', function () {
     $admin = User::factory()->admin()->create();
     Invitation::factory()->emailed('anna@example.com')->create(['created_by' => $admin->id]);

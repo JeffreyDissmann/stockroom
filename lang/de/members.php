@@ -10,6 +10,7 @@ return [
     'create' => 'Einladungslink erstellen',
     'sent_to' => 'gesendet an :email',
     'resend' => 'Erneut senden',
+    'resend_unavailable' => 'Diese Einladung kann nicht mehr gesendet werden — sie wurde angenommen oder ist abgelaufen.',
     'mail_sent' => 'Einladung verschickt.',
     'mail_failed' => 'Die Einladung wurde erstellt, aber die E-Mail konnte nicht gesendet werden — kopiere stattdessen den Link.',
 

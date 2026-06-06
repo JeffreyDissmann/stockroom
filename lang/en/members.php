@@ -10,6 +10,7 @@ return [
     'create' => 'Create invite link',
     'sent_to' => 'sent to :email',
     'resend' => 'Send again',
+    'resend_unavailable' => 'This invite can no longer be sent — it was accepted or has expired.',
     'mail_sent' => 'Invite emailed.',
     'mail_failed' => 'The invite was created, but the email could not be sent — copy the link instead.',
 

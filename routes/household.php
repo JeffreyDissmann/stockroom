@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
 
         Route::post('household/invitations', [InvitationController::class, 'store'])->name('household.invitations.store');
         Route::delete('household/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('household.invitations.destroy');
+        // Re-mail a pending invite to its stored address (lost mails,
+        // spam folders) without recreating the link.
+        Route::post('household/invitations/{invitation}/resend', [InvitationController::class, 'resend'])->name('household.invitations.resend');
 
         Route::patch('household/members/{user}', [MemberController::class, 'update'])->name('household.members.update');
         Route::delete('household/members/{user}', [MemberController::class, 'destroy'])->name('household.members.destroy');

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:20
 * @route '/household/members'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:20
 * @route '/household/members'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:20
 * @route '/household/members'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:20
 * @route '/household/members'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::store
-* @see app/Http/Controllers/Household/InvitationController.php:41
+* @see app/Http/Controllers/Household/InvitationController.php:44
 * @route '/household/invitations'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -60,7 +60,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::store
-* @see app/Http/Controllers/Household/InvitationController.php:41
+* @see app/Http/Controllers/Household/InvitationController.php:44
 * @route '/household/invitations'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::store
-* @see app/Http/Controllers/Household/InvitationController.php:41
+* @see app/Http/Controllers/Household/InvitationController.php:44
 * @route '/household/invitations'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -79,7 +79,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::destroy
-* @see app/Http/Controllers/Household/InvitationController.php:60
+* @see app/Http/Controllers/Household/InvitationController.php:92
 * @route '/household/invitations/{invitation}'
 */
 export const destroy = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -94,7 +94,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::destroy
-* @see app/Http/Controllers/Household/InvitationController.php:60
+* @see app/Http/Controllers/Household/InvitationController.php:92
 * @route '/household/invitations/{invitation}'
 */
 destroy.url = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -127,7 +127,7 @@ destroy.url = (args: { invitation: number | { id: number } } | [invitation: numb
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::destroy
-* @see app/Http/Controllers/Household/InvitationController.php:60
+* @see app/Http/Controllers/Household/InvitationController.php:92
 * @route '/household/invitations/{invitation}'
 */
 destroy.delete = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -135,6 +135,64 @@ destroy.delete = (args: { invitation: number | { id: number } } | [invitation: n
     method: 'delete',
 })
 
-const InvitationController = { index, store, destroy }
+/**
+* @see \App\Http\Controllers\Household\InvitationController::resend
+* @see app/Http/Controllers/Household/InvitationController.php:106
+* @route '/household/invitations/{invitation}/resend'
+*/
+export const resend = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: resend.url(args, options),
+    method: 'post',
+})
+
+resend.definition = {
+    methods: ["post"],
+    url: '/household/invitations/{invitation}/resend',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Household\InvitationController::resend
+* @see app/Http/Controllers/Household/InvitationController.php:106
+* @route '/household/invitations/{invitation}/resend'
+*/
+resend.url = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { invitation: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { invitation: args.id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            invitation: args[0],
+        }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+        invitation: typeof args.invitation === 'object'
+        ? args.invitation.id
+        : args.invitation,
+    }
+
+    return resend.definition.url
+            .replace('{invitation}', parsedArgs.invitation.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Household\InvitationController::resend
+* @see app/Http/Controllers/Household/InvitationController.php:106
+* @route '/household/invitations/{invitation}/resend'
+*/
+resend.post = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: resend.url(args, options),
+    method: 'post',
+})
+
+const InvitationController = { index, store, destroy, resend }
 
 export default InvitationController

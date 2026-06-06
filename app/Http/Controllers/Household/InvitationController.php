@@ -11,6 +11,7 @@ use App\Notifications\InvitationInvite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -96,6 +97,27 @@ class InvitationController extends Controller
         $invitation->delete();
 
         return back();
+    }
+
+    /**
+     * Re-mail a pending invite to its stored address.
+     */
+    public function resend(Request $request, Invitation $invitation): RedirectResponse
+    {
+        // No stored address = the UI never offered this (the button only
+        // renders for emailed invites) — a crafted call, hard stop.
+        abort_if($invitation->email === null, 403);
+
+        // No longer pending = a stale page (accepted/expired while open).
+        // A validation error redirects back and the refreshed pending list
+        // simply no longer contains the invite.
+        if (! $invitation->isPending()) {
+            throw ValidationException::withMessages([
+                'invitation' => __('members.resend_unavailable'),
+            ]);
+        }
+
+        return $this->send($request, $invitation);
     }
 
     /**
