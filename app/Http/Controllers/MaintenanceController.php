@@ -44,7 +44,7 @@ class MaintenanceController extends Controller
             ->get();
 
         $overdue = $tasks->filter(fn (MaintenanceTask $task): bool => $task->isOverdue());
-        $dueSoon = $tasks->filter(fn (MaintenanceTask $task): bool => ! $task->isOverdue() && $task->isWithinReminderWindow());
+        $dueSoon = $tasks->filter(fn (MaintenanceTask $task): bool => $task->needsAttention() && ! $task->isOverdue());
 
         $visible = match ($filter) {
             'overdue' => $overdue,

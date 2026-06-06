@@ -195,23 +195,7 @@ function deleteTask(task: MaintenanceTaskRow) {
     gap: 2px;
     flex-shrink: 0;
 }
-.mnt-badge {
-    font-size: 12px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--bg-sunken);
-    color: var(--fg-muted);
-    white-space: nowrap;
-}
-.mnt-badge.is-overdue {
-    color: var(--neg);
-    background: color-mix(in srgb, var(--neg) 12%, transparent);
-}
-.mnt-badge.is-due-soon {
-    color: var(--pos);
-    background: color-mix(in srgb, var(--pos) 12%, transparent);
-}
+/* .mnt-badge styles are global (app.css) — shared across surfaces. */
 .mnt-date {
     font-size: 11.5px;
     color: var(--fg-subtle);

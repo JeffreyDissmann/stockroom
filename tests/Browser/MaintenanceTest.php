@@ -198,6 +198,19 @@ it('marks a task done from the global page', function () {
         ->and($task->fresh()->next_due_at->toDateString())->toBe(today()->addMonthNoOverflow()->toDateString());
 });
 
+it('shows the due-soon card on the dashboard and links through', function () {
+    $item = Item::factory()->create(['name' => 'Boiler']);
+    MaintenanceTask::factory()->for($item)->overdue(4)->create(['title' => 'Annual service']);
+
+    $page = visit('/dashboard');
+
+    $page->assertPresent('@dashboard-maintenance-card')
+        ->assertPresent('@dashboard-maintenance-row')
+        ->assertSee('Annual service')
+        ->assertSee('Boiler')
+        ->assertNoJavaScriptErrors();
+});
+
 it('renders the empty global page without errors', function () {
     $page = visit('/maintenance');
 

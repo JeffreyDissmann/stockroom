@@ -243,6 +243,27 @@
 .btn-primary:disabled:hover { opacity: 0.45; }
 .btn-pill:disabled:hover { color: var(--fg-muted); border-color: var(--border); }
 .btn-ghost:disabled:hover { color: var(--fg-muted); background: transparent; }
+
+/* Maintenance due badge — shared by the item section, the global
+   /maintenance page and the dashboard card so the three surfaces always
+   look (and mean) the same. Pairs with useMaintenanceDue. */
+.mnt-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+    color: var(--fg-muted);
+    white-space: nowrap;
+}
+.mnt-badge.is-overdue {
+    color: var(--neg);
+    background: color-mix(in srgb, var(--neg) 12%, transparent);
+}
+.mnt-badge.is-due-soon {
+    color: var(--pos);
+    background: color-mix(in srgb, var(--pos) 12%, transparent);
+}
 .btn-ghost {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 10px;

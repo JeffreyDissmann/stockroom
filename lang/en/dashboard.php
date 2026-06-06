@@ -22,6 +22,7 @@ return [
 
     'recently_added' => 'Recently added',
     'recent_activity' => 'Recent activity',
+    'maintenance_due' => 'Maintenance due (:count)',
     'view_all' => 'View all',
 
     'col_item' => 'Item',

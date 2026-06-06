@@ -127,4 +127,16 @@ class MaintenanceTask extends Model
             && $this->next_due_at !== null
             && today()->gte($this->next_due_at->copy()->subDays($this->reminder_lead_days));
     }
+
+    /**
+     * Overdue or inside the reminder window — the single definition of
+     * "this task wants the user's attention", shared by the dashboard
+     * card, the global page partition and the digest. A PHP predicate
+     * (not a query scope) because the per-row window arithmetic isn't
+     * portable SQL across pgsql/sqlite.
+     */
+    public function needsAttention(): bool
+    {
+        return $this->isOverdue() || $this->isWithinReminderWindow();
+    }
 }

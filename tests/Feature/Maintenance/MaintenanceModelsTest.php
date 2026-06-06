@@ -93,6 +93,18 @@ it('reports overdue and days-until-due', function () {
         ->and($archived->dueInDays())->toBeNull();
 });
 
+it('needs attention exactly when overdue or inside the reminder window', function () {
+    $overdue = MaintenanceTask::factory()->overdue()->create();
+    $inWindow = MaintenanceTask::factory()->dueSoon(3)->create(['reminder_lead_days' => 7]);
+    $future = MaintenanceTask::factory()->dueSoon(20)->create(['reminder_lead_days' => 7]);
+    $archived = MaintenanceTask::factory()->oneOff()->inactive()->create();
+
+    expect($overdue->needsAttention())->toBeTrue()
+        ->and($inWindow->needsAttention())->toBeTrue()
+        ->and($future->needsAttention())->toBeFalse()
+        ->and($archived->needsAttention())->toBeFalse();
+});
+
 it('enters the reminder window lead-days before the due date', function () {
     $insideWindow = MaintenanceTask::factory()->dueSoon(3)->create(['reminder_lead_days' => 7]);
     $outsideWindow = MaintenanceTask::factory()->dueSoon(10)->create(['reminder_lead_days' => 7]);
