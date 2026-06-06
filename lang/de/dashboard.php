@@ -22,6 +22,7 @@ return [
 
     'recently_added' => 'Zuletzt hinzugefügt',
     'recent_activity' => 'Letzte Aktivität',
+    'maintenance_due' => 'Wartung fällig (:count)',
     'view_all' => 'Alle anzeigen',
 
     'col_item' => 'Gegenstand',

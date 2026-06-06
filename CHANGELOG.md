@@ -7,15 +7,34 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.03] — 2026-06-06
+
 ### Added
 
+- **Maintenance tasks & reminders.** Items can now carry recurring
+  maintenance schedules ("change smoke-detector batteries every 6 months",
+  "service the heating every first Sunday in October") and a maintenance/
+  repair history. Three schedule types: interval-after-completion (the next
+  due date counts from the day you actually did it), fixed calendar rules
+  (RFC 5545 RRULEs built from curated presets, evaluated via
+  `simshaun/recurr`), and one-offs that archive themselves when done.
+  Tasks live on the item page (create/edit/complete/skip/delete, plus
+  ad-hoc history entries for repairs that never had a schedule), on a new
+  household-wide `/maintenance` overview with overdue/due-soon filters and
+  one-click completion, and on a dashboard card that appears only when
+  something needs attention. A daily 07:00 digest email (per-user opt-in
+  toggle in profile settings, rendered in each recipient's language) lists
+  everything overdue or inside its per-task reminder window. All
+  maintenance actions — including deletions — flow into the activity feed.
 - **Invitation emails.** Entering an email address in the Members invite
   form now creates the invite AND mails it ("X invited you to Stockroom",
-  rendered in the inviter's language), with a re-send button for pending
-  invites and a sent-to indicator in the list. The classic copy-paste link
-  flow is unchanged; an SMTP failure never loses the invite — the link
-  stays copyable and the page says so. Emailed invites also prefill (but
-  don't lock) the address on the registration form.
+  rendered in the inviter's language, delivered via the queue worker),
+  with a re-send button for pending invites and a sent-to indicator in
+  the list. The classic copy-paste link flow is unchanged; an SMTP failure
+  never loses the invite — the link stays copyable and the page says so.
+  Emailed invites also prefill (but don't lock) the address on the
+  registration form. Mail needs `MAIL_*` configured on the app, queue and
+  scheduler services; `MAIL_TIMEOUT` (default 10 s) bounds SMTP waits.
 
 ## [2026.06.02] — 2026-06-04
 

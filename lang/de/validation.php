@@ -139,6 +139,13 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'schedule_preset' => [
+            'impossible_date' => 'Diesen Tag gibt es im gewählten Monat nicht.',
+        ],
+        'maintenance_task' => [
+            'archived' => 'Diese Aufgabe wurde bereits erledigt.',
+            'not_skippable' => 'Nur Aufgaben mit festem Rhythmus können eine Fälligkeit überspringen.',
+        ],
     ],
 
     'attributes' => [

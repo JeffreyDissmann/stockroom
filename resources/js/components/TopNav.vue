@@ -5,9 +5,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { useAssistant } from '@/composables/useAssistant';
 import { useCommandPalette } from '@/composables/useCommandPalette';
 import { trans } from '@/composables/useTranslations';
+import { maintenance } from '@/routes';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Sparkles, Tag as TagIcon, Warehouse } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Sparkles, Tag as TagIcon, Warehouse, Wrench } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const { open } = useCommandPalette();
@@ -28,6 +29,7 @@ const primary: NavLink[] = [
 ];
 
 const secondary: NavLink[] = [
+    { label: trans('nav.maintenance'), href: maintenance().url, icon: Wrench, matches: (u) => u.startsWith('/maintenance') },
     { label: trans('nav.activity'), href: '/activity', icon: ActivityIcon, matches: (u) => u.startsWith('/activity') },
     { label: trans('nav.household'), href: '/household/custom-fields', icon: Warehouse, matches: (u) => u.startsWith('/household') },
 ];

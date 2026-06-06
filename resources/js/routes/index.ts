@@ -95,7 +95,7 @@ home.options = (options?: RouteQueryOptions): RouteDefinition<'options'> => ({
 
 /**
 * @see \App\Http\Controllers\DashboardController::__invoke
-* @see app/Http/Controllers/DashboardController.php:22
+* @see app/Http/Controllers/DashboardController.php:25
 * @route '/dashboard'
 */
 export const dashboard = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -110,7 +110,7 @@ dashboard.definition = {
 
 /**
 * @see \App\Http\Controllers\DashboardController::__invoke
-* @see app/Http/Controllers/DashboardController.php:22
+* @see app/Http/Controllers/DashboardController.php:25
 * @route '/dashboard'
 */
 dashboard.url = (options?: RouteQueryOptions) => {
@@ -119,7 +119,7 @@ dashboard.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DashboardController::__invoke
-* @see app/Http/Controllers/DashboardController.php:22
+* @see app/Http/Controllers/DashboardController.php:25
 * @route '/dashboard'
 */
 dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -129,7 +129,7 @@ dashboard.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\DashboardController::__invoke
-* @see app/Http/Controllers/DashboardController.php:22
+* @see app/Http/Controllers/DashboardController.php:25
 * @route '/dashboard'
 */
 dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -226,7 +226,51 @@ activity.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
 /**
-* @see routes/settings.php:22
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:30
+* @route '/maintenance'
+*/
+export const maintenance = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: maintenance.url(options),
+    method: 'get',
+})
+
+maintenance.definition = {
+    methods: ["get","head"],
+    url: '/maintenance',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:30
+* @route '/maintenance'
+*/
+maintenance.url = (options?: RouteQueryOptions) => {
+    return maintenance.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:30
+* @route '/maintenance'
+*/
+maintenance.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: maintenance.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:30
+* @route '/maintenance'
+*/
+maintenance.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: maintenance.url(options),
+    method: 'head',
+})
+
+/**
+* @see routes/settings.php:23
 * @route '/settings/appearance'
 */
 export const appearance = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -240,7 +284,7 @@ appearance.definition = {
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see routes/settings.php:22
+* @see routes/settings.php:23
 * @route '/settings/appearance'
 */
 appearance.url = (options?: RouteQueryOptions) => {
@@ -248,7 +292,7 @@ appearance.url = (options?: RouteQueryOptions) => {
 }
 
 /**
-* @see routes/settings.php:22
+* @see routes/settings.php:23
 * @route '/settings/appearance'
 */
 appearance.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -257,7 +301,7 @@ appearance.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 
 /**
-* @see routes/settings.php:22
+* @see routes/settings.php:23
 * @route '/settings/appearance'
 */
 appearance.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

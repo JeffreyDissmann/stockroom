@@ -15,4 +15,15 @@ return [
         'boolean' => 'Ja / Nein',
         'url' => 'Link',
     ],
+    'maintenance_schedule_type' => [
+        'interval' => 'Nach Erledigung',
+        'calendar' => 'Fester Rhythmus',
+        'one_off' => 'Einmalig',
+    ],
+    'maintenance_interval_unit' => [
+        'days' => 'Tage',
+        'weeks' => 'Wochen',
+        'months' => 'Monate',
+        'years' => 'Jahre',
+    ],
 ];

@@ -3,6 +3,7 @@ import PaperlessWebhookController from './PaperlessWebhookController'
 import DashboardController from './DashboardController'
 import SearchController from './SearchController'
 import ActivityController from './ActivityController'
+import MaintenanceController from './MaintenanceController'
 import ItemController from './ItemController'
 import ItemPhotoAnalysisController from './ItemPhotoAnalysisController'
 import AssistantController from './AssistantController'
@@ -20,6 +21,7 @@ const Controllers = {
     DashboardController: Object.assign(DashboardController, DashboardController),
     SearchController: Object.assign(SearchController, SearchController),
     ActivityController: Object.assign(ActivityController, ActivityController),
+    MaintenanceController: Object.assign(MaintenanceController, MaintenanceController),
     ItemController: Object.assign(ItemController, ItemController),
     ItemPhotoAnalysisController: Object.assign(ItemPhotoAnalysisController, ItemPhotoAnalysisController),
     AssistantController: Object.assign(AssistantController, AssistantController),

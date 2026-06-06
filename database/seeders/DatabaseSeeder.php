@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\ItemType;
+use App\Enums\MaintenanceIntervalUnit;
+use App\Enums\MaintenanceScheduleType;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\ItemImageProcessor;
+use App\Services\Maintenance\MaintenanceSchedule;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -72,7 +75,7 @@ class DatabaseSeeder extends Seeder
             'purchase_date' => '2023-04-12',
             'purchase_price' => '79.99',
         ]);
-        $this->makeItem($garage, ItemType::Item, 'Lawnmower', 'Petrol push mower. Service the air filter every spring.', [$tools], 'lawnmower', [
+        $lawnmower = $this->makeItem($garage, ItemType::Item, 'Lawnmower', 'Petrol push mower. Service the air filter every spring.', [$tools], 'lawnmower', [
             'manufacturer' => 'Honda',
             'model_number' => 'HRX217VKA',
             'serial_number' => 'MAGA-1903827',
@@ -82,7 +85,7 @@ class DatabaseSeeder extends Seeder
             'warranty_expires' => '2027-05-03',
             'warranty_details' => '5-year residential warranty.',
         ]);
-        $this->makeItem($garage, ItemType::Item, 'Bicycle', 'Hybrid commuter. Hung on the wall hook by the side door.', [], 'bicycle', [
+        $bicycle = $this->makeItem($garage, ItemType::Item, 'Bicycle', 'Hybrid commuter. Hung on the wall hook by the side door.', [], 'bicycle', [
             'manufacturer' => 'Trek',
             'model_number' => 'FX 2 Disc',
             'serial_number' => 'WTU183K0512',
@@ -98,7 +101,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $kitchenRoom->tags()->sync(collect([$kitchen])->filter()->pluck('id')->all());
         $this->attachDemoImage($kitchenRoom, 'kitchen');
-        $this->makeItem($kitchenRoom, ItemType::Item, 'Coffee maker', 'Daily-driver espresso machine. Descale monthly.', [$kitchen, $electronics], 'coffee-maker', [
+        $coffeeMaker = $this->makeItem($kitchenRoom, ItemType::Item, 'Coffee maker', 'Daily-driver espresso machine. Descale monthly.', [$kitchen, $electronics], 'coffee-maker', [
             'manufacturer' => 'Breville',
             'model_number' => 'BES870XL',
             'serial_number' => 'BRV-7781204',
@@ -147,6 +150,59 @@ class DatabaseSeeder extends Seeder
             'sold_price' => '120.00',
             'sold_date' => '2025-02-10',
             'sold_notes' => 'Sold when upgrading to the dual-4K setup.',
+        ]);
+
+        $this->seedDemoMaintenance($lawnmower, $coffeeMaker, $bicycle);
+    }
+
+    /**
+     * One task of each schedule type plus an ad-hoc history entry, so the
+     * maintenance UI has something to show on a fresh install. next_due_at
+     * is derived through MaintenanceSchedule like every real write — the
+     * service stays the single writer of the stored projection.
+     */
+    private function seedDemoMaintenance(Item $lawnmower, Item $coffeeMaker, Item $bicycle): void
+    {
+        $admin = User::where('email', config('stockroom.admin.email'))->first();
+        $schedule = app(MaintenanceSchedule::class);
+
+        // Interval: descale rolls forward from whenever it was last done.
+        $descale = $coffeeMaker->maintenanceTasks()->make([
+            'title' => 'Descale',
+            'description' => 'Run the descale program with the Breville solution.',
+            'schedule_type' => MaintenanceScheduleType::Interval,
+            'interval_value' => 1,
+            'interval_unit' => MaintenanceIntervalUnit::Months,
+            'last_completed_at' => today()->subWeeks(3),
+            'reminder_lead_days' => 3,
+        ]);
+        $schedule->recompute($descale);
+        $descale->save();
+        $coffeeMaker->maintenanceEntries()->create([
+            'maintenance_task_id' => $descale->id,
+            'performed_by' => $admin?->id,
+            'completed_at' => today()->subWeeks(3),
+            'notes' => 'Full descale cycle, replaced the water filter too.',
+        ]);
+
+        // Calendar: spring service happens every April no matter when the
+        // previous one actually got done.
+        $springService = $lawnmower->maintenanceTasks()->make([
+            'title' => 'Spring service',
+            'description' => 'Air filter, spark plug, oil change before the mowing season.',
+            'schedule_type' => MaintenanceScheduleType::Calendar,
+            'rrule' => 'FREQ=YEARLY;BYMONTH=4;BYMONTHDAY=1',
+            'reminder_lead_days' => 14,
+        ]);
+        $schedule->recompute($springService);
+        $springService->save();
+
+        // Ad-hoc history: a repair that never had a schedule.
+        $bicycle->maintenanceEntries()->create([
+            'performed_by' => $admin?->id,
+            'completed_at' => today()->subMonths(2),
+            'notes' => 'Replaced both brake pads, bled the rear brake.',
+            'cost' => '24.90',
         ]);
     }
 

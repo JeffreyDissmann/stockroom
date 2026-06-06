@@ -6,6 +6,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, LogsActivity, Notifiable;
@@ -31,6 +32,19 @@ class User extends Authenticatable
         'password',
         'locale',
         'is_admin',
+        'maintenance_digest_opt_in',
+    ];
+
+    /**
+     * In-memory defaults, mirroring the DB column defaults. Without this a
+     * freshly created (not re-fetched) instance lacks the attribute
+     * entirely — the Inertia-shared auth.user would then serialize without
+     * it and the profile toggle would render unchecked.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'maintenance_digest_opt_in' => true,
     ];
 
     /**
@@ -54,6 +68,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'maintenance_digest_opt_in' => 'boolean',
         ];
     }
 
@@ -74,5 +89,14 @@ class User extends Authenticatable
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->useLogName('user');
+    }
+
+    /**
+     * Mail (e.g. the maintenance digest) renders in the user's chosen UI
+     * language; null falls back to the app locale.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
     }
 }
