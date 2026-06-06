@@ -10,6 +10,7 @@ use App\Ai\Tools\CreateItem;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
 use App\Ai\Tools\InventoryStats;
+use App\Ai\Tools\MaintenanceOverview;
 use App\Ai\Tools\MoveItem;
 use App\Ai\Tools\SearchItems;
 use App\Ai\Tools\UpdateItem;
@@ -60,6 +61,8 @@ class InventoryAssistant implements Agent, Conversational, HasTools
         - To find or locate things, call search_items; for full details call get_item with an id.
         - For "how many" / "total value" questions, call inventory_stats. It defaults to actual
           possessions; pass type=room/container to count places, or type=all to include everything.
+        - Items can carry recurring maintenance schedules. For "what maintenance is due / overdue /
+          coming up" call maintenance_overview; pass scope=all to list every active schedule.
         - You may create, update, move, tag and delete items. **Always describe the exact change and
           get the user's explicit confirmation BEFORE calling any write tool** (create_item, update_item,
           move_item, assign_tags, delete_item). Deletion is permanent — be especially careful.
@@ -102,6 +105,7 @@ class InventoryAssistant implements Agent, Conversational, HasTools
             app(SearchItems::class),
             app(GetItem::class),
             app(InventoryStats::class),
+            app(MaintenanceOverview::class),
             app(CreateItem::class),
             app(UpdateItem::class),
             app(MoveItem::class),
