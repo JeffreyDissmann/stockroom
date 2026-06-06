@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Invitation;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
@@ -53,6 +54,46 @@ it('renders the search index page without errors', function () {
     $page = visit('/household/search-index');
 
     $page->assertSee('Search index')->assertNoJavaScriptErrors();
+});
+
+// The mail side of these flows runs in the app SERVER process, where the
+// test env's array mailer swallows sends — Notification::fake() here in
+// the test process would neither apply nor be assertable. The HTTP-level
+// send behaviour is covered by InvitationEmailTest.
+it('creates and emails an invite from the members form', function () {
+    $page = visit('/household/members');
+
+    $page->assertPresent('@invite-email')
+        ->fill('@invite-email', 'anna@example.com')
+        ->click('Create invite link')
+        ->assertPresent('@invite-mail-sent')
+        ->assertPresent('@invite-sent-to')
+        ->assertSee('anna@example.com')
+        ->assertPresent('@invite-resend')
+        ->assertNoJavaScriptErrors();
+
+    expect(Invitation::sole()->email)->toBe('anna@example.com');
+});
+
+it('re-sends an emailed invite from the list', function () {
+    Invitation::factory()->emailed('anna@example.com')->create();
+
+    $page = visit('/household/members');
+
+    $page->click('@invite-resend')
+        ->assertPresent('@invite-mail-sent')
+        ->assertNoJavaScriptErrors();
+});
+
+it('keeps the copy-paste-only invite flow free of email artifacts', function () {
+    Invitation::factory()->create(['label' => 'For Anna']);
+
+    $page = visit('/household/members');
+
+    $page->assertSee('For Anna')
+        ->assertMissing('@invite-resend')
+        ->assertMissing('@invite-sent-to')
+        ->assertNoJavaScriptErrors();
 });
 
 it('renders the members page without errors', function () {

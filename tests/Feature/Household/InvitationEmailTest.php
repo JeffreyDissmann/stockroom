@@ -151,3 +151,25 @@ it('shares the invite email on the members page payload', function () {
     $this->actingAs($admin)->get('/household/members')
         ->assertInertia(fn ($page) => $page->where('invitations.0.email', 'anna@example.com'));
 });
+
+it('prefills the registration form with the invited email', function () {
+    $invitation = Invitation::factory()->emailed('anna@example.com')->create();
+
+    $this->get(route('register', $invitation->token))
+        ->assertInertia(fn ($page) => $page
+            ->component('auth/Register')
+            ->where('invitedEmail', 'anna@example.com'));
+});
+
+it('lets the invitee register with a different email than the invited one', function () {
+    $invitation = Invitation::factory()->emailed('anna@example.com')->create();
+
+    $this->post(route('register.store', $invitation->token), [
+        'name' => 'Anna',
+        'email' => 'anna.private@example.org',
+        'password' => 'secret-password-1',
+        'password_confirmation' => 'secret-password-1',
+    ])->assertRedirect(route('dashboard'));
+
+    expect(User::where('email', 'anna.private@example.org')->exists())->toBeTrue();
+});

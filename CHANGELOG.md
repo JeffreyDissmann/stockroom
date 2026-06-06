@@ -7,6 +7,16 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+### Added
+
+- **Invitation emails.** Entering an email address in the Members invite
+  form now creates the invite AND mails it ("X invited you to Stockroom",
+  rendered in the inviter's language), with a re-send button for pending
+  invites and a sent-to indicator in the list. The classic copy-paste link
+  flow is unchanged; an SMTP failure never loses the invite — the link
+  stays copyable and the page says so. Emailed invites also prefill (but
+  don't lock) the address on the registration form.
+
 ## [2026.06.02] — 2026-06-04
 
 ### Fixed

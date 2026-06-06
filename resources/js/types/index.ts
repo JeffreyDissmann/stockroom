@@ -33,7 +33,7 @@ export interface SharedData {
     auth: Auth;
     currency: CurrencyConfig;
     features: { imageSearch: boolean; ai: boolean; paperless: boolean };
-    flash: { backup: BackupResult | null; box_created_for: string | null };
+    flash: { backup: BackupResult | null; box_created_for: string | null; invitation_mail: 'sent' | 'failed' | null };
     locale: string;
     translations: Record<string, string>;
     version: { tag: string | null; sha: string | null };
@@ -157,4 +157,3 @@ export interface ActivityRow {
     related_url: string | null;
     at: string | null;
 }
-
