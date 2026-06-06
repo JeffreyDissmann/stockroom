@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useDateFormat } from '@/composables/useDateFormat';
 import { trans, transChoice } from '@/composables/useTranslations';
-import type { ActivityRow, SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+import type { ActivityRow } from '@/types';
+import { Link } from '@inertiajs/vue3';
 
 // `flat` drops the card wrapper so the feed can sit inside another card.
 withDefaults(defineProps<{ rows: ActivityRow[]; showSubject?: boolean; flat?: boolean }>(), { showSubject: true, flat: false });
+
+const { formatDate } = useDateFormat();
 
 // A move is an update whose sole change is the item's location.
 function isMove(row: ActivityRow): boolean {
@@ -61,7 +64,7 @@ function when(iso: string | null): string {
     if (hrs < 24) return transChoice('activity.time.hours', hrs);
     const days = Math.round(hrs / 24);
     if (days < 30) return transChoice('activity.time.days', days);
-    return new Date(iso).toLocaleDateString(usePage<SharedData>().props.locale);
+    return formatDate(iso);
 }
 </script>
 

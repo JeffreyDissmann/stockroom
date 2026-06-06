@@ -28,8 +28,6 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            // Daily maintenance digest opt-in (see maintenance:send-digest).
-            'maintenance_digest_opt_in' => ['boolean'],
         ];
     }
 }

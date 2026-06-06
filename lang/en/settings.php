@@ -10,6 +10,7 @@ return [
         'profile' => 'Profile',
         'password' => 'Password',
         'appearance' => 'Appearance',
+        'notifications' => 'Notifications',
         'api_tokens' => 'API tokens',
     ],
 
@@ -33,6 +34,12 @@ return [
         'name_placeholder' => 'Full name',
         'email_label' => 'Email address',
         'email_placeholder' => 'Email address',
+    ],
+
+    'notifications' => [
+        'breadcrumb' => 'Notification settings',
+        'title' => 'Notifications',
+        'description' => 'Choose which emails Stockroom sends you',
         'maintenance_digest_label' => 'Maintenance digest',
         'maintenance_digest_hint' => 'Email me a daily summary when maintenance is overdue or due soon.',
     ],

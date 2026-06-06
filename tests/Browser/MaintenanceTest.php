@@ -217,8 +217,8 @@ it('renders the empty global page without errors', function () {
     $page->assertPresent('@maintenance-filter-all')->assertNoJavaScriptErrors();
 });
 
-it('toggles the digest opt-in on the profile page', function () {
-    $page = visit('/settings/profile');
+it('toggles the digest opt-in on the notification settings page', function () {
+    $page = visit('/settings/notifications');
 
     // Default is opted-in; one click opts out and Save persists it. The
     // "Saved." confirmation gates the DB assertion — clicking Save only
