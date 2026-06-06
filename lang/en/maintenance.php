@@ -3,6 +3,17 @@
 declare(strict_types=1);
 
 return [
+    'page' => [
+        'title' => 'Maintenance',
+        'subtitle' => 'Every schedule across the household, soonest due first.',
+        'empty' => 'No maintenance tasks match this filter.',
+    ],
+    'filters' => [
+        'all' => 'All',
+        'overdue' => 'Overdue',
+        'due_soon' => 'Due soon',
+    ],
+
     'section_title' => 'Maintenance',
     'add_task' => 'Add task',
     'log_entry' => 'Log entry',

@@ -9,6 +9,7 @@ return [
     'search' => 'Search',
     'tags' => 'Tags',
     'activity' => 'Activity',
+    'maintenance' => 'Maintenance',
     'household' => 'Household',
     'settings' => 'Settings',
     'log_out' => 'Log out',

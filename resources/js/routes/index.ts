@@ -226,6 +226,50 @@ activity.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
 /**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:29
+* @route '/maintenance'
+*/
+export const maintenance = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: maintenance.url(options),
+    method: 'get',
+})
+
+maintenance.definition = {
+    methods: ["get","head"],
+    url: '/maintenance',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:29
+* @route '/maintenance'
+*/
+maintenance.url = (options?: RouteQueryOptions) => {
+    return maintenance.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:29
+* @route '/maintenance'
+*/
+maintenance.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: maintenance.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\MaintenanceController::__invoke
+* @see app/Http/Controllers/MaintenanceController.php:29
+* @route '/maintenance'
+*/
+maintenance.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: maintenance.url(options),
+    method: 'head',
+})
+
+/**
 * @see routes/settings.php:22
 * @route '/settings/appearance'
 */

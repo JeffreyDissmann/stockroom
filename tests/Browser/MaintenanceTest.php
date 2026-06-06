@@ -156,6 +156,54 @@ it('edits a task through the dialog with hydrated fields', function () {
     expect(MaintenanceTask::sole()->title)->toBe('New title');
 });
 
+it('renders the global maintenance page with filters, rows and nav entry', function () {
+    $item = Item::factory()->create(['name' => 'Boiler']);
+    MaintenanceTask::factory()->for($item)->overdue(4)->create(['title' => 'Annual service']);
+    MaintenanceTask::factory()->for($item)->dueSoon(30)->create(['title' => 'Pressure check']);
+
+    $page = visit('/maintenance');
+
+    $page->assertSee('Annual service')
+        ->assertSee('Pressure check')
+        ->assertSee('Boiler')
+        // The nav label resolves in BOTH locales' files — a key missing
+        // from en surfaces as the raw "nav.maintenance" string.
+        ->assertDontSee('nav.maintenance')
+        ->assertPresent('@maintenance-filter-all')
+        ->assertPresent('@maintenance-filter-overdue')
+        ->assertPresent('@maintenance-filter-due-soon')
+        ->assertPresent('@maintenance-global-row')
+        ->assertPresent('@maintenance-global-done')
+        ->assertNoJavaScriptErrors();
+
+    // The overdue filter narrows the list down.
+    $page->click('@maintenance-filter-overdue')
+        ->assertSee('Annual service')
+        ->assertDontSee('Pressure check')
+        ->assertNoJavaScriptErrors();
+});
+
+it('marks a task done from the global page', function () {
+    $item = Item::factory()->create();
+    $task = MaintenanceTask::factory()->for($item)->interval(1, MaintenanceIntervalUnit::Months)->overdue(2)->create();
+
+    $page = visit('/maintenance');
+
+    $page->click('@maintenance-global-done')
+        ->assertValue('#done-date', today()->toDateString())
+        ->click('@maintenance-done-submit')
+        ->assertNoJavaScriptErrors();
+
+    expect(MaintenanceEntry::sole()->maintenance_task_id)->toBe($task->id)
+        ->and($task->fresh()->next_due_at->toDateString())->toBe(today()->addMonthNoOverflow()->toDateString());
+});
+
+it('renders the empty global page without errors', function () {
+    $page = visit('/maintenance');
+
+    $page->assertPresent('@maintenance-filter-all')->assertNoJavaScriptErrors();
+});
+
 it('logs an ad-hoc entry through the dialog', function () {
     $item = Item::factory()->create();
 

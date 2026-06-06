@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
-import { activity, dashboard, logout, search } from '@/routes';
+import { activity, dashboard, logout, maintenance, search } from '@/routes';
 import customFields from '@/routes/custom-fields';
 import backup from '@/routes/household/backup';
 import members from '@/routes/household/members';
@@ -20,14 +20,36 @@ import profile from '@/routes/profile';
 import tags from '@/routes/tags';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, Database, LayoutGrid, LogOut, MoreHorizontal, Plus, RefreshCw, Search, Settings, Settings2, SlidersHorizontal, Sparkles, Tag as TagIcon, Users } from 'lucide-vue-next';
+import {
+    Activity as ActivityIcon,
+    Boxes,
+    Database,
+    LayoutGrid,
+    LogOut,
+    MoreHorizontal,
+    Plus,
+    RefreshCw,
+    Search,
+    Settings,
+    Settings2,
+    SlidersHorizontal,
+    Sparkles,
+    Tag as TagIcon,
+    Users,
+    Wrench,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const { open: openAssistant } = useAssistant();
 
 const tabs = [
     { label: trans('nav.dashboard'), href: dashboard().url, icon: LayoutGrid, matches: (u: string) => u.startsWith('/dashboard') },
-    { label: trans('nav.items'), href: items.index().url, icon: Boxes, matches: (u: string) => u === '/items' || (u.startsWith('/items') && !u.includes('/create')) },
+    {
+        label: trans('nav.items'),
+        href: items.index().url,
+        icon: Boxes,
+        matches: (u: string) => u === '/items' || (u.startsWith('/items') && !u.includes('/create')),
+    },
     { label: trans('common.add'), href: items.create().url, icon: Plus, matches: (u: string) => u.startsWith('/items/create') },
     { label: trans('nav.search'), href: search().url, icon: Search, matches: (u: string) => u.startsWith('/search') },
 ];
@@ -45,17 +67,12 @@ const householdLinks = [
 
 const page = usePage<SharedData>();
 const aiEnabled = page.props.features.ai;
-const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(page.url));
+const moreActive = computed(() => /^\/(tags|activity|maintenance|household|settings)/.test(page.url));
 </script>
 
 <template>
     <nav class="bottom-tabs" :aria-label="$t('nav.primary')">
-        <Link
-            v-for="tab in tabs"
-            :key="tab.href"
-            :href="tab.href"
-            :class="tab.matches(page.url) ? 'active' : ''"
-        >
+        <Link v-for="tab in tabs" :key="tab.href" :href="tab.href" :class="tab.matches(page.url) ? 'active' : ''">
             <component :is="tab.icon" />
             {{ tab.label }}
         </Link>
@@ -77,6 +94,12 @@ const moreActive = computed(() => /^\/(tags|activity|household|settings)/.test(p
                     <Link class="flex w-full items-center" :href="tags.index().url">
                         <TagIcon class="mr-2 h-4 w-4" />
                         {{ $t('nav.tags') }}
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem as-child>
+                    <Link class="flex w-full items-center" :href="maintenance().url">
+                        <Wrench class="mr-2 h-4 w-4" />
+                        {{ $t('nav.maintenance') }}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem as-child>

@@ -3,6 +3,17 @@
 declare(strict_types=1);
 
 return [
+    'page' => [
+        'title' => 'Wartung',
+        'subtitle' => 'Alle Wartungspläne des Haushalts, nächste Fälligkeit zuerst.',
+        'empty' => 'Keine Wartungsaufgaben für diesen Filter.',
+    ],
+    'filters' => [
+        'all' => 'Alle',
+        'overdue' => 'Überfällig',
+        'due_soon' => 'Bald fällig',
+    ],
+
     'section_title' => 'Wartung',
     'add_task' => 'Aufgabe anlegen',
     'log_entry' => 'Eintrag erfassen',

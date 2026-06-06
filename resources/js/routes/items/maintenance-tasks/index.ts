@@ -169,7 +169,7 @@ destroy.delete = (args: { item: number | { id: number }, maintenanceTask: number
 
 /**
 * @see \App\Http\Controllers\Items\MaintenanceTaskController::complete
-* @see app/Http/Controllers/Items/MaintenanceTaskController.php:73
+* @see app/Http/Controllers/Items/MaintenanceTaskController.php:75
 * @route '/items/{item}/maintenance-tasks/{maintenanceTask}/complete'
 */
 export const complete = (args: { item: number | { id: number }, maintenanceTask: number | { id: number } } | [item: number | { id: number }, maintenanceTask: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -184,7 +184,7 @@ complete.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\MaintenanceTaskController::complete
-* @see app/Http/Controllers/Items/MaintenanceTaskController.php:73
+* @see app/Http/Controllers/Items/MaintenanceTaskController.php:75
 * @route '/items/{item}/maintenance-tasks/{maintenanceTask}/complete'
 */
 complete.url = (args: { item: number | { id: number }, maintenanceTask: number | { id: number } } | [item: number | { id: number }, maintenanceTask: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -214,7 +214,7 @@ complete.url = (args: { item: number | { id: number }, maintenanceTask: number |
 
 /**
 * @see \App\Http\Controllers\Items\MaintenanceTaskController::complete
-* @see app/Http/Controllers/Items/MaintenanceTaskController.php:73
+* @see app/Http/Controllers/Items/MaintenanceTaskController.php:75
 * @route '/items/{item}/maintenance-tasks/{maintenanceTask}/complete'
 */
 complete.post = (args: { item: number | { id: number }, maintenanceTask: number | { id: number } } | [item: number | { id: number }, maintenanceTask: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -224,7 +224,7 @@ complete.post = (args: { item: number | { id: number }, maintenanceTask: number 
 
 /**
 * @see \App\Http\Controllers\Items\MaintenanceTaskController::skip
-* @see app/Http/Controllers/Items/MaintenanceTaskController.php:108
+* @see app/Http/Controllers/Items/MaintenanceTaskController.php:110
 * @route '/items/{item}/maintenance-tasks/{maintenanceTask}/skip'
 */
 export const skip = (args: { item: number | { id: number }, maintenanceTask: number | { id: number } } | [item: number | { id: number }, maintenanceTask: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -239,7 +239,7 @@ skip.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\MaintenanceTaskController::skip
-* @see app/Http/Controllers/Items/MaintenanceTaskController.php:108
+* @see app/Http/Controllers/Items/MaintenanceTaskController.php:110
 * @route '/items/{item}/maintenance-tasks/{maintenanceTask}/skip'
 */
 skip.url = (args: { item: number | { id: number }, maintenanceTask: number | { id: number } } | [item: number | { id: number }, maintenanceTask: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -269,7 +269,7 @@ skip.url = (args: { item: number | { id: number }, maintenanceTask: number | { i
 
 /**
 * @see \App\Http\Controllers\Items\MaintenanceTaskController::skip
-* @see app/Http/Controllers/Items/MaintenanceTaskController.php:108
+* @see app/Http/Controllers/Items/MaintenanceTaskController.php:110
 * @route '/items/{item}/maintenance-tasks/{maintenanceTask}/skip'
 */
 skip.post = (args: { item: number | { id: number }, maintenanceTask: number | { id: number } } | [item: number | { id: number }, maintenanceTask: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({

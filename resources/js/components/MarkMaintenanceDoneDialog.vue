@@ -12,9 +12,12 @@ import { computed, watch } from 'vue';
  * "Mark done" dialog: records a completion entry and rolls the schedule.
  * Date prefilled with today, backdatable; notes/cost optional. Open state
  * is owned by the parent — one instance serves every task card.
+ *
+ * `item` only needs an id (the route) — Pick lets the global maintenance
+ * page pass its slim per-row item payload as well as a full ItemSummary.
  */
 const props = defineProps<{
-    item: ItemSummary;
+    item: Pick<ItemSummary, 'id' | 'name'>;
     task: MaintenanceTaskRow | null;
 }>();
 

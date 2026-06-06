@@ -16,6 +16,7 @@ use App\Http\Controllers\Items\MaintenanceEntryController;
 use App\Http\Controllers\Items\MaintenanceTaskController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PaperlessWebhookController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
@@ -40,6 +41,10 @@ Route::middleware('auth')->group(function () {
     Route::get('search', SearchController::class)->name('search');
 
     Route::get('activity', ActivityController::class)->name('activity');
+
+    // Household-wide maintenance overview (per-item maintenance CRUD lives
+    // in the items/{item}/maintenance-* routes below).
+    Route::get('maintenance', MaintenanceController::class)->name('maintenance');
 
     Route::get('items/{item}/move-targets', [ItemController::class, 'moveTargets'])->name('items.move-targets');
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');

@@ -3,7 +3,8 @@ import MaintenanceTaskDialog from '@/components/MaintenanceTaskDialog.vue';
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { trans, transChoice } from '@/composables/useTranslations';
+import { useMaintenanceDue } from '@/composables/useMaintenanceDue';
+import { trans } from '@/composables/useTranslations';
 import maintenanceTaskRoutes from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
@@ -21,6 +22,7 @@ const props = defineProps<{
 
 const page = usePage<SharedData>();
 const { formatDate: fmtDate } = useDateFormat();
+const { dueBadge, isDueSoon } = useMaintenanceDue();
 
 // Stale-page guard errors from complete/skip (ValidationException key
 // 'task') — shown as a banner above the list since they belong to no form.
@@ -54,18 +56,6 @@ function skipTask(task: MaintenanceTaskRow) {
 function deleteTask(task: MaintenanceTaskRow) {
     if (!confirm(trans('maintenance.delete_task_confirm', { title: task.title }))) return;
     router.delete(maintenanceTaskRoutes.destroy([props.item.id, task.id]).url, { preserveScroll: true });
-}
-
-function dueBadge(task: MaintenanceTaskRow): string {
-    if (task.due_in_days === null) return trans('maintenance.due.none');
-    if (task.due_in_days < 0) return transChoice('maintenance.due.overdue', -task.due_in_days);
-    if (task.due_in_days === 0) return trans('maintenance.due.today');
-    return transChoice('maintenance.due.in_days', task.due_in_days);
-}
-
-// "Due soon" = inside the task's own reminder window, mirroring the digest.
-function isDueSoon(task: MaintenanceTaskRow): boolean {
-    return task.due_in_days !== null && task.due_in_days >= 0 && task.due_in_days <= task.reminder_lead_days;
 }
 </script>
 
