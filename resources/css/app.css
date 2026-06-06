@@ -234,6 +234,76 @@
     transition: opacity 0.12s;
 }
 .btn-primary:hover { opacity: 0.9; }
+/* Disabled buttons must read as inert — dimmed, no pointer, no hover
+   effect. Applies app-wide (dialog submits gate on form completeness). */
+.btn-primary:disabled, .btn-pill:disabled, .btn-ghost:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.btn-primary:disabled:hover { opacity: 0.45; }
+.btn-pill:disabled:hover { color: var(--fg-muted); border-color: var(--border); }
+.btn-ghost:disabled:hover { color: var(--fg-muted); background: transparent; }
+
+/* Maintenance task rows — shared by the item-page section and the global
+   /maintenance page so the two surfaces always look the same. Page-specific
+   bits (item link line, action buttons) stay scoped in their components. */
+.mnt-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mnt-row {
+    display: flex;
+    align-items: center;
+    /* Wrap by available width so narrow phones drop trailing pieces onto
+       their own line. */
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+}
+.mnt-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.mnt-title { font-size: 14px; font-weight: 500; }
+.mnt-summary { font-size: 12.5px; color: var(--fg-muted); }
+.mnt-due {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.mnt-date { font-size: 11.5px; color: var(--fg-subtle); }
+
+/* Maintenance due badge — also used by the dashboard card. Text and
+   colour states are computed server-side (MaintenancePresenter). */
+.mnt-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+    color: var(--fg-muted);
+    white-space: nowrap;
+}
+.mnt-badge.is-overdue {
+    color: var(--neg);
+    background: color-mix(in srgb, var(--neg) 12%, transparent);
+}
+.mnt-badge.is-due-soon {
+    color: var(--pos);
+    background: color-mix(in srgb, var(--pos) 12%, transparent);
+}
 .btn-ghost {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 10px;

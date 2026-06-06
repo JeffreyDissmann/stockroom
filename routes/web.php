@@ -12,8 +12,11 @@ use App\Http\Controllers\ItemPhotoAnalysisController;
 use App\Http\Controllers\Items\BoxController;
 use App\Http\Controllers\Items\BulkController;
 use App\Http\Controllers\Items\HomeAssistantLinkController;
+use App\Http\Controllers\Items\MaintenanceEntryController;
+use App\Http\Controllers\Items\MaintenanceTaskController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PaperlessWebhookController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
@@ -38,6 +41,10 @@ Route::middleware('auth')->group(function () {
     Route::get('search', SearchController::class)->name('search');
 
     Route::get('activity', ActivityController::class)->name('activity');
+
+    // Household-wide maintenance overview (per-item maintenance CRUD lives
+    // in the items/{item}/maintenance-* routes below).
+    Route::get('maintenance', MaintenanceController::class)->name('maintenance');
 
     Route::get('items/{item}/move-targets', [ItemController::class, 'moveTargets'])->name('items.move-targets');
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
@@ -91,6 +98,21 @@ Route::middleware('auth')->group(function () {
         Route::patch('items/{item}/images/order', [ItemImageController::class, 'reorder'])->name('items.images.reorder');
         Route::patch('items/{item}/images/{image}', [ItemImageController::class, 'update'])->name('items.images.update');
         Route::delete('items/{item}/images/{image}', [ItemImageController::class, 'destroy'])->name('items.images.destroy');
+    });
+
+    // Maintenance schedules on an item. {maintenanceTask} is scope-bound to
+    // its item (the parameter name resolves the maintenanceTasks relation).
+    Route::scopeBindings()->group(function () {
+        Route::post('items/{item}/maintenance-tasks', [MaintenanceTaskController::class, 'store'])->name('items.maintenance-tasks.store');
+        Route::patch('items/{item}/maintenance-tasks/{maintenanceTask}', [MaintenanceTaskController::class, 'update'])->name('items.maintenance-tasks.update');
+        Route::delete('items/{item}/maintenance-tasks/{maintenanceTask}', [MaintenanceTaskController::class, 'destroy'])->name('items.maintenance-tasks.destroy');
+        Route::post('items/{item}/maintenance-tasks/{maintenanceTask}/complete', [MaintenanceTaskController::class, 'complete'])->name('items.maintenance-tasks.complete');
+        Route::post('items/{item}/maintenance-tasks/{maintenanceTask}/skip', [MaintenanceTaskController::class, 'skip'])->name('items.maintenance-tasks.skip');
+
+        // Ad-hoc maintenance history (entries without a schedule); task
+        // completions are created via the complete endpoint above.
+        Route::post('items/{item}/maintenance-entries', [MaintenanceEntryController::class, 'store'])->name('items.maintenance-entries.store');
+        Route::delete('items/{item}/maintenance-entries/{maintenanceEntry}', [MaintenanceEntryController::class, 'destroy'])->name('items.maintenance-entries.destroy');
     });
 
     // Anyone may browse tags; only admins create/edit/delete them.

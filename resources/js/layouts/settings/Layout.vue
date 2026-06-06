@@ -24,6 +24,10 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/language',
     },
     {
+        title: trans('settings.nav.notifications'),
+        href: '/settings/notifications',
+    },
+    {
         title: trans('settings.nav.api_tokens'),
         href: '/settings/api-tokens',
     },

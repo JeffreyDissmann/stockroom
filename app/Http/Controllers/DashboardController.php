@@ -6,8 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\ItemType;
 use App\Models\Item;
+use App\Models\MaintenanceTask;
 use App\Services\ActivityPresenter;
 use App\Services\InventoryStatistics;
+use App\Services\Maintenance\MaintenancePresenter;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
@@ -17,6 +19,7 @@ class DashboardController extends Controller
     public function __construct(
         private readonly ActivityPresenter $presenter,
         private readonly InventoryStatistics $stats,
+        private readonly MaintenancePresenter $maintenancePresenter,
     ) {}
 
     public function __invoke(): Response
@@ -52,6 +55,11 @@ class DashboardController extends Controller
             ->get()
             ->map(fn (Activity $activity): array => $this->presenter->present($activity));
 
+        // Maintenance needing attention — the shared pipeline the digest
+        // uses too. The card shows the five most urgent; the count tells
+        // the user whether the list was truncated.
+        $attention = MaintenanceTask::needingAttention();
+
         return Inertia::render('Dashboard', [
             'stats' => [
                 'total' => (int) $byType->sum(),
@@ -84,6 +92,16 @@ class DashboardController extends Controller
             'tags' => $tags,
             'rooms' => $rooms,
             'activity' => $activity,
+            'maintenance' => [
+                'count' => $attention->count(),
+                'tasks' => $attention->take(5)->values()->map(fn (MaintenanceTask $task): array => [
+                    ...$this->maintenancePresenter->presentTask($task),
+                    'item' => [
+                        'id' => $task->item->id,
+                        'name' => $task->item->name,
+                    ],
+                ]),
+            ],
         ]);
     }
 }

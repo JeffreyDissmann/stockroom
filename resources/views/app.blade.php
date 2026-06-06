@@ -6,8 +6,14 @@
              `env(safe-area-inset-bottom)` returns the real home-indicator
              height instead of 0. The .bottom-tabs CSS already pads by
              that env() value; without `cover` the inset collapses and the
-             tab row sits over the rounded corner. --}}
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+             tab row sits over the rounded corner.
+
+             `maximum-scale=1` suppresses iOS Safari's automatic zoom when
+             focusing an input whose font-size is below 16px (our .field
+             inputs are 13px), which wrecked the layout on every dialog.
+             Since iOS 10 Safari deliberately ignores this cap for MANUAL
+             pinch gestures, so accessibility zooming keeps working. --}}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 
         <title inertia>{{ config('app.name', 'Stockroom') }}</title>
 

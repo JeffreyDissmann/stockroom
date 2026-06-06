@@ -14,6 +14,12 @@ return [
         'moved' => 'Moved',
         'linked' => 'Linked',
         'unlinked' => 'Unlinked',
+        'maintenance_scheduled' => 'Scheduled maintenance',
+        'maintenance_completed' => 'Completed',
+        'maintenance_skipped' => 'Skipped',
+        'maintenance_logged' => 'Logged maintenance',
+        'maintenance_task_deleted' => 'Removed schedule',
+        'maintenance_entry_deleted' => 'Removed history entry',
     ],
 
     'words' => [
