@@ -7,6 +7,7 @@ namespace Tests\Feature\Ai;
 use App\Ai\Tools\CompleteMaintenanceTask;
 use App\Ai\Tools\CreateMaintenanceTask;
 use App\Ai\Tools\GetItem;
+use App\Ai\Tools\LogMaintenanceEntry;
 use App\Ai\Tools\MaintenanceOverview;
 use App\Enums\MaintenanceIntervalUnit;
 use App\Enums\MaintenanceScheduleType;
@@ -272,6 +273,49 @@ class AssistantMaintenanceToolsTest extends TestCase
         ])));
 
         $this->assertSame(0, MaintenanceTask::count());
+    }
+
+    public function test_log_maintenance_entry_records_an_ad_hoc_repair(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $item = Item::factory()->create(['name' => 'Dresser']);
+
+        $result = app(LogMaintenanceEntry::class)->handle(new Request([
+            'item_id' => $item->id,
+            'notes' => 'Repaired the drawer handle.',
+            'completed_at' => today()->subDays(2)->toDateString(),
+            'cost' => 3.2,
+        ]));
+
+        $entry = MaintenanceEntry::sole();
+        $this->assertNull($entry->maintenance_task_id);
+        $this->assertSame($user->id, $entry->performed_by);
+        $this->assertSame(today()->subDays(2)->toDateString(), $entry->completed_at->toDateString());
+        $this->assertSame('Repaired the drawer handle.', $entry->notes);
+        $this->assertSame('3.20', $entry->cost);
+
+        $activity = Activity::where('event', 'maintenance_logged')->sole();
+        $this->assertSame('Repaired the drawer handle.', $activity->properties->get('notes'));
+
+        $this->assertStringContainsString("[Dresser](/items/{$item->id})", $result);
+        $this->assertStringContainsString('Repaired the drawer handle.', $result);
+    }
+
+    public function test_log_maintenance_entry_rejects_invalid_input_without_writing(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $item = Item::factory()->create();
+        $tool = app(LogMaintenanceEntry::class);
+        $base = ['item_id' => $item->id, 'notes' => 'Repaired the hinge.'];
+
+        $this->assertStringContainsString('No item found', $tool->handle(new Request([...$base, 'item_id' => 999999])));
+        // Without a task title the notes are the only record of what was done.
+        $this->assertStringContainsString('Notes', $tool->handle(new Request([...$base, 'notes' => ' '])));
+        $this->assertStringContainsString('future', $tool->handle(new Request([...$base, 'completed_at' => today()->addDay()->toDateString()])));
+        $this->assertStringContainsString('non-negative number', $tool->handle(new Request([...$base, 'cost' => -1])));
+
+        $this->assertSame(0, MaintenanceEntry::count());
     }
 
     public function test_maintenance_overview_reports_empty_states_per_scope(): void

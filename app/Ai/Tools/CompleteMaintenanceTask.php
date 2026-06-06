@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace App\Ai\Tools;
 
 use App\Ai\Concerns\FormatsItemLinks;
+use App\Ai\Concerns\ParsesCompletionDates;
 use App\Enums\MaintenanceScheduleType;
 use App\Models\MaintenanceTask;
 use App\Services\Maintenance\MaintenancePresenter;
 use App\Services\Maintenance\MaintenanceSchedule;
-use Carbon\CarbonImmutable;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Illuminate\Support\Facades\DB;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
-use Throwable;
 
 /**
  * Assistant-side twin of MaintenanceTaskController::complete(): records a
@@ -25,6 +24,7 @@ use Throwable;
 class CompleteMaintenanceTask implements Tool
 {
     use FormatsItemLinks;
+    use ParsesCompletionDates;
 
     public function __construct(
         private readonly MaintenanceSchedule $schedule,
@@ -99,30 +99,5 @@ class CompleteMaintenanceTask implements Tool
 
         return "Recorded completion of task #{$task->id} \"{$task->title}\" on {$this->itemLink($task->item)} "
             ."for {$completedAt->toDateString()}. {$outcome}";
-    }
-
-    /**
-     * The completion date: today when omitted, else a parsed YYYY-MM-DD that
-     * may be backdated but never lie in the future — completion is a record
-     * of something that happened. Returns the model-facing error string on
-     * invalid input.
-     */
-    private function parseCompletedAt(mixed $raw): CarbonImmutable|string
-    {
-        if ($raw === null || trim((string) $raw) === '') {
-            return today()->toImmutable();
-        }
-
-        try {
-            $date = CarbonImmutable::parse(trim((string) $raw))->startOfDay();
-        } catch (Throwable) {
-            return 'The completed_at date could not be parsed — use YYYY-MM-DD.';
-        }
-
-        if ($date->gt(today())) {
-            return 'The completion date cannot be in the future.';
-        }
-
-        return $date;
     }
 }
