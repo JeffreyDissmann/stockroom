@@ -4,9 +4,21 @@ declare(strict_types=1);
 
 return [
     'invites_title' => 'Einladungslinks',
-    'invites_desc' => 'Erstelle einen einmalig nutzbaren Link und teile ihn beliebig. Er läuft nach 7 Tagen ab, und die Person legt beim Beitritt selbst Namen, E-Mail und Passwort fest.',
+    'invites_desc' => 'Erstelle einen einmalig nutzbaren Link und teile ihn beliebig — oder gib eine E-Mail-Adresse an und Stockroom verschickt ihn. Er läuft nach 7 Tagen ab, und die Person legt beim Beitritt selbst Namen, E-Mail und Passwort fest.',
     'label_placeholder' => 'Bezeichnung (optional, z. B. Für Anna)',
+    'email_placeholder' => 'Einladung per E-Mail an… (optional)',
     'create' => 'Einladungslink erstellen',
+    'sent_to' => 'gesendet an :email',
+    'resend' => 'Erneut senden',
+    'mail_sent' => 'Einladung verschickt.',
+    'mail_failed' => 'Die Einladung wurde erstellt, aber die E-Mail konnte nicht gesendet werden — kopiere stattdessen den Link.',
+
+    'mail' => [
+        'subject' => ':name lädt dich zu Stockroom ein',
+        'intro' => ':name hat dich zum Haushaltsinventar in Stockroom eingeladen. Klick auf den Button und lege Namen, E-Mail und Passwort selbst fest.',
+        'action' => 'Stockroom beitreten',
+        'expiry' => 'Dieser Link ist einmalig nutzbar und läuft in :days Tagen ab.',
+    ],
     'none' => 'Keine aktiven Einladungslinks.',
     'link' => 'Einladungslink',
     'expires' => 'Läuft ab :when',

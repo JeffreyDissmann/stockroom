@@ -87,6 +87,9 @@ class HandleInertiaRequests extends Middleware
                 // the value is the source item's name (or null if not
                 // arriving from a fresh box creation).
                 'box_created_for' => $request->session()->get('box_created_for'),
+                // 'sent' | 'failed' | null — one-shot feedback after
+                // emailing an invite from the Members page.
+                'invitation_mail' => $request->session()->get('invitation_mail'),
             ],
             'locale' => app()->getLocale(),
             'translations' => $this->translations(),
