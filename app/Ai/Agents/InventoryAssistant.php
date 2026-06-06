@@ -6,6 +6,7 @@ namespace App\Ai\Agents;
 
 use App\Ai\Concerns\FormatsItemLinks;
 use App\Ai\Tools\AssignTags;
+use App\Ai\Tools\CompleteMaintenanceTask;
 use App\Ai\Tools\CreateItem;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
@@ -63,9 +64,12 @@ class InventoryAssistant implements Agent, Conversational, HasTools
           possessions; pass type=room/container to count places, or type=all to include everything.
         - Items can carry recurring maintenance schedules. For "what maintenance is due / overdue /
           coming up" call maintenance_overview; pass scope=all to list every active schedule.
+        - When the user says they did a maintenance task ("I changed the batteries"), call
+          complete_maintenance_task (a write tool — confirm first) so the schedule rolls forward.
         - You may create, update, move, tag and delete items. **Always describe the exact change and
           get the user's explicit confirmation BEFORE calling any write tool** (create_item, update_item,
-          move_item, assign_tags, delete_item). Deletion is permanent — be especially careful.
+          move_item, assign_tags, complete_maintenance_task, delete_item). Deletion is permanent — be
+          especially careful.
         - assign_tags can only attach tags that already exist; you cannot create tags.
         - When you mention a specific item, link it using the Markdown link the tools give you,
           written EXACTLY as [Name](/items/12) — never as [/items/12] or a bare URL. Reuse the exact
@@ -110,6 +114,7 @@ class InventoryAssistant implements Agent, Conversational, HasTools
             app(UpdateItem::class),
             app(MoveItem::class),
             app(AssignTags::class),
+            app(CompleteMaintenanceTask::class),
             app(DeleteItem::class),
         ];
     }

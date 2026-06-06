@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ai;
 
+use App\Ai\Tools\CompleteMaintenanceTask;
 use App\Ai\Tools\GetItem;
 use App\Ai\Tools\MaintenanceOverview;
+use App\Enums\MaintenanceIntervalUnit;
 use App\Models\Item;
 use App\Models\MaintenanceEntry;
 use App\Models\MaintenanceTask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Ai\Tools\Request;
+use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
 class AssistantMaintenanceToolsTest extends TestCase
@@ -110,6 +113,94 @@ class AssistantMaintenanceToolsTest extends TestCase
 
         $this->assertStringNotContainsString('Maintenance schedules:', $result);
         $this->assertStringNotContainsString('maintenance history', $result);
+    }
+
+    public function test_complete_maintenance_task_records_entry_and_rolls_the_schedule(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $item = Item::factory()->create(['name' => 'Coffee Machine']);
+        $task = MaintenanceTask::factory()->for($item)
+            ->interval(1, MaintenanceIntervalUnit::Months)->overdue(5)
+            ->create(['title' => 'Descale']);
+
+        $result = app(CompleteMaintenanceTask::class)->handle(new Request([
+            'task_id' => $task->id,
+            'notes' => 'Used the citric acid solution.',
+            'cost' => 4.5,
+        ]));
+
+        $entry = MaintenanceEntry::sole();
+        $this->assertSame($task->id, $entry->maintenance_task_id);
+        $this->assertSame($user->id, $entry->performed_by);
+        $this->assertSame(today()->toDateString(), $entry->completed_at->toDateString());
+        $this->assertSame('Used the citric acid solution.', $entry->notes);
+        $this->assertSame('4.50', $entry->cost);
+
+        $this->assertSame(
+            today()->addMonthNoOverflow()->toDateString(),
+            $task->fresh()->next_due_at->toDateString(),
+        );
+
+        $activity = Activity::where('event', 'maintenance_completed')->sole();
+        $this->assertSame($item->id, $activity->subject_id);
+        $this->assertSame('Descale', $activity->properties->get('task_title'));
+
+        $this->assertStringContainsString("[Coffee Machine](/items/{$item->id})", $result);
+        $this->assertStringContainsString('Next due: '.today()->addMonthNoOverflow()->toDateString(), $result);
+    }
+
+    public function test_complete_maintenance_task_rolls_forward_from_a_backdated_date(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $task = MaintenanceTask::factory()->interval(2, MaintenanceIntervalUnit::Weeks)->create();
+
+        app(CompleteMaintenanceTask::class)->handle(new Request([
+            'task_id' => $task->id,
+            'completed_at' => today()->subDays(4)->toDateString(),
+        ]));
+
+        $this->assertSame(
+            today()->subDays(4)->addWeeks(2)->toDateString(),
+            $task->fresh()->next_due_at->toDateString(),
+        );
+    }
+
+    public function test_complete_maintenance_task_archives_a_one_off(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $task = MaintenanceTask::factory()->oneOff()->dueSoon(3)->create();
+
+        $result = app(CompleteMaintenanceTask::class)->handle(new Request(['task_id' => $task->id]));
+
+        $this->assertFalse($task->fresh()->is_active);
+        $this->assertStringContainsString('archived', $result);
+    }
+
+    public function test_complete_maintenance_task_rejects_invalid_input_without_writing(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $task = MaintenanceTask::factory()->create();
+        $archived = MaintenanceTask::factory()->inactive()->create();
+        $tool = app(CompleteMaintenanceTask::class);
+
+        $this->assertStringContainsString('No maintenance task found', $tool->handle(new Request(['task_id' => 999999])));
+        $this->assertStringContainsString('cannot be completed again', $tool->handle(new Request(['task_id' => $archived->id])));
+        $this->assertStringContainsString('future', $tool->handle(new Request([
+            'task_id' => $task->id,
+            'completed_at' => today()->addDay()->toDateString(),
+        ])));
+        $this->assertStringContainsString('could not be parsed', $tool->handle(new Request([
+            'task_id' => $task->id,
+            'completed_at' => 'not-a-date',
+        ])));
+        $this->assertStringContainsString('non-negative number', $tool->handle(new Request([
+            'task_id' => $task->id,
+            'cost' => -5,
+        ])));
+
+        $this->assertSame(0, MaintenanceEntry::count());
     }
 
     public function test_maintenance_overview_reports_empty_states_per_scope(): void
