@@ -217,6 +217,21 @@ it('renders the empty global page without errors', function () {
     $page->assertPresent('@maintenance-filter-all')->assertNoJavaScriptErrors();
 });
 
+it('toggles the digest opt-in on the profile page', function () {
+    $page = visit('/settings/profile');
+
+    // Default is opted-in; one click opts out and Save persists it. The
+    // "Saved." confirmation gates the DB assertion — clicking Save only
+    // STARTS the async PATCH.
+    $page->assertPresent('@maintenance-digest-toggle')
+        ->click('@maintenance-digest-toggle')
+        ->click('Save')
+        ->assertSee('Saved.')
+        ->assertNoJavaScriptErrors();
+
+    expect(User::sole()->maintenance_digest_opt_in)->toBeFalse();
+});
+
 it('logs an ad-hoc entry through the dialog', function () {
     $item = Item::factory()->create();
 

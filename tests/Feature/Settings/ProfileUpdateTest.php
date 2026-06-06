@@ -44,6 +44,31 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame('test@example.com', $user->email);
     }
 
+    public function test_maintenance_digest_opt_in_can_be_toggled()
+    {
+        $user = User::factory()->create(); // defaults to opted in
+
+        $this->actingAs($user)
+            ->patch('/settings/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'maintenance_digest_opt_in' => false,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/settings/profile');
+
+        $this->assertFalse($user->refresh()->maintenance_digest_opt_in);
+
+        $this->actingAs($user)
+            ->patch('/settings/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'maintenance_digest_opt_in' => true,
+            ]);
+
+        $this->assertTrue($user->refresh()->maintenance_digest_opt_in);
+    }
+
     public function test_user_can_delete_their_account()
     {
         $user = User::factory()->create();

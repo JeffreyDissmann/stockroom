@@ -45,6 +45,7 @@ export interface User {
     email: string;
     avatar?: string;
     is_admin: boolean;
+    maintenance_digest_opt_in: boolean;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;

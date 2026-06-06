@@ -36,6 +36,18 @@ class User extends Authenticatable implements HasLocalePreference
     ];
 
     /**
+     * In-memory defaults, mirroring the DB column defaults. Without this a
+     * freshly created (not re-fetched) instance lacks the attribute
+     * entirely — the Inertia-shared auth.user would then serialize without
+     * it and the profile toggle would render unchecked.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'maintenance_digest_opt_in' => true,
+    ];
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>

@@ -33,6 +33,8 @@ return [
         'name_placeholder' => 'Vollständiger Name',
         'email_label' => 'E-Mail-Adresse',
         'email_placeholder' => 'E-Mail-Adresse',
+        'maintenance_digest_label' => 'Wartungs-Digest',
+        'maintenance_digest_hint' => 'Schick mir täglich eine Zusammenfassung, wenn Wartungen überfällig oder bald fällig sind.',
     ],
 
     'password' => [
