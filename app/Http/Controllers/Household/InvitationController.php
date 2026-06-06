@@ -7,10 +7,14 @@ namespace App\Http\Controllers\Household;
 use App\Http\Controllers\Controller;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Notifications\InvitationInvite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class InvitationController extends Controller
 {
@@ -42,16 +46,46 @@ class InvitationController extends Controller
     {
         $validated = $request->validate([
             'label' => ['nullable', 'string', 'max:100'],
+            // Optional: with an address the invite is also emailed; without
+            // one the copy-paste-the-link flow works exactly as before.
+            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255'],
         ]);
 
-        Invitation::create([
+        $invitation = Invitation::create([
             'token' => Invitation::generateToken(),
             'label' => $validated['label'] ?? null,
+            'email' => $validated['email'] ?? null,
             'created_by' => $request->user()->id,
             'expires_at' => now()->addDays(Invitation::LIFETIME_DAYS),
         ]);
 
+        if ($invitation->email !== null) {
+            return $this->send($request, $invitation);
+        }
+
         return back();
+    }
+
+    /**
+     * Queue the invite mail to its stored address. The notification is
+     * queued (prod runs a dedicated worker), so this returns immediately;
+     * the catch only fires where dispatch itself fails — a sync queue
+     * (tests/dev) bubbling a transport error, or the queue store being
+     * down. The invite exists either way: the link stays copyable.
+     */
+    private function send(Request $request, Invitation $invitation): RedirectResponse
+    {
+        try {
+            Notification::route('mail', $invitation->email)
+                ->notify((new InvitationInvite($invitation->loadMissing('creator')))
+                    ->locale($request->user()->locale ?? config('app.locale')));
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('invitation_mail', 'failed');
+        }
+
+        return back()->with('invitation_mail', 'sent');
     }
 
     /**
@@ -67,13 +101,35 @@ class InvitationController extends Controller
     }
 
     /**
-     * @return array{id: int, label: string|null, url: string, created_human: string|null, expires_human: string|null, created_by: string|null}
+     * Re-mail a pending invite to its stored address.
+     */
+    public function resend(Request $request, Invitation $invitation): RedirectResponse
+    {
+        // No stored address = the UI never offered this (the button only
+        // renders for emailed invites) — a crafted call, hard stop.
+        abort_if($invitation->email === null, 403);
+
+        // No longer pending = a stale page (accepted/expired while open).
+        // A validation error redirects back and the refreshed pending list
+        // simply no longer contains the invite.
+        if (! $invitation->isPending()) {
+            throw ValidationException::withMessages([
+                'invitation' => __('members.resend_unavailable'),
+            ]);
+        }
+
+        return $this->send($request, $invitation);
+    }
+
+    /**
+     * @return array{id: int, label: string|null, email: string|null, url: string, created_human: string|null, expires_human: string|null, created_by: string|null}
      */
     private function presentInvitation(Invitation $invitation): array
     {
         return [
             'id' => $invitation->id,
             'label' => $invitation->label,
+            'email' => $invitation->email,
             'url' => route('register', $invitation->token),
             'created_human' => $invitation->created_at?->diffForHumans(),
             'expires_human' => $invitation->expires_at->diffForHumans(),

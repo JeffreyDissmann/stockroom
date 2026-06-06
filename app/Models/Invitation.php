@@ -28,6 +28,7 @@ class Invitation extends Model
     protected $fillable = [
         'token',
         'label',
+        'email',
         'created_by',
         'accepted_by',
         'expires_at',

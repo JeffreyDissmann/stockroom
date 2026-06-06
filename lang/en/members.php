@@ -4,9 +4,22 @@ declare(strict_types=1);
 
 return [
     'invites_title' => 'Invite links',
-    'invites_desc' => 'Create a single-use link and share it however you like. It expires after 7 days, and the person sets their own name, email, and password when they join.',
+    'invites_desc' => 'Create a single-use link and share it however you like — or enter an email address and Stockroom sends it. It expires after 7 days, and the person sets their own name, email, and password when they join.',
     'label_placeholder' => 'Label (optional, e.g. For Anna)',
+    'email_placeholder' => 'Email the invite to… (optional)',
     'create' => 'Create invite link',
+    'sent_to' => 'sent to :email',
+    'resend' => 'Send again',
+    'resend_unavailable' => 'This invite can no longer be sent — it was accepted or has expired.',
+    'mail_sent' => 'Invite emailed.',
+    'mail_failed' => 'The invite was created, but the email could not be sent — copy the link instead.',
+
+    'mail' => [
+        'subject' => ':name invited you to Stockroom',
+        'intro' => ':name invited you to the household inventory on Stockroom. Click the button to pick your own name, email and password.',
+        'action' => 'Join Stockroom',
+        'expiry' => 'This link is single-use and expires in :days days.',
+    ],
     'none' => 'No active invite links.',
     'link' => 'Invite link',
     'expires' => 'Expires :when',

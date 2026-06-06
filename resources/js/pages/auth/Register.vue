@@ -13,11 +13,14 @@ import { LoaderCircle } from 'lucide-vue-next';
 const props = defineProps<{
     token: string;
     invitedBy?: string | null;
+    invitedEmail?: string | null;
 }>();
 
 const form = useForm({
     name: '',
-    email: '',
+    // Emailed invites prefill the address they were sent to — editable,
+    // the invite is not locked to it.
+    email: props.invitedEmail ?? '',
     password: '',
     password_confirmation: '',
 });

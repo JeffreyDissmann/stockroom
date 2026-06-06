@@ -63,7 +63,7 @@ create.head = (args: { token: string | number } | [token: string | number ] | st
 
 /**
 * @see \App\Http\Controllers\Auth\RegisteredUserController::store
-* @see app/Http/Controllers/Auth/RegisteredUserController.php:42
+* @see app/Http/Controllers/Auth/RegisteredUserController.php:44
 * @route '/register/{token}'
 */
 export const store = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -78,7 +78,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Auth\RegisteredUserController::store
-* @see app/Http/Controllers/Auth/RegisteredUserController.php:42
+* @see app/Http/Controllers/Auth/RegisteredUserController.php:44
 * @route '/register/{token}'
 */
 store.url = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -105,7 +105,7 @@ store.url = (args: { token: string | number } | [token: string | number ] | stri
 
 /**
 * @see \App\Http\Controllers\Auth\RegisteredUserController::store
-* @see app/Http/Controllers/Auth/RegisteredUserController.php:42
+* @see app/Http/Controllers/Auth/RegisteredUserController.php:44
 * @route '/register/{token}'
 */
 store.post = (args: { token: string | number } | [token: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({

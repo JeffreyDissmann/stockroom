@@ -23,11 +23,20 @@ class InvitationFactory extends Factory
         return [
             'token' => Invitation::generateToken(),
             'label' => null,
+            'email' => null,
             'created_by' => User::factory(),
             'accepted_by' => null,
             'expires_at' => now()->addDays(Invitation::LIFETIME_DAYS),
             'accepted_at' => null,
         ];
+    }
+
+    /**
+     * An invite that was sent by email rather than copy-pasted.
+     */
+    public function emailed(?string $email = null): static
+    {
+        return $this->state(fn (): array => ['email' => $email ?? fake()->safeEmail()]);
     }
 
     /**

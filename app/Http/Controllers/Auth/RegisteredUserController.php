@@ -33,6 +33,8 @@ class RegisteredUserController extends Controller
         return Inertia::render('auth/Register', [
             'token' => $token,
             'invitedBy' => $invitation->creator?->name,
+            // Prefills (never locks) the email field for emailed invites.
+            'invitedEmail' => $invitation->email,
         ]);
     }
 

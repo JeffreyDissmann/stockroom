@@ -2,7 +2,18 @@
 
 declare(strict_types=1);
 
+use App\Models\Invitation;
 use App\Models\User;
+
+// Guest context on purpose — /register/{token} bounces authenticated
+// users to the dashboard.
+it('prefills the invited email on the registration page', function () {
+    $invitation = Invitation::factory()->emailed('anna@example.com')->create();
+
+    $page = visit("/register/{$invitation->token}");
+
+    $page->assertValue('#email', 'anna@example.com')->assertNoJavaScriptErrors();
+});
 
 it('logs in with valid credentials and lands on the dashboard', function () {
     User::factory()->create([

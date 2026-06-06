@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:17
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
