@@ -8,6 +8,7 @@ use App\Ai\Concerns\FormatsItemLinks;
 use App\Ai\Tools\AssignTags;
 use App\Ai\Tools\CompleteMaintenanceTask;
 use App\Ai\Tools\CreateItem;
+use App\Ai\Tools\CreateMaintenanceTask;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
 use App\Ai\Tools\InventoryStats;
@@ -66,10 +67,13 @@ class InventoryAssistant implements Agent, Conversational, HasTools
           coming up" call maintenance_overview; pass scope=all to list every active schedule.
         - When the user says they did a maintenance task ("I changed the batteries"), call
           complete_maintenance_task (a write tool — confirm first) so the schedule rolls forward.
+        - To set up a reminder ("remind me to descale every 3 months"), call create_maintenance_task
+          (confirm first). It handles repeating intervals and one-off dates; for fixed calendar rules
+          ("every first Sunday in October") send the user to the maintenance card on the item page.
         - You may create, update, move, tag and delete items. **Always describe the exact change and
           get the user's explicit confirmation BEFORE calling any write tool** (create_item, update_item,
-          move_item, assign_tags, complete_maintenance_task, delete_item). Deletion is permanent — be
-          especially careful.
+          move_item, assign_tags, create_maintenance_task, complete_maintenance_task, delete_item).
+          Deletion is permanent — be especially careful.
         - assign_tags can only attach tags that already exist; you cannot create tags.
         - When you mention a specific item, link it using the Markdown link the tools give you,
           written EXACTLY as [Name](/items/12) — never as [/items/12] or a bare URL. Reuse the exact
@@ -114,6 +118,7 @@ class InventoryAssistant implements Agent, Conversational, HasTools
             app(UpdateItem::class),
             app(MoveItem::class),
             app(AssignTags::class),
+            app(CreateMaintenanceTask::class),
             app(CompleteMaintenanceTask::class),
             app(DeleteItem::class),
         ];

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Ai;
 
 use App\Ai\Tools\CompleteMaintenanceTask;
+use App\Ai\Tools\CreateMaintenanceTask;
 use App\Ai\Tools\GetItem;
 use App\Ai\Tools\MaintenanceOverview;
 use App\Enums\MaintenanceIntervalUnit;
+use App\Enums\MaintenanceScheduleType;
 use App\Models\Item;
 use App\Models\MaintenanceEntry;
 use App\Models\MaintenanceTask;
@@ -201,6 +203,75 @@ class AssistantMaintenanceToolsTest extends TestCase
         ])));
 
         $this->assertSame(0, MaintenanceEntry::count());
+    }
+
+    public function test_create_maintenance_task_creates_an_interval_schedule(): void
+    {
+        $item = Item::factory()->create(['name' => 'Coffee Machine']);
+
+        $result = app(CreateMaintenanceTask::class)->handle(new Request([
+            'item_id' => $item->id,
+            'title' => 'Descale',
+            'schedule_type' => 'interval',
+            'interval_value' => 3,
+            'interval_unit' => 'months',
+        ]));
+
+        $task = MaintenanceTask::sole();
+        $this->assertSame('Descale', $task->title);
+        $this->assertSame(MaintenanceScheduleType::Interval, $task->schedule_type);
+        $this->assertSame(3, $task->interval_value);
+        $this->assertSame(MaintenanceIntervalUnit::Months, $task->interval_unit);
+        $this->assertSame(7, $task->reminder_lead_days);
+        // No completion yet, so the rule starts counting today.
+        $this->assertSame(today()->addMonthsNoOverflow(3)->toDateString(), $task->next_due_at->toDateString());
+
+        $activity = Activity::where('event', 'maintenance_task_added')->sole();
+        $this->assertSame('Descale', $activity->properties->get('task_title'));
+
+        $this->assertStringContainsString("Created task #{$task->id}", $result);
+        $this->assertStringContainsString("[Coffee Machine](/items/{$item->id})", $result);
+        $this->assertStringContainsString($task->next_due_at->toDateString(), $result);
+    }
+
+    public function test_create_maintenance_task_creates_a_one_off(): void
+    {
+        $item = Item::factory()->create();
+        $dueAt = today()->addDays(30)->toDateString();
+
+        app(CreateMaintenanceTask::class)->handle(new Request([
+            'item_id' => $item->id,
+            'title' => 'Install the winter tyres',
+            'schedule_type' => 'one_off',
+            'next_due_at' => $dueAt,
+            'reminder_lead_days' => 14,
+        ]));
+
+        $task = MaintenanceTask::sole();
+        $this->assertSame(MaintenanceScheduleType::OneOff, $task->schedule_type);
+        $this->assertSame($dueAt, $task->next_due_at->toDateString());
+        $this->assertSame(14, $task->reminder_lead_days);
+        $this->assertTrue($task->is_active);
+    }
+
+    public function test_create_maintenance_task_rejects_invalid_input_without_writing(): void
+    {
+        $item = Item::factory()->create();
+        $tool = app(CreateMaintenanceTask::class);
+        $base = ['item_id' => $item->id, 'title' => 'Descale', 'schedule_type' => 'interval', 'interval_value' => 3, 'interval_unit' => 'months'];
+
+        $this->assertStringContainsString('No item found', $tool->handle(new Request([...$base, 'item_id' => 999999])));
+        $this->assertStringContainsString('title', $tool->handle(new Request([...$base, 'title' => ' '])));
+        // Calendar rules are deliberately UI-only.
+        $this->assertStringContainsString('item page', $tool->handle(new Request([...$base, 'schedule_type' => 'calendar'])));
+        $this->assertStringContainsString('interval_value', $tool->handle(new Request([...$base, 'interval_value' => 0])));
+        $this->assertStringContainsString('interval_unit', $tool->handle(new Request([...$base, 'interval_unit' => 'fortnights'])));
+        $this->assertStringContainsString('reminder_lead_days', $tool->handle(new Request([...$base, 'reminder_lead_days' => 9999])));
+        $this->assertStringContainsString('next_due_at', $tool->handle(new Request([
+            'item_id' => $item->id, 'title' => 'Once', 'schedule_type' => 'one_off', 'next_due_at' => 'not-a-date',
+        ])));
+
+        $this->assertSame(0, MaintenanceTask::count());
     }
 
     public function test_maintenance_overview_reports_empty_states_per_scope(): void
