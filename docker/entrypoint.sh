@@ -78,6 +78,14 @@ if [ "${STOCKROOM_ROLE:-web}" = "web" ]; then
     echo "stockroom: refreshing package discovery manifest"
     php artisan package:discover --ansi
 
+    # Drop the cached config the PREVIOUS boot left in the shared
+    # bootstrap/cache volume. Every artisan call below (db wait, migrations,
+    # scout:sync-index-settings) would otherwise run against last boot's env
+    # snapshot — a newly added env var (e.g. SCOUT_HYBRID_EMBEDDER) wouldn't
+    # take effect until the SECOND boot, because config:cache only rebuilds
+    # the cache at the end of this block.
+    php artisan config:clear
+
     wait_for_db
 
     echo "stockroom: running migrations"

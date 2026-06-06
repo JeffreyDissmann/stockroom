@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 
@@ -18,6 +19,11 @@ use Throwable;
  * Scout, which regenerates its embedding (unchanged item text is served from
  * the embedding cache). Progress is reported via the cache so the household UI
  * can show a live progress bar.
+ *
+ * The rebuild starts from an EMPTY index: Meilisearch refuses to register a
+ * `userProvided` embedder while the index still holds documents without
+ * vectors, so flushing first (then re-pushing the index settings) is what
+ * lets semantic search be enabled on an already-populated install.
  */
 #[Timeout(1800)]
 #[Tries(1)]
@@ -32,6 +38,12 @@ class RebuildSearchIndexJob implements ShouldQueue
         $total = Item::count();
 
         $this->putStatus(['state' => 'running', 'done' => 0, 'total' => $total]);
+
+        Item::removeAllFromSearch();
+
+        if (config('scout.driver') === 'meilisearch') {
+            Artisan::call('scout:sync-index-settings');
+        }
 
         $done = 0;
 
