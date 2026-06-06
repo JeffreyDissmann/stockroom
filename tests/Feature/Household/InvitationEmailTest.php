@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Invitation;
 use App\Models\User;
 use App\Notifications\InvitationInvite;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -68,11 +69,19 @@ it('renders the invite mail with inviter, link and expiry', function () {
         ->and(implode("\n", $mail->outroLines))->toContain('expires in 7 days');
 });
 
-it('keeps the invite and flashes a failure when the mail transport throws', function () {
+it('queues the invite mail rather than blocking the request on SMTP', function () {
+    expect(new InvitationInvite(Invitation::factory()->create()))
+        ->toBeInstanceOf(ShouldQueue::class)
+        ->deleteWhenMissingModels->toBeTrue();
+});
+
+it('keeps the invite and flashes a failure when dispatch throws', function () {
     $admin = User::factory()->admin()->create();
 
-    // Force a transport failure: route the default mailer at an
-    // unreachable SMTP host for this request.
+    // With the sync queue (test env) a transport error bubbles out of
+    // dispatch; in prod (database queue + worker) this path only fires
+    // when the queue store itself is down. Either way the invite must
+    // survive. Force a failure: unreachable SMTP host.
     config()->set('mail.default', 'smtp');
     config()->set('mail.mailers.smtp.host', '127.0.0.1');
     config()->set('mail.mailers.smtp.port', 1);

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:20
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:20
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:20
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::index
-* @see app/Http/Controllers/Household/InvitationController.php:20
+* @see app/Http/Controllers/Household/InvitationController.php:21
 * @route '/household/members'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::store
-* @see app/Http/Controllers/Household/InvitationController.php:44
+* @see app/Http/Controllers/Household/InvitationController.php:45
 * @route '/household/invitations'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -60,7 +60,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::store
-* @see app/Http/Controllers/Household/InvitationController.php:44
+* @see app/Http/Controllers/Household/InvitationController.php:45
 * @route '/household/invitations'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::store
-* @see app/Http/Controllers/Household/InvitationController.php:44
+* @see app/Http/Controllers/Household/InvitationController.php:45
 * @route '/household/invitations'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -79,7 +79,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::destroy
-* @see app/Http/Controllers/Household/InvitationController.php:92
+* @see app/Http/Controllers/Household/InvitationController.php:94
 * @route '/household/invitations/{invitation}'
 */
 export const destroy = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -94,7 +94,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::destroy
-* @see app/Http/Controllers/Household/InvitationController.php:92
+* @see app/Http/Controllers/Household/InvitationController.php:94
 * @route '/household/invitations/{invitation}'
 */
 destroy.url = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -127,7 +127,7 @@ destroy.url = (args: { invitation: number | { id: number } } | [invitation: numb
 
 /**
 * @see \App\Http\Controllers\Household\InvitationController::destroy
-* @see app/Http/Controllers/Household/InvitationController.php:92
+* @see app/Http/Controllers/Household/InvitationController.php:94
 * @route '/household/invitations/{invitation}'
 */
 destroy.delete = (args: { invitation: number | { id: number } } | [invitation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

@@ -67,10 +67,11 @@ class InvitationController extends Controller
     }
 
     /**
-     * Email (or re-email) a pending invite to its stored address. The
-     * invite exists either way — an SMTP hiccup must not eat it, so a
-     * transport failure surfaces as a flash and the admin keeps the
-     * copyable link.
+     * Queue the invite mail to its stored address. The notification is
+     * queued (prod runs a dedicated worker), so this returns immediately;
+     * the catch only fires where dispatch itself fails — a sync queue
+     * (tests/dev) bubbling a transport error, or the queue store being
+     * down. The invite exists either way: the link stays copyable.
      */
     private function send(Request $request, Invitation $invitation): RedirectResponse
     {
