@@ -60,11 +60,44 @@ class PaperlessLinker
     {
         $document = $this->client->document($documentId);
 
-        $item->paperlessLinks()->firstOrCreate(['paperless_document_id' => $documentId]);
+        $item->paperlessLinks()->updateOrCreate(
+            ['paperless_document_id' => $documentId],
+            $this->metadataFromDocument($document),
+        );
 
         $this->annotate($documentId);
 
         return (string) ($document['title'] ?? "Document {$documentId}");
+    }
+
+    /**
+     * The cached display metadata for a link row, from a full document
+     * payload: title verbatim, type/correspondent resolved from their ids
+     * to names. Resolution is best-effort — a lookup hiccup yields nulls
+     * (the repair job re-derives them later) rather than failing the write
+     * that asked. Shared by the manual-link path, the intake job and the
+     * repair job so all link rows carry the same shape.
+     *
+     * @param  array<string, mixed>  $document
+     * @return array{document_title: ?string, document_type: ?string, correspondent: ?string}
+     */
+    public function metadataFromDocument(array $document): array
+    {
+        $title = $document['title'] ?? null;
+
+        try {
+            $type = $this->client->documentTypeName(is_numeric($document['document_type'] ?? null) ? (int) $document['document_type'] : null);
+            $correspondent = $this->client->correspondentName(is_numeric($document['correspondent'] ?? null) ? (int) $document['correspondent'] : null);
+        } catch (PaperlessException) {
+            $type = null;
+            $correspondent = null;
+        }
+
+        return [
+            'document_title' => is_string($title) && trim($title) !== '' ? mb_substr(trim($title), 0, 255) : null,
+            'document_type' => $type !== null ? mb_substr($type, 0, 255) : null,
+            'correspondent' => $correspondent !== null ? mb_substr($correspondent, 0, 255) : null,
+        ];
     }
 
     /**

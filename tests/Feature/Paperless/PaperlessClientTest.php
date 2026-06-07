@@ -251,6 +251,32 @@ it('searchDocuments() lists the most recent documents for an empty query', funct
         && ! str_contains($r->url(), 'query='));
 });
 
+it('resolves document type and correspondent names by id, memoized per instance', function () {
+    Http::fake([
+        'https://paperless.test/api/document_types/1/' => Http::response(['id' => 1, 'name' => 'Rechnung']),
+        'https://paperless.test/api/correspondents/233/' => Http::response(['id' => 233, 'name' => 'MediaMarkt']),
+    ]);
+
+    $client = PaperlessClient::fromConfig();
+
+    expect($client->documentTypeName(1))->toBe('Rechnung')
+        ->and($client->documentTypeName(1))->toBe('Rechnung') // memoized
+        ->and($client->correspondentName(233))->toBe('MediaMarkt')
+        ->and($client->documentTypeName(null))->toBeNull();
+
+    Http::assertSentCount(2);
+});
+
+it('resolves a deleted document type (404) to null instead of throwing', function () {
+    Http::fake([
+        'https://paperless.test/api/document_types/9/' => Http::response([], 404),
+    ]);
+
+    // Metadata is best-effort — a type deleted in Paperless must never
+    // fail the operation that asked for it.
+    expect(PaperlessClient::fromConfig()->documentTypeName(9))->toBeNull();
+});
+
 it('searchDocuments() throws PaperlessException on an API error', function () {
     Http::fake([
         'https://paperless.test/api/documents/*' => Http::response([], 500),

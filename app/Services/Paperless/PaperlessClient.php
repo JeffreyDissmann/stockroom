@@ -46,6 +46,14 @@ class PaperlessClient
     /** @var array<string, int> */
     private array $customFieldIdCache = [];
 
+    /**
+     * Reverse lookups (id → name) for document metadata, memoized like the
+     * name → id caches above. Keyed by "{endpoint}:{id}".
+     *
+     * @var array<string, string|null>
+     */
+    private array $nameByIdCache = [];
+
     public function __construct(
         private readonly string $baseUrl,
         private readonly string $token,
@@ -116,6 +124,50 @@ class PaperlessClient
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Resolve a document_type id (as found in a document payload) to its
+     * display name. Null in, null out — most fields are optional on a doc.
+     */
+    public function documentTypeName(?int $id): ?string
+    {
+        return $id === null ? null : $this->nameById('document_types', $id);
+    }
+
+    /**
+     * Resolve a correspondent id to its display name.
+     */
+    public function correspondentName(?int $id): ?string
+    {
+        return $id === null ? null : $this->nameById('correspondents', $id);
+    }
+
+    /**
+     * Reverse id → name lookup, memoized per instance (see nameByIdCache).
+     * A 404 — the referenced type/correspondent was deleted in Paperless —
+     * resolves to null rather than throwing: metadata is best-effort and
+     * must never fail the operation that asked for it.
+     */
+    private function nameById(string $endpoint, int $id): ?string
+    {
+        $key = "{$endpoint}:{$id}";
+
+        if (array_key_exists($key, $this->nameByIdCache)) {
+            return $this->nameByIdCache[$key];
+        }
+
+        $response = $this->request()->get("/api/{$endpoint}/{$id}/");
+
+        if ($response->status() === 404) {
+            return $this->nameByIdCache[$key] = null;
+        }
+
+        $this->ensureOk($response, "resolving {$endpoint} {$id}");
+
+        $name = $response->json('name');
+
+        return $this->nameByIdCache[$key] = (is_string($name) && $name !== '' ? $name : null);
     }
 
     /**

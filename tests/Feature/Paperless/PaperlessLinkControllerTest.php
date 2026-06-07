@@ -110,6 +110,47 @@ describe('store', function () {
             && str_contains(json_encode($r['custom_fields']), 'paperless_document=447'));
     });
 
+    it('snapshots the document metadata onto the link row', function () {
+        Http::fake(function ($request) {
+            $url = $request->url();
+
+            if (str_contains($url, '/api/document_types/7/')) {
+                return Http::response(['id' => 7, 'name' => 'Rechnung']);
+            }
+            if (str_contains($url, '/api/correspondents/233/')) {
+                return Http::response(['id' => 233, 'name' => 'MediaMarkt']);
+            }
+            if (str_contains($url, '/api/tags/') || str_contains($url, '/api/custom_fields/')) {
+                return Http::response(['results' => [['id' => 9, 'name' => 'x']]]);
+            }
+            if (preg_match('#/api/documents/447/$#', $url)) {
+                return $request->method() === 'PATCH'
+                    ? Http::response([], 200)
+                    : Http::response([
+                        'id' => 447,
+                        'title' => 'Rechnung AEG Waschmaschine',
+                        'document_type' => 7,
+                        'correspondent' => 233,
+                        'tags' => [],
+                        'custom_fields' => [],
+                    ]);
+            }
+
+            return Http::response([], 404);
+        });
+
+        $item = Item::factory()->create();
+
+        $this->post("/items/{$item->id}/paperless-links", ['document' => '447'])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $link = PaperlessLink::sole();
+        expect($link->document_title)->toBe('Rechnung AEG Waschmaschine')
+            ->and($link->document_type)->toBe('Rechnung')
+            ->and($link->correspondent)->toBe('MediaMarkt');
+    });
+
     it('links a document referenced by pasted URL', function () {
         Http::fake(manualPaperlessLinkFakes());
         $item = Item::factory()->create();
