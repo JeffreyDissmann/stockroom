@@ -18,6 +18,14 @@ use Illuminate\Support\Facades\Log;
 class PaperlessLinker
 {
     /**
+     * Container-injected (see AppServiceProvider): resolving the linker
+     * while the integration is unconfigured throws — callers behind
+     * EnsurePaperlessEnabled never hit that, and anything else shouldn't
+     * be linking documents in the first place.
+     */
+    public function __construct(private readonly PaperlessClient $client) {}
+
+    /**
      * Extract a Paperless document id from user input: a bare integer or any
      * URL containing /documents/{id}, with or without the trailing slash —
      * the same forms paperless:adopt-custom-field accepts.
@@ -46,18 +54,15 @@ class PaperlessLinker
      * an already-linked doc is a no-op) and annotate the Paperless side. Returns
      * the document's title for confirmation messages.
      *
-     * @throws PaperlessException when the integration is unconfigured or the document cannot be verified
+     * @throws PaperlessException when the document cannot be verified
      */
     public function link(Item $item, int $documentId): string
     {
-        $client = PaperlessClient::fromConfig()
-            ?? throw new PaperlessException('The Paperless integration is not configured.');
-
-        $document = $client->document($documentId);
+        $document = $this->client->document($documentId);
 
         $item->paperlessLinks()->firstOrCreate(['paperless_document_id' => $documentId]);
 
-        $this->annotate($client, $documentId);
+        $this->annotate($documentId);
 
         return (string) ($document['title'] ?? "Document {$documentId}");
     }
@@ -68,10 +73,10 @@ class PaperlessLinker
      * The "Repair Paperless links" job re-applies it later if this attempt
      * failed.
      */
-    private function annotate(PaperlessClient $client, int $documentId): void
+    private function annotate(int $documentId): void
     {
         try {
-            $client->annotateProcessed(
+            $this->client->annotateProcessed(
                 $documentId,
                 (string) config('paperless.trigger_tag'),
                 (string) config('paperless.linked_tag'),

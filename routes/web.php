@@ -89,6 +89,12 @@ Route::middleware('auth')->group(function () {
     Route::post('items/{item}/paperless-links', [PaperlessLinkController::class, 'store'])
         ->middleware(EnsurePaperlessEnabled::class)
         ->name('items.paperless-links.store');
+    // Document search for the manual-link picker. Admin-only: Paperless
+    // per-user permissions can't be mirrored, so free search over the
+    // service token stays with household admins — members link by id/URL.
+    Route::get('paperless/documents', [PaperlessLinkController::class, 'search'])
+        ->middleware(['can:admin', EnsurePaperlessEnabled::class])
+        ->name('paperless.documents.search');
     Route::delete('items/{item}/paperless-links/{document}', [PaperlessLinkController::class, 'destroy'])
         ->whereNumber('document')
         ->name('items.paperless-links.destroy');

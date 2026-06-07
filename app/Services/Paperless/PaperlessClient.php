@@ -10,17 +10,20 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Thin client for the Paperless-ngx REST API. Only knows the operations the
- * webhook job needs:
+ * webhook job and the manual-link flow need:
  *
  *   - document($id)              : fetch a doc's content + metadata
  *   - download($id)              : raw bytes (kept lazy; not used in v1)
  *   - addTag($id, $tag)          : tag swap after processing
  *   - removeTag($id, $tag)       : ditto
  *   - setCustomField($id, $name, $value) : write the link-back back-reference
+ *   - searchDocuments($query)    : id/title pairs for the manual-link picker
  *
- * Deliberately no `search`. Paperless has per-user permissions Stockroom
- * can't reasonably mirror, so the integration only ever touches docs a user
- * explicitly pushed to us via the workflow.
+ * Search note: Paperless has per-user permissions Stockroom can't mirror —
+ * searchDocuments sees everything the service token sees. That's why the
+ * search route is gated to household admins (decision 2026-06-07); members
+ * link documents by id/URL, which only ever touches docs they explicitly
+ * reference.
  */
 class PaperlessClient
 {
@@ -85,6 +88,34 @@ class PaperlessClient
         $payload = $response->json() ?? [];
 
         return $payload;
+    }
+
+    /**
+     * GET /api/documents/?query=… — full-text search (title, content,
+     * correspondent…) via Paperless's own search index, trimmed to the
+     * id/title pairs the manual-link picker renders. An empty query lists
+     * the most recently added documents instead, so the picker has instant
+     * content before the user types.
+     *
+     * @return list<array{id: int, title: string}>
+     */
+    public function searchDocuments(string $query, int $limit = 10): array
+    {
+        $query = trim($query);
+
+        $response = $this->request()->get('/api/documents/', $query === ''
+            ? ['ordering' => '-created', 'page_size' => $limit]
+            : ['query' => $query, 'page_size' => $limit]);
+
+        $this->ensureOk($response, 'searching documents');
+
+        return $response->collect('results')
+            ->map(static fn (array $doc): array => [
+                'id' => (int) $doc['id'],
+                'title' => (string) ($doc['title'] ?? ''),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

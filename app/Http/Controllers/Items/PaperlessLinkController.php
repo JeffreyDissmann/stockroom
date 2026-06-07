@@ -7,9 +7,12 @@ namespace App\Http\Controllers\Items;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Item\StorePaperlessLinkRequest;
 use App\Models\Item;
+use App\Services\Paperless\PaperlessClient;
 use App\Services\Paperless\PaperlessException;
 use App\Services\Paperless\PaperlessLinker;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -26,6 +29,29 @@ use Illuminate\Validation\ValidationException;
  */
 class PaperlessLinkController extends Controller
 {
+    /**
+     * JSON picker data for the manual-link search box: documents matching
+     * the query (or the most recent ones when it's empty), as id/title
+     * pairs. Admin-only at the route — Paperless's per-user permissions
+     * can't be mirrored, so free search over the service token is reserved
+     * for household admins; members link by id/URL instead. A Paperless
+     * hiccup surfaces as 502 so the picker can say "unreachable" instead of
+     * silently rendering an empty list.
+     *
+     * The client comes from the container binding (see AppServiceProvider);
+     * EnsurePaperlessEnabled on the route guarantees it resolves.
+     */
+    public function search(Request $request, PaperlessClient $client): JsonResponse
+    {
+        try {
+            $documents = $client->searchDocuments((string) $request->query('q', ''));
+        } catch (PaperlessException) {
+            abort(502);
+        }
+
+        return response()->json(['documents' => $documents]);
+    }
+
     /**
      * Link a document the user referenced by id or pasted URL. The linker
      * verifies it against Paperless first — an unknown id (or an

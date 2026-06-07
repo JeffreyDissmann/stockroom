@@ -179,3 +179,46 @@ describe('store', function () {
             ->assertNotFound();
     });
 });
+
+describe('search', function () {
+    beforeEach(function () {
+        config()->set('paperless.url', 'https://paperless.test');
+        config()->set('paperless.token', 'TOKEN');
+
+        $this->actingAs(User::factory()->admin()->create());
+    });
+
+    it('returns id/title pairs for the query', function () {
+        Http::fake([
+            'https://paperless.test/api/documents/*' => Http::response([
+                'results' => [['id' => 447, 'title' => 'Washing machine receipt']],
+            ]),
+        ]);
+
+        $this->getJson('/paperless/documents?q=washing')
+            ->assertOk()
+            ->assertExactJson(['documents' => [['id' => 447, 'title' => 'Washing machine receipt']]]);
+    });
+
+    it('is admin-only', function () {
+        // Paperless per-user permissions can't be mirrored — free search
+        // over the service token is reserved for household admins.
+        $this->actingAs(User::factory()->create());
+
+        $this->getJson('/paperless/documents?q=washing')->assertForbidden();
+    });
+
+    it('404s when the Paperless integration is disabled', function () {
+        config()->set('paperless.url', '');
+
+        $this->getJson('/paperless/documents?q=washing')->assertNotFound();
+    });
+
+    it('502s when Paperless is unreachable', function () {
+        Http::fake([
+            'https://paperless.test/api/documents/*' => Http::response([], 500),
+        ]);
+
+        $this->getJson('/paperless/documents?q=washing')->assertStatus(502);
+    });
+});
