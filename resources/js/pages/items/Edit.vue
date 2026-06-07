@@ -48,20 +48,24 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
         </template>
 
         <div class="page">
-            <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">
-                {{ $t('items.edit_title', { name: item.name }) }}
-            </h2>
+            <!-- Centered column matching the form's 720px cap — without it
+                 the form hugs the left edge of the 1400px-wide .page. -->
+            <div style="max-width: 720px; margin: 0 auto">
+                <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">
+                    {{ $t('items.edit_title', { name: item.name }) }}
+                </h2>
 
-            <ItemForm
-                mode="edit"
-                :item="item"
-                :items="[]"
-                :tags="tags"
-                :types="types"
-                :custom-fields="customFields"
-                :paperless-links="paperlessLinks"
-                :home-assistant-link="homeAssistantLink"
-            />
+                <ItemForm
+                    mode="edit"
+                    :item="item"
+                    :items="[]"
+                    :tags="tags"
+                    :types="types"
+                    :custom-fields="customFields"
+                    :paperless-links="paperlessLinks"
+                    :home-assistant-link="homeAssistantLink"
+                />
+            </div>
         </div>
     </AppLayout>
 </template>
