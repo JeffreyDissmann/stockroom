@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Ai\Agents\ItemFieldExtractor;
 use App\Models\HomeAssistantLink;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
@@ -92,6 +94,41 @@ it('hides the link-document trigger when Paperless is disabled', function () {
     // The HA link still renders the section; the Paperless trigger does not.
     $page->assertPresent('@connections-edit-list')
         ->assertMissing('@paperless-add')
+        ->assertNoJavaScriptErrors();
+});
+
+it('fills empty fields and proposes overrides when suggesting from a document', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+    config()->set('ai.enabled', true);
+
+    Http::fake([
+        'https://paperless.test/api/documents/547/' => Http::response([
+            'id' => 547,
+            'content' => 'BOSCH GSR 12V-35 ... receipt text',
+        ]),
+    ]);
+    ItemFieldExtractor::fake([[
+        'name' => 'Bosch GSR 12V-35',
+        'manufacturer' => 'Bosch',
+    ]]);
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill', 'manufacturer' => null]);
+    $item->paperlessLinks()->create(['paperless_document_id' => 547]);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // Empty manufacturer fills directly (with the suggested badge); the
+    // conflicting name is NOT overwritten — it renders as an explicit
+    // "Document says" chip whose Apply button performs the override.
+    $page->assertPresent('@paperless-suggest-547')
+        ->click('@paperless-suggest-547')
+        ->assertValue('#manufacturer', 'Bosch')
+        ->assertValue('#name', 'Cordless Drill')
+        ->assertPresent('@doc-proposal-name')
+        ->click('@doc-proposal-apply-name')
+        ->assertValue('#name', 'Bosch GSR 12V-35')
+        ->assertMissing('@doc-proposal-name')
         ->assertNoJavaScriptErrors();
 });
 

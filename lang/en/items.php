@@ -90,6 +90,8 @@ return [
         'ai_error_generic' => 'Could not read that photo. Fill the form manually, or try another image.',
         'badge_analyzing' => 'Analyzing…',
         'badge_suggested' => 'Suggested',
+        'document_says' => 'Document says: :value',
+        'apply' => 'Apply',
     ],
 
     'move' => [
@@ -116,6 +118,8 @@ return [
         'link_document' => 'Link document #:id',
         'search_unreachable' => 'Paperless could not be reached.',
         'search_empty' => 'No matching documents.',
+        'suggest' => 'Suggest field values from this document',
+        'suggest_error' => 'The document could not be analysed. Please try again or fill the form manually.',
     ],
 
     // Shared "Connections" section that groups external links (Paperless docs +

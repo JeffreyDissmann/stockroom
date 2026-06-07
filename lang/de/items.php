@@ -90,6 +90,8 @@ return [
         'ai_error_generic' => 'Dieses Foto konnte nicht gelesen werden. Fülle das Formular manuell aus oder versuche ein anderes Bild.',
         'badge_analyzing' => 'Analysiere…',
         'badge_suggested' => 'Vorschlag',
+        'document_says' => 'Dokument sagt: :value',
+        'apply' => 'Übernehmen',
     ],
 
     'move' => [
@@ -116,6 +118,8 @@ return [
         'link_document' => 'Dokument #:id verknüpfen',
         'search_unreachable' => 'Paperless ist nicht erreichbar.',
         'search_empty' => 'Keine passenden Dokumente.',
+        'suggest' => 'Feldwerte aus diesem Dokument vorschlagen',
+        'suggest_error' => 'Das Dokument konnte nicht analysiert werden. Versuche es erneut oder fülle das Formular manuell aus.',
     ],
 
     // Gemeinsame "Verbindungen"-Sektion für externe Verknüpfungen (Paperless +

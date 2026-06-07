@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AiFieldBadge from '@/components/AiFieldBadge.vue';
 import CustomFieldsInput from '@/components/CustomFieldsInput.vue';
+import DocumentFieldProposal from '@/components/DocumentFieldProposal.vue';
 import IconPicker from '@/components/IconPicker.vue';
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
@@ -108,12 +109,30 @@ const aiFilled = ref<Set<string>>(new Set());
 // cue so the user sees values are still coming; once filled, a "suggested" cue.
 const aiCandidates = ['name', 'description', 'manufacturer', 'model_number', 'serial_number'];
 
+// Fields a linked Paperless document can propose (suggest-fields endpoint).
+// Superset of aiCandidates plus the purchase block.
+const documentFields = [
+    'name',
+    'description',
+    'manufacturer',
+    'model_number',
+    'serial_number',
+    'purchased_from',
+    'purchase_price',
+    'purchase_date',
+    'quantity',
+] as const;
+
+type DocumentField = (typeof documentFields)[number];
+
 type AiFieldState = 'pending' | 'suggested' | null;
 
 const fieldStates = computed<Record<string, AiFieldState>>(() => {
     const states: Record<string, AiFieldState> = {};
-    for (const key of aiCandidates) {
-        states[key] = analyzing.value ? 'pending' : aiFilled.value.has(key) ? 'suggested' : null;
+    for (const key of new Set([...aiCandidates, ...documentFields])) {
+        // "pending" is photo-analysis only — document suggestions arrive in
+        // one shot, so their fields go straight to "suggested".
+        states[key] = analyzing.value && aiCandidates.includes(key) ? 'pending' : aiFilled.value.has(key) ? 'suggested' : null;
     }
     return states;
 });
@@ -237,6 +256,96 @@ function unlinkPaperless(documentId: number) {
     });
 }
 
+// ── Suggest field values from a linked Paperless document ──────────────────
+// Re-reads the doc's OCR text server-side and proposes catalogue fields.
+// Empty fields fill directly (with the "suggested" badge, like photo
+// analysis); a field that already holds a DIFFERENT value is never
+// overwritten — the proposal renders as an explicit per-field
+// "Document says: X — apply?" chip instead.
+const suggestingDocument = ref<number | null>(null);
+const suggestError = ref<string | null>(null);
+const documentProposals = ref<Partial<Record<DocumentField, string | number>>>({});
+
+async function suggestFromDocument(documentId: number) {
+    if (!props.item || suggestingDocument.value !== null) return;
+
+    suggestingDocument.value = documentId;
+    suggestError.value = null;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
+
+    try {
+        const response = await fetch(paperlessLinksRoutes.suggestFields([props.item.id, documentId]).url, {
+            method: 'POST',
+            headers: { Accept: 'application/json', 'X-XSRF-TOKEN': readXsrfToken() },
+            credentials: 'same-origin',
+            signal: controller.signal,
+        });
+
+        if (!response.ok) {
+            throw new Error(String(response.status));
+        }
+
+        const { fields } = (await response.json()) as { fields: Record<string, string | number | null> };
+        applyDocumentProposals(fields);
+    } catch (error) {
+        suggestError.value =
+            error instanceof DOMException && error.name === 'AbortError'
+                ? trans('items.form.ai_error_timeout')
+                : trans('items.paperless.suggest_error');
+    } finally {
+        window.clearTimeout(timeout);
+        suggestingDocument.value = null;
+    }
+}
+
+function applyDocumentProposals(fields: Record<string, string | number | null>) {
+    const proposals: Partial<Record<DocumentField, string | number>> = {};
+
+    for (const key of documentFields) {
+        const proposed = fields[key];
+        if (proposed == null) continue;
+
+        const current = form[key];
+        if (current === '' || current == null) {
+            (form[key] as string | number) = proposed;
+            aiFilled.value.add(key);
+        } else if (proposalDiffers(current, proposed)) {
+            proposals[key] = proposed;
+        }
+    }
+
+    documentProposals.value = proposals;
+}
+
+/**
+ * Numeric-aware comparison so "849.00" (form string) vs 849 (proposal)
+ * doesn't produce a pointless override chip.
+ */
+function proposalDiffers(current: string | number | boolean | null, proposed: string | number): boolean {
+    if (typeof current !== 'string' && typeof current !== 'number') return true;
+    if (current !== '' && !isNaN(Number(current)) && !isNaN(Number(proposed))) {
+        return Number(current) !== Number(proposed);
+    }
+    return String(current).trim() !== String(proposed).trim();
+}
+
+function applyProposal(key: DocumentField) {
+    const proposed = documentProposals.value[key];
+    if (proposed === undefined) return;
+
+    (form[key] as string | number) = proposed;
+    aiFilled.value.add(key);
+    dismissProposal(key);
+}
+
+function dismissProposal(key: DocumentField) {
+    const next = { ...documentProposals.value };
+    delete next[key];
+    documentProposals.value = next;
+}
+
 // Remove the Home Assistant backlink. Edit-page only; Show is read-only. The
 // HA integration re-links on its next sync if the device still points here.
 function unlinkHomeAssistant() {
@@ -296,6 +405,7 @@ function submit() {
                 @input="clearAiFlag('name')"
             />
             <InputError :message="form.errors.name" />
+            <DocumentFieldProposal field="name" :value="documentProposals.name" @apply="applyProposal('name')" @dismiss="dismissProposal('name')" />
         </div>
 
         <div class="form-row">
@@ -309,6 +419,12 @@ function submit() {
                 @input="clearAiFlag('description')"
             />
             <InputError :message="form.errors.description" />
+            <DocumentFieldProposal
+                field="description"
+                :value="documentProposals.description"
+                @apply="applyProposal('description')"
+                @dismiss="dismissProposal('description')"
+            />
         </div>
 
         <div v-if="isPlace" class="form-row">
@@ -332,9 +448,23 @@ function submit() {
         </div>
 
         <div v-if="showDetails" class="form-row" style="max-width: 160px">
-            <label for="quantity">{{ $t('items.form.quantity') }}</label>
-            <input id="quantity" v-model.number="form.quantity" type="number" min="0" step="1" class="field" />
+            <label for="quantity">{{ $t('items.form.quantity') }} <AiFieldBadge :state="fieldStates.quantity" /></label>
+            <input
+                id="quantity"
+                v-model.number="form.quantity"
+                type="number"
+                min="0"
+                step="1"
+                :class="['field', fieldStates.quantity ? `ai-${fieldStates.quantity}` : '']"
+                @input="clearAiFlag('quantity')"
+            />
             <InputError :message="form.errors.quantity" />
+            <DocumentFieldProposal
+                field="quantity"
+                :value="documentProposals.quantity"
+                @apply="applyProposal('quantity')"
+                @dismiss="dismissProposal('quantity')"
+            />
         </div>
 
         <div v-if="mode === 'create'" class="form-row">
@@ -415,6 +545,12 @@ function submit() {
                         @input="clearAiFlag('manufacturer')"
                     />
                     <InputError :message="form.errors.manufacturer" />
+                    <DocumentFieldProposal
+                        field="manufacturer"
+                        :value="documentProposals.manufacturer"
+                        @apply="applyProposal('manufacturer')"
+                        @dismiss="dismissProposal('manufacturer')"
+                    />
                 </div>
                 <div class="form-row">
                     <label for="model_number">{{ $t('items.form.model_number') }} <AiFieldBadge :state="fieldStates.model_number" /></label>
@@ -425,6 +561,12 @@ function submit() {
                         @input="clearAiFlag('model_number')"
                     />
                     <InputError :message="form.errors.model_number" />
+                    <DocumentFieldProposal
+                        field="model_number"
+                        :value="documentProposals.model_number"
+                        @apply="applyProposal('model_number')"
+                        @dismiss="dismissProposal('model_number')"
+                    />
                 </div>
                 <div class="form-row">
                     <label for="serial_number">{{ $t('items.form.serial_number') }} <AiFieldBadge :state="fieldStates.serial_number" /></label>
@@ -435,34 +577,68 @@ function submit() {
                         @input="clearAiFlag('serial_number')"
                     />
                     <InputError :message="form.errors.serial_number" />
+                    <DocumentFieldProposal
+                        field="serial_number"
+                        :value="documentProposals.serial_number"
+                        @apply="applyProposal('serial_number')"
+                        @dismiss="dismissProposal('serial_number')"
+                    />
                 </div>
                 <div class="form-row">
-                    <label for="purchased_from">{{ $t('items.form.purchased_from') }}</label>
+                    <label for="purchased_from">{{ $t('items.form.purchased_from') }} <AiFieldBadge :state="fieldStates.purchased_from" /></label>
                     <input
                         id="purchased_from"
                         v-model="form.purchased_from"
-                        class="field"
                         :placeholder="$t('items.form.purchased_from_placeholder')"
+                        :class="['field', fieldStates.purchased_from ? `ai-${fieldStates.purchased_from}` : '']"
+                        @input="clearAiFlag('purchased_from')"
                     />
                     <InputError :message="form.errors.purchased_from" />
+                    <DocumentFieldProposal
+                        field="purchased_from"
+                        :value="documentProposals.purchased_from"
+                        @apply="applyProposal('purchased_from')"
+                        @dismiss="dismissProposal('purchased_from')"
+                    />
                 </div>
                 <div class="form-row">
-                    <label for="purchase_date">{{ $t('items.form.purchase_date') }}</label>
-                    <input id="purchase_date" v-model="form.purchase_date" type="date" class="field" />
+                    <label for="purchase_date">{{ $t('items.form.purchase_date') }} <AiFieldBadge :state="fieldStates.purchase_date" /></label>
+                    <input
+                        id="purchase_date"
+                        v-model="form.purchase_date"
+                        type="date"
+                        :class="['field', fieldStates.purchase_date ? `ai-${fieldStates.purchase_date}` : '']"
+                        @input="clearAiFlag('purchase_date')"
+                    />
                     <InputError :message="form.errors.purchase_date" />
+                    <DocumentFieldProposal
+                        field="purchase_date"
+                        :value="documentProposals.purchase_date"
+                        @apply="applyProposal('purchase_date')"
+                        @dismiss="dismissProposal('purchase_date')"
+                    />
                 </div>
                 <div class="form-row">
-                    <label for="purchase_price">{{ $t('items.form.purchase_price', { code: currency.code }) }}</label>
+                    <label for="purchase_price">
+                        {{ $t('items.form.purchase_price', { code: currency.code }) }} <AiFieldBadge :state="fieldStates.purchase_price" />
+                    </label>
                     <input
                         id="purchase_price"
                         v-model="form.purchase_price"
                         type="number"
                         min="0"
                         step="0.01"
-                        class="field"
+                        :class="['field', fieldStates.purchase_price ? `ai-${fieldStates.purchase_price}` : '']"
                         :placeholder="$t('items.form.price_placeholder')"
+                        @input="clearAiFlag('purchase_price')"
                     />
                     <InputError :message="form.errors.purchase_price" />
+                    <DocumentFieldProposal
+                        field="purchase_price"
+                        :value="documentProposals.purchase_price"
+                        @apply="applyProposal('purchase_price')"
+                        @dismiss="dismissProposal('purchase_price')"
+                    />
                 </div>
             </div>
 
@@ -503,15 +679,31 @@ function submit() {
                         </button>
                     </li>
                     <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
-                        <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
+                        <!-- The suggest action sits right next to the link text, away
+                             from the destructive unlink ✕ at the far edge of the row. -->
+                        <a :href="link.url" target="_blank" rel="noopener" class="paperless-link" style="flex: 0 1 auto; min-width: 0">
                             <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
                             <span class="paperless-id">#{{ link.document_id }}</span>
                             <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
                         </a>
                         <button
+                            v-if="aiEnabled"
                             type="button"
                             class="btn-ghost"
                             style="padding: 4px 8px"
+                            :data-test="`paperless-suggest-${link.document_id}`"
+                            :disabled="suggestingDocument !== null"
+                            :aria-label="$t('items.paperless.suggest')"
+                            :title="$t('items.paperless.suggest')"
+                            @click="suggestFromDocument(link.document_id)"
+                        >
+                            <Loader2 v-if="suggestingDocument === link.document_id" :size="14" class="ai-spin" />
+                            <Sparkles v-else :size="14" />
+                        </button>
+                        <button
+                            type="button"
+                            class="btn-ghost"
+                            style="padding: 4px 8px; margin-left: auto"
                             :data-test="`paperless-unlink-${link.document_id}`"
                             :aria-label="$t('items.paperless.unlink')"
                             @click="unlinkPaperless(link.document_id)"
@@ -520,6 +712,7 @@ function submit() {
                         </button>
                     </li>
                 </ul>
+                <InputError :message="suggestError" />
                 <div v-if="paperlessEnabled && item">
                     <LinkPaperlessDocumentDialog :item="item" />
                 </div>
