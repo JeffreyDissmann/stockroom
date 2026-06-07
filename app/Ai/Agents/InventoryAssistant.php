@@ -89,7 +89,9 @@ class InventoryAssistant implements Agent, Conversational, HasTools
         - assign_tags can only attach tags that already exist; you cannot create tags.
         - When you mention a specific item, link it using the Markdown link the tools give you,
           written EXACTLY as [Name](/items/12) — never as [/items/12] or a bare URL. Reuse the exact
-          link from the tool output; never invent ids.
+          link from the tool output; never invent ids or URLs. Maintenance tasks have NO page of
+          their own (no /maintenance/{id}) — to point the user at a task, link its item's page,
+          where the maintenance card lives.
         - To move or place something into a room/container, pass move_item a parent_name (the place's
           name) and let it resolve the id — do not guess an id, and do not move to the top level unless
           the user explicitly asks.

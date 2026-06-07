@@ -6,6 +6,7 @@ namespace App\Ai;
 
 use App\Ai\Concerns\FormatsItemLinks;
 use App\Models\Item;
+use App\Models\MaintenanceTask;
 use Illuminate\Support\Str;
 
 /**
@@ -13,7 +14,9 @@ use Illuminate\Support\Str;
  *
  *   1. Repair malformed item links ("[/items/12]" → proper "[Name](/items/12)").
  *   2. Render Markdown with raw HTML stripped and unsafe link schemes blocked.
- *   3. Validate every /items/{id} link against real ids; rewrite a wrong id when
+ *   3. Redirect invented per-task URLs ("/maintenance/123" — no such route) to
+ *      the task's item page, where the maintenance card actually lives.
+ *   4. Validate every /items/{id} link against real ids; rewrite a wrong id when
  *      the label uniquely names a real item, otherwise strip the link to text.
  *
  * Lives outside the controller because none of these are HTTP concerns — the
@@ -26,10 +29,10 @@ class ReplyPresenter
 
     public function render(string $text): string
     {
-        return $this->validateItemLinks(Str::markdown($this->normaliseItemLinks($text), [
+        return $this->validateItemLinks($this->healMaintenanceLinks(Str::markdown($this->normaliseItemLinks($text), [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
-        ]));
+        ])));
     }
 
     /**
@@ -44,6 +47,31 @@ class ReplyPresenter
 
             return $item === null ? $match[0] : $this->itemLink($item);
         }, $text) ?? $text;
+    }
+
+    /**
+     * The model sometimes invents a per-task URL ("/maintenance/123") even
+     * though tasks have no page of their own — the id it has in context is a
+     * task id from the tools. When that id matches a real maintenance task,
+     * point the link at the task's item page instead; otherwise degrade it to
+     * plain text. Runs before validateItemLinks so the rewritten /items/{id}
+     * href passes through the same existence check as every other item link.
+     */
+    private function healMaintenanceLinks(string $html): string
+    {
+        preg_match_all('#<a\b[^>]*\bhref="/maintenance/(\d+)"[^>]*>(.*?)</a>#is', $html, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as [$anchor, $id, $label]) {
+            $task = MaintenanceTask::find((int) $id);
+
+            $html = str_replace(
+                $anchor,
+                $task !== null ? str_replace("/maintenance/{$id}", "/items/{$task->item_id}", $anchor) : $label,
+                $html,
+            );
+        }
+
+        return $html;
     }
 
     /**

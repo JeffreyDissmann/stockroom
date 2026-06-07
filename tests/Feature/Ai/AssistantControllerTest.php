@@ -7,6 +7,7 @@ namespace Tests\Feature\Ai;
 use App\Ai\Agents\InventoryAssistant;
 use App\Ai\Agents\ItemPhotoAnalyzer;
 use App\Models\Item;
+use App\Models\MaintenanceTask;
 use App\Models\User;
 use App\Services\Items\PendingItemImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -128,6 +129,37 @@ class AssistantControllerTest extends TestCase
 
         $this->assertStringContainsString('href="/items/'.$item->id.'"', $reply); // healed to the real id
         $this->assertStringNotContainsString('424242', $reply);                    // wrong id gone
+    }
+
+    public function test_invented_maintenance_task_links_are_redirected_to_the_item(): void
+    {
+        // The model invents "/maintenance/{task id}" even though tasks have no
+        // page of their own — the link should land on the task's item instead.
+        $item = Item::factory()->create(['name' => 'Espresso Machine']);
+        $task = MaintenanceTask::factory()->for($item)->create();
+        InventoryAssistant::fake(["Confirm it here: [Descale task](/maintenance/{$task->id})."]);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'give me a link'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('href="/items/'.$item->id.'"', $reply); // redirected to the item
+        $this->assertStringNotContainsString('/maintenance/', $reply);            // invented URL gone
+        $this->assertStringContainsString('Descale task', $reply);                // label kept
+    }
+
+    public function test_maintenance_links_to_unknown_tasks_degrade_to_text(): void
+    {
+        InventoryAssistant::fake(['See [Ghost task](/maintenance/999999).']);
+
+        $reply = $this->actingAs(User::factory()->create())
+            ->postJson('/assistant/messages', ['message' => 'x'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringNotContainsString('/maintenance/999999', $reply); // bogus link removed
+        $this->assertStringContainsString('Ghost task', $reply);             // ...degraded to text
     }
 
     public function test_unsafe_links_in_assistant_replies_are_neutralised(): void
