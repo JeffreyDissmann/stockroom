@@ -217,3 +217,71 @@ it('getCustomField() returns null when the field exists but is empty on this doc
 
     expect(PaperlessClient::fromConfig()->getCustomField(42, 'Stockroom URL'))->toBeNull();
 });
+
+it('searchDocuments() passes the query through and trims results to id/title pairs', function () {
+    Http::fake([
+        'https://paperless.test/api/documents/*' => Http::response([
+            'results' => [
+                ['id' => 447, 'title' => 'Washing machine receipt', 'content' => 'huge OCR blob'],
+                ['id' => 12, 'title' => 'Dryer manual', 'tags' => [1, 2]],
+            ],
+        ]),
+    ]);
+
+    $results = PaperlessClient::fromConfig()->searchDocuments('washing');
+
+    expect($results)->toBe([
+        ['id' => 447, 'title' => 'Washing machine receipt'],
+        ['id' => 12, 'title' => 'Dryer manual'],
+    ]);
+
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'query=washing')
+        && str_contains($r->url(), 'page_size=10'));
+});
+
+it('searchDocuments() lists the most recent documents for an empty query', function () {
+    Http::fake([
+        'https://paperless.test/api/documents/*' => Http::response(['results' => []]),
+    ]);
+
+    PaperlessClient::fromConfig()->searchDocuments('  ');
+
+    // No full-text query — the picker shows the newest docs instead.
+    Http::assertSent(fn ($r) => str_contains($r->url(), 'ordering=-created')
+        && ! str_contains($r->url(), 'query='));
+});
+
+it('resolves document type and correspondent names by id, memoized per instance', function () {
+    Http::fake([
+        'https://paperless.test/api/document_types/1/' => Http::response(['id' => 1, 'name' => 'Rechnung']),
+        'https://paperless.test/api/correspondents/233/' => Http::response(['id' => 233, 'name' => 'MediaMarkt']),
+    ]);
+
+    $client = PaperlessClient::fromConfig();
+
+    expect($client->documentTypeName(1))->toBe('Rechnung')
+        ->and($client->documentTypeName(1))->toBe('Rechnung') // memoized
+        ->and($client->correspondentName(233))->toBe('MediaMarkt')
+        ->and($client->documentTypeName(null))->toBeNull();
+
+    Http::assertSentCount(2);
+});
+
+it('resolves a deleted document type (404) to null instead of throwing', function () {
+    Http::fake([
+        'https://paperless.test/api/document_types/9/' => Http::response([], 404),
+    ]);
+
+    // Metadata is best-effort — a type deleted in Paperless must never
+    // fail the operation that asked for it.
+    expect(PaperlessClient::fromConfig()->documentTypeName(9))->toBeNull();
+});
+
+it('searchDocuments() throws PaperlessException on an API error', function () {
+    Http::fake([
+        'https://paperless.test/api/documents/*' => Http::response([], 500),
+    ]);
+
+    expect(fn () => PaperlessClient::fromConfig()->searchDocuments('x'))
+        ->toThrow(PaperlessException::class);
+});

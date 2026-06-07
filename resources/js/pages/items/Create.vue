@@ -37,14 +37,18 @@ const cancelHref = computed(() => (props.parent ? `/items/${props.parent.id}` : 
         </template>
 
         <div class="page">
-            <div class="mb-5">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.add_title') }}</h2>
-                <p v-if="parent" style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">
-                    {{ $t('items.inside') }} <span style="color: var(--fg); font-weight: 500">{{ parent.name }}</span>
-                </p>
-            </div>
+            <!-- Centered column matching the form's 720px cap — same as
+                 Edit.vue, so create and edit share their layout. -->
+            <div style="max-width: 720px; margin: 0 auto">
+                <div class="mb-5">
+                    <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.add_title') }}</h2>
+                    <p v-if="parent" style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">
+                        {{ $t('items.inside') }} <span style="color: var(--fg); font-weight: 500">{{ parent.name }}</span>
+                    </p>
+                </div>
 
-            <ItemForm mode="create" :parent="parent" :items="items" :tags="tags" :types="types" :custom-fields="customFields" />
+                <ItemForm mode="create" :parent="parent" :items="items" :tags="tags" :types="types" :custom-fields="customFields" />
+            </div>
         </div>
     </AppLayout>
 </template>

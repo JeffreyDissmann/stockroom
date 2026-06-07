@@ -14,13 +14,7 @@ const bulk = useBulkSelection();
 </script>
 
 <template>
-    <button
-        type="button"
-        class="btn-pill"
-        data-test="bulk-toggle"
-        :aria-pressed="bulk.isSelectMode.value"
-        @click="bulk.toggleMode"
-    >
+    <button type="button" class="btn-pill" data-test="bulk-toggle" :aria-pressed="bulk.isSelectMode.value" @click="bulk.toggleMode">
         <CheckSquare :size="14" />
         {{ bulk.isSelectMode.value ? $t('items.bulk.done') : $t('items.bulk.select') }}
     </button>

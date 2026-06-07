@@ -136,6 +136,9 @@ it('shows the Paperless intake destination picker when Paperless is configured',
     $page->assertSee('Preferences')
         ->assertPresent('@paperless-parent-picker')
         ->assertPresent('@paperless-parent-trigger')
+        // Both repair actions: full relink + the read-only metadata refresh.
+        ->assertPresent('@paperless-relink-all')
+        ->assertPresent('@paperless-refresh-metadata')
         ->assertNoJavaScriptErrors();
 });
 

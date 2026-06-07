@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import itemRoutes from '@/routes/items';
 import relatedItems from '@/routes/items/related-items';
 import type { ItemSummary } from '@/types';
@@ -201,5 +210,9 @@ function link() {
     color: var(--fg-muted);
     font-size: 13px;
 }
-.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 </style>

@@ -90,6 +90,8 @@ return [
         'ai_error_generic' => 'Dieses Foto konnte nicht gelesen werden. Fülle das Formular manuell aus oder versuche ein anderes Bild.',
         'badge_analyzing' => 'Analysiere…',
         'badge_suggested' => 'Vorschlag',
+        'document_says' => 'Dokument sagt: :value',
+        'apply' => 'Übernehmen',
     ],
 
     'move' => [
@@ -107,6 +109,17 @@ return [
         'open_in_paperless' => 'In Paperless öffnen',
         'unlink' => 'Dokument-Verknüpfung lösen',
         'unlink_confirm' => 'Verknüpfung zum Paperless-Dokument lösen?',
+        'add_trigger' => 'Dokument verknüpfen',
+        'add_title' => 'Paperless-Dokument mit :name verknüpfen',
+        'hint_search' => 'Paperless durchsuchen oder Dokument-ID / URL eingeben.',
+        'hint_id' => 'Dokument-ID eingeben oder Paperless-Dokument-URL einfügen.',
+        'add_placeholder_search' => 'Paperless durchsuchen oder Dokument-ID / URL eingeben…',
+        'add_placeholder_id' => 'Dokument-ID oder Paperless-URL…',
+        'link_document' => 'Dokument #:id verknüpfen',
+        'search_unreachable' => 'Paperless ist nicht erreichbar.',
+        'search_empty' => 'Keine passenden Dokumente.',
+        'suggest' => 'Feldwerte aus diesem Dokument vorschlagen',
+        'suggest_error' => 'Das Dokument konnte nicht analysiert werden. Versuche es erneut oder fülle das Formular manuell aus.',
     ],
 
     // Gemeinsame "Verbindungen"-Sektion für externe Verknüpfungen (Paperless +

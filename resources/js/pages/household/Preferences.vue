@@ -32,6 +32,10 @@ interface Preferences {
 
 interface RelinkStatus {
     state: 'running' | 'done' | 'failed';
+    // 'relink' = full repair (tags + backlinks + metadata); 'metadata' =
+    // metadata refresh only. Drives the status wording. Absent on older
+    // cached entries → treated as a full relink.
+    mode?: 'relink' | 'metadata';
     done?: number;
     failed?: number;
     total?: number;
@@ -126,13 +130,29 @@ const relinkPercent = computed(() => {
 const relinkPoll = usePoll(2000, { only: ['relinkStatus'] }, { autoStart: false });
 watch(relinkRunning, (running) => (running ? relinkPoll.start() : relinkPoll.stop()), { immediate: true });
 
+// "done" wording depends on which operation ran: refreshed-metadata vs
+// re-linked. Running/progress wording is shared.
+const relinkDoneKey = computed(() =>
+    props.relinkStatus?.mode === 'metadata' ? 'household.preferences.paperless_metadata_done' : 'household.preferences.paperless_relink_done',
+);
+
 function relinkAllPaperless() {
     if (!confirm(trans('household.preferences.paperless_relink_confirm'))) {
         return;
     }
+    runRelink(householdPreferences.paperless.relinkAll().url);
+}
+
+// Metadata refresh writes nothing back to Paperless, so it skips the
+// confirm the full relink uses.
+function refreshPaperlessMetadata() {
+    runRelink(householdPreferences.paperless.refreshMetadata().url);
+}
+
+function runRelink(url: string) {
     relinkProcessing.value = true;
     router.post(
-        householdPreferences.paperless.relinkAll().url,
+        url,
         {},
         {
             preserveScroll: true,
@@ -238,11 +258,7 @@ function relinkAllPaperless() {
                                     </li>
                                 </ul>
 
-                                <button
-                                    type="button"
-                                    class="parent-picker-cancel"
-                                    @click="pickerOpen = false"
-                                >
+                                <button type="button" class="parent-picker-cancel" @click="pickerOpen = false">
                                     <X :size="12" />
                                     {{ $t('common.cancel') }}
                                 </button>
@@ -259,7 +275,7 @@ function relinkAllPaperless() {
                          are Paperless-only and admin-only. -->
                     <div v-if="paperlessEnabled" class="form-row">
                         <label>{{ $t('household.preferences.paperless_relink') }}</label>
-                        <div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px">
                             <button
                                 type="button"
                                 class="btn-pill"
@@ -267,8 +283,18 @@ function relinkAllPaperless() {
                                 data-test="paperless-relink-all"
                                 @click="relinkAllPaperless"
                             >
-                                <RefreshCw :size="14" :class="relinkRunning ? 'spin' : ''" />
+                                <RefreshCw :size="14" :class="relinkRunning && relinkStatus?.mode !== 'metadata' ? 'spin' : ''" />
                                 {{ $t('household.preferences.paperless_relink_action') }}
+                            </button>
+                            <button
+                                type="button"
+                                class="btn-pill"
+                                :disabled="relinkProcessing || relinkRunning"
+                                data-test="paperless-refresh-metadata"
+                                @click="refreshPaperlessMetadata"
+                            >
+                                <RefreshCw :size="14" :class="relinkRunning && relinkStatus?.mode === 'metadata' ? 'spin' : ''" />
+                                {{ $t('household.preferences.paperless_metadata_action') }}
                             </button>
                         </div>
                         <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_relink_help') }}</p>
@@ -280,13 +306,17 @@ function relinkAllPaperless() {
                         <div v-if="relinkStatus" data-test="paperless-relink-status" style="margin-top: 12px">
                             <template v-if="relinkStatus.state === 'running'">
                                 <p style="font-size: 13px; margin: 0 0 8px">
-                                    {{ $t('household.preferences.paperless_relink_progress', {
-                                        done: (relinkStatus.done ?? 0) + (relinkStatus.failed ?? 0),
-                                        total: relinkStatus.total ?? 0,
-                                    }) }}
+                                    {{
+                                        $t('household.preferences.paperless_relink_progress', {
+                                            done: (relinkStatus.done ?? 0) + (relinkStatus.failed ?? 0),
+                                            total: relinkStatus.total ?? 0,
+                                        })
+                                    }}
                                 </p>
                                 <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
-                                    <div :style="{ width: `${relinkPercent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
+                                    <div
+                                        :style="{ width: `${relinkPercent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }"
+                                    />
                                 </div>
                             </template>
                             <p
@@ -294,15 +324,12 @@ function relinkAllPaperless() {
                                 style="font-size: 13px; margin: 0"
                                 :style="{ color: (relinkStatus.failed ?? 0) > 0 ? 'var(--warn)' : 'var(--pos)' }"
                             >
-                                {{ $tChoice('household.preferences.paperless_relink_done', relinkStatus.done ?? 0) }}
+                                {{ $tChoice(relinkDoneKey, relinkStatus.done ?? 0) }}
                                 <template v-if="(relinkStatus.failed ?? 0) > 0">
                                     {{ $tChoice('household.preferences.paperless_relink_failed_count', relinkStatus.failed ?? 0) }}
                                 </template>
                             </p>
-                            <p
-                                v-else-if="relinkStatus.state === 'failed'"
-                                style="font-size: 13px; margin: 0; color: var(--neg)"
-                            >
+                            <p v-else-if="relinkStatus.state === 'failed'" style="font-size: 13px; margin: 0; color: var(--neg)">
                                 {{ $t('household.preferences.paperless_relink_failed', { error: relinkStatus.error ?? '' }) }}
                             </p>
                         </div>
@@ -313,11 +340,7 @@ function relinkAllPaperless() {
                             <Save :size="14" />
                             {{ $t('common.save') }}
                         </button>
-                        <span
-                            v-if="form.recentlySuccessful"
-                            class="ml-3 text-sm"
-                            style="color: var(--pos)"
-                        >{{ $t('common.saved') }}</span>
+                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm" style="color: var(--pos)">{{ $t('common.saved') }}</span>
                     </div>
                 </form>
             </div>
@@ -326,7 +349,9 @@ function relinkAllPaperless() {
 </template>
 
 <style scoped>
-.parent-picker { position: relative; }
+.parent-picker {
+    position: relative;
+}
 .parent-picker-trigger {
     display: flex;
     align-items: center;
@@ -336,10 +361,21 @@ function relinkAllPaperless() {
     text-align: left;
     cursor: pointer;
 }
-.parent-picker-label { color: var(--fg); }
-.parent-picker-type { color: var(--fg-muted); font-size: 12px; margin-left: 4px; }
-.parent-picker-empty { color: var(--fg-muted); }
-.parent-picker-icon { color: var(--fg-muted); flex-shrink: 0; }
+.parent-picker-label {
+    color: var(--fg);
+}
+.parent-picker-type {
+    color: var(--fg-muted);
+    font-size: 12px;
+    margin-left: 4px;
+}
+.parent-picker-empty {
+    color: var(--fg-muted);
+}
+.parent-picker-icon {
+    color: var(--fg-muted);
+    flex-shrink: 0;
+}
 
 .parent-picker-panel {
     border: 1px solid var(--border);
@@ -388,7 +424,9 @@ function relinkAllPaperless() {
     color: var(--fg);
     font-size: 13px;
 }
-.parent-picker-option:hover { background: var(--bg-hover); }
+.parent-picker-option:hover {
+    background: var(--bg-hover);
+}
 .parent-picker-status {
     padding: 6px 10px;
     color: var(--fg-muted);
@@ -406,8 +444,19 @@ function relinkAllPaperless() {
     padding: 4px 6px;
     cursor: pointer;
 }
-.parent-picker-cancel:hover { color: var(--fg); }
+.parent-picker-cancel:hover {
+    color: var(--fg);
+}
 
-@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-.spin { animation: spin 1s linear infinite; }
+@keyframes spin {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+.spin {
+    animation: spin 1s linear infinite;
+}
 </style>

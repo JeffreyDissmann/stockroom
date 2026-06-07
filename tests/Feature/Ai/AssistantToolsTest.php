@@ -14,6 +14,7 @@ use App\Ai\Tools\MoveItem;
 use App\Ai\Tools\SearchItems;
 use App\Ai\Tools\UpdateItem;
 use App\Enums\ItemType;
+use App\Models\HomeAssistantLink;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Services\ItemImageProcessor;
@@ -45,11 +46,44 @@ class AssistantToolsTest extends TestCase
         $garage = Item::factory()->room()->create(['name' => 'Garage']);
         $item = Item::factory()->create(['name' => 'Drill', 'type' => ItemType::Item, 'parent_id' => $garage->id, 'manufacturer' => 'DeWalt']);
 
-        $result = (new GetItem)->handle(new Request(['id' => $item->id]));
+        $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
 
         $this->assertStringContainsString('Drill', $result);
         $this->assertStringContainsString('Garage', $result);
         $this->assertStringContainsString('DeWalt', $result);
+    }
+
+    public function test_get_item_lists_related_items_and_external_links(): void
+    {
+        config(['paperless.url' => 'https://paperless.test']);
+
+        $item = Item::factory()->create(['name' => 'Washing Machine']);
+        $manual = Item::factory()->container()->create(['name' => 'Manuals Box']);
+        $item->linkRelated($manual);
+        $item->paperlessLinks()->create([
+            'paperless_document_id' => 447,
+            'document_title' => 'AEG receipt',
+            'document_type' => 'Rechnung',
+        ]);
+        $link = HomeAssistantLink::factory()->for($item)->create(['friendly_name' => 'Washer']);
+
+        $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
+
+        $this->assertStringContainsString("Related items: [Manuals Box](/items/{$manual->id})", $result);
+        // Cached snapshot drives the label: "type: title", not a bare id.
+        $this->assertStringContainsString('[Rechnung: AEG receipt](https://paperless.test/documents/447/)', $result);
+        $this->assertStringContainsString("Home Assistant device: [Washer]({$link->url})", $result);
+    }
+
+    public function test_get_item_omits_connection_lines_when_there_are_none(): void
+    {
+        $item = Item::factory()->create(['name' => 'Drill']);
+
+        $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
+
+        $this->assertStringNotContainsString('Related items:', $result);
+        $this->assertStringNotContainsString('Paperless documents:', $result);
+        $this->assertStringNotContainsString('Home Assistant device:', $result);
     }
 
     public function test_tools_link_items_rooms_and_containers_by_their_page(): void
@@ -62,7 +96,7 @@ class AssistantToolsTest extends TestCase
         foreach ([$room, $box, $item] as $entry) {
             $this->assertStringContainsString(
                 "[{$entry->name}](/items/{$entry->id})",
-                (new GetItem)->handle(new Request(['id' => $entry->id])),
+                app(GetItem::class)->handle(new Request(['id' => $entry->id])),
             );
         }
 

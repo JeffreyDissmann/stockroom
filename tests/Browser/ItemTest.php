@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Ai\Agents\ItemFieldExtractor;
 use App\Models\HomeAssistantLink;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
@@ -42,6 +44,25 @@ it('exposes the Home Assistant unlink control on the edit page', function () {
         ->assertNoJavaScriptErrors();
 });
 
+it('shows the cached document title and type on the Paperless chip', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+
+    $item = Item::factory()->create(['name' => 'Washing Machine']);
+    $item->paperlessLinks()->create([
+        'paperless_document_id' => 547,
+        'document_title' => 'AEG receipt',
+        'document_type' => 'Rechnung',
+    ]);
+
+    $page = visit("/items/{$item->id}");
+
+    // The read-only Connections card shows title + type pill, not a bare #id.
+    $page->assertSee('AEG receipt')
+        ->assertSee('Rechnung')
+        ->assertNoJavaScriptErrors();
+});
+
 it('groups Home Assistant and Paperless into one Connections section on edit', function () {
     config()->set('paperless.url', 'https://paperless.test');
     config()->set('paperless.token', 'secret');
@@ -58,6 +79,91 @@ it('groups Home Assistant and Paperless into one Connections section on edit', f
         ->assertPresent('@ha-unlink')
         ->assertPresent('@paperless-unlink-547')
         ->assertNoJavaScriptErrors();
+});
+
+it('offers the link-document dialog in Connections when Paperless is enabled', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // The section shows even with no existing links — it hosts the trigger.
+    // Typing a bare id in the dialog offers the direct "Link document #447"
+    // row (no Paperless round-trip; ids skip the admin-only search).
+    $page->assertSee('Connections')
+        ->assertPresent('@paperless-add')
+        ->click('@paperless-add')
+        ->assertPresent('@paperless-add-input')
+        ->fill('@paperless-add-input', '447')
+        ->assertPresent('@paperless-add-direct')
+        ->assertPresent('@paperless-add-submit')
+        ->assertNoJavaScriptErrors();
+});
+
+it('hides the link-document trigger when Paperless is disabled', function () {
+    config()->set('paperless.url', '');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    HomeAssistantLink::factory()->create(['item_id' => $item->id, 'friendly_name' => 'Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // The HA link still renders the section; the Paperless trigger does not.
+    $page->assertPresent('@connections-edit-list')
+        ->assertMissing('@paperless-add')
+        ->assertNoJavaScriptErrors();
+});
+
+it('fills empty fields and proposes overrides when suggesting from a document', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+    config()->set('ai.enabled', true);
+
+    Http::fake([
+        'https://paperless.test/api/documents/547/' => Http::response([
+            'id' => 547,
+            'content' => 'BOSCH GSR 12V-35 ... receipt text',
+        ]),
+    ]);
+    ItemFieldExtractor::fake([[
+        'name' => 'Bosch GSR 12V-35',
+        'manufacturer' => 'Bosch',
+    ]]);
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill', 'manufacturer' => null]);
+    $item->paperlessLinks()->create(['paperless_document_id' => 547]);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // Empty manufacturer fills directly (with the suggested badge); the
+    // conflicting name is NOT overwritten — it renders as an explicit
+    // "Document says" chip whose Apply button performs the override.
+    $page->assertPresent('@paperless-suggest-547')
+        ->click('@paperless-suggest-547')
+        ->assertValue('#manufacturer', 'Bosch')
+        ->assertValue('#name', 'Cordless Drill')
+        ->assertPresent('@doc-proposal-name')
+        ->click('@doc-proposal-apply-name')
+        ->assertValue('#name', 'Bosch GSR 12V-35')
+        ->assertMissing('@doc-proposal-name')
+        ->assertNoJavaScriptErrors();
+});
+
+it('shows a single Find image trigger inside the image panel on edit', function () {
+    config()->set('services.brave.key', 'test-key');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // The "or Find image" row under the drop zone is THE trigger — the
+    // standalone duplicate below the panel was removed (2026-06-07).
+    $page->assertPresent('@image-search')
+        ->assertNoJavaScriptErrors();
+
+    expect($page->script('document.querySelectorAll(\'[data-test="image-search"]\').length'))->toBe(1);
 });
 
 it('lists items and filters with search across grid and list views', function () {

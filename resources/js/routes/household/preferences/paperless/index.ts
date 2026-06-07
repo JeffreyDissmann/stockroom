@@ -33,8 +33,43 @@ relinkAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     method: 'post',
 })
 
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::refreshMetadata
+* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @route '/household/preferences/paperless/refresh-metadata'
+*/
+export const refreshMetadata = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: refreshMetadata.url(options),
+    method: 'post',
+})
+
+refreshMetadata.definition = {
+    methods: ["post"],
+    url: '/household/preferences/paperless/refresh-metadata',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::refreshMetadata
+* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @route '/household/preferences/paperless/refresh-metadata'
+*/
+refreshMetadata.url = (options?: RouteQueryOptions) => {
+    return refreshMetadata.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::refreshMetadata
+* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @route '/household/preferences/paperless/refresh-metadata'
+*/
+refreshMetadata.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: refreshMetadata.url(options),
+    method: 'post',
+})
+
 const paperless = {
     relinkAll: Object.assign(relinkAll, relinkAll),
+    refreshMetadata: Object.assign(refreshMetadata, refreshMetadata),
 }
 
 export default paperless

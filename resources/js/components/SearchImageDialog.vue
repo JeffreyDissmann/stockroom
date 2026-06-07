@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import itemRoutes from '@/routes/items';
 import itemImages from '@/routes/items/images';
 import type { ImageSearchResult } from '@/types';
@@ -136,7 +145,9 @@ function attach(): void {
         <DialogContent class="sm:max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{{ $t('items.image_search.title') }}</DialogTitle>
-                <DialogDescription>{{ itemName ? $t('items.image_search.description_named', { name: itemName }) : $t('items.image_search.description') }}</DialogDescription>
+                <DialogDescription>{{
+                    itemName ? $t('items.image_search.description_named', { name: itemName }) : $t('items.image_search.description')
+                }}</DialogDescription>
             </DialogHeader>
 
             <input

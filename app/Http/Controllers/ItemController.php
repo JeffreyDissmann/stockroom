@@ -266,9 +266,11 @@ class ItemController extends Controller
      * Shape an item's PaperlessLink rows for the Inertia client. Rows whose
      * `paperlessUrl()` is null (the integration was disabled after the link
      * was created) are dropped so the front-end never gets a clickable chip
-     * pointing at nowhere.
+     * pointing at nowhere. Title/type are the cached snapshot columns —
+     * null on rows the repair job hasn't touched yet, and the chips fall
+     * back to the bare #id.
      *
-     * @return Collection<int, array{document_id: int, url: string}>
+     * @return Collection<int, array{document_id: int, url: string, title: ?string, type: ?string}>
      */
     private function presentPaperlessLinks(Item $item): Collection
     {
@@ -276,6 +278,8 @@ class ItemController extends Controller
             ->map(fn (PaperlessLink $link) => [
                 'document_id' => $link->paperless_document_id,
                 'url' => $link->paperlessUrl(),
+                'title' => $link->document_title,
+                'type' => $link->document_type,
             ])
             ->filter(fn (array $l) => $l['url'] !== null)
             ->values();

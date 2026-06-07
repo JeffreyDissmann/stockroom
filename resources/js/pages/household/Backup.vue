@@ -2,9 +2,9 @@
 import BackupRestore from '@/components/household/BackupRestore.vue';
 import DangerZone from '@/components/household/DangerZone.vue';
 import HomeboxImport from '@/components/household/HomeboxImport.vue';
+import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
-import { trans } from '@/composables/useTranslations';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 

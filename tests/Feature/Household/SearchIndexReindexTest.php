@@ -11,6 +11,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia;
+use Laravel\Scout\EngineManager;
+use Laravel\Scout\Engines\MeilisearchEngine;
+use Mockery;
 use Tests\TestCase;
 
 class SearchIndexReindexTest extends TestCase
@@ -58,5 +61,48 @@ class SearchIndexReindexTest extends TestCase
         $this->assertSame('done', $status['state']);
         $this->assertSame(5, $status['total']);
         $this->assertSame(5, $status['indexed']);
+    }
+
+    public function test_job_flushes_and_resyncs_settings_before_reimporting(): void
+    {
+        config(['scout.driver' => 'meilisearch']);
+
+        Item::withoutSyncingToSearch(fn () => Item::factory()->count(2)->create());
+
+        $engine = Mockery::spy(MeilisearchEngine::class);
+        $manager = Mockery::mock(EngineManager::class);
+        $manager->shouldReceive('engine')->andReturn($engine);
+        $this->swap(EngineManager::class, $manager);
+
+        (new RebuildSearchIndexJob)->handle();
+
+        // Meilisearch refuses to register a userProvided embedder while the
+        // index holds vector-less documents, so the rebuild must flush and
+        // re-push the index settings before re-importing.
+        $engine->shouldHaveReceived('flush')->once();
+        $engine->shouldHaveReceived('updateIndexSettings')->once();
+        $engine->shouldHaveReceived('update');
+
+        $this->assertSame('done', Cache::get(RebuildSearchIndexJob::STATUS_KEY)['state'] ?? null);
+    }
+
+    public function test_job_indexes_inline_even_when_scout_queueing_is_enabled(): void
+    {
+        config(['scout.queue' => true]);
+
+        Item::withoutSyncingToSearch(fn () => Item::factory()->count(3)->create());
+
+        Queue::fake();
+
+        (new RebuildSearchIndexJob)->handle();
+
+        // The rebuild must not fan out MakeSearchable jobs — it indexes
+        // inline so the reported progress reflects work actually done.
+        Queue::assertNothingPushed();
+
+        $status = Cache::get(RebuildSearchIndexJob::STATUS_KEY);
+
+        $this->assertSame('done', $status['state']);
+        $this->assertSame(3, $status['indexed']);
     }
 }

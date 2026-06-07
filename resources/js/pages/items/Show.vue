@@ -27,6 +27,10 @@ import { computed, ref, watch } from 'vue';
 interface PaperlessLinkSummary {
     document_id: number;
     url: string;
+    // Cached snapshot from Paperless — null until the repair job has seen
+    // the link; the chip falls back to the bare #id.
+    title: string | null;
+    type: string | null;
 }
 
 interface HomeAssistantLinkSummary {
@@ -369,9 +373,11 @@ function destroyItem() {
                                     </span>
                                 </li>
                                 <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row" data-test="paperless-row">
-                                    <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
+                                    <a :href="link.url" target="_blank" rel="noopener" class="paperless-link" :title="`#${link.document_id}`">
                                         <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                                        <span class="paperless-id">#{{ link.document_id }}</span>
+                                        <span v-if="link.type" class="paperless-type">{{ link.type }}</span>
+                                        <span v-if="link.title" class="paperless-id truncate">{{ link.title }}</span>
+                                        <span v-else class="paperless-id">#{{ link.document_id }}</span>
                                         <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
                                     </a>
                                 </li>
@@ -537,6 +543,15 @@ function destroyItem() {
 .paperless-id {
     font-family: var(--font-mono, monospace);
     color: var(--fg);
+}
+/* Document-type pill from the cached Paperless snapshot ("Rechnung"). */
+.paperless-type {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+    color: var(--fg-muted);
 }
 .paperless-host {
     color: var(--fg-muted);

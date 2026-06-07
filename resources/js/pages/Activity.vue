@@ -32,7 +32,7 @@ const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('activity.title'), hre
             <template v-else>
                 <ActivityFeed :rows="activities.data" />
 
-                <nav v-if="activities.links.length > 3" class="flex flex-wrap justify-center gap-1 mt-6">
+                <nav v-if="activities.links.length > 3" class="mt-6 flex flex-wrap justify-center gap-1">
                     <component
                         :is="link.url ? Link : 'span'"
                         v-for="(link, i) in activities.links"

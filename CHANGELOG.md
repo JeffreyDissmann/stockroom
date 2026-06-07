@@ -7,6 +7,79 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.04] — 2026-06-07
+
+### Added
+
+- **Assistant: maintenance & document tools.** The AI assistant gained a
+  full set of maintenance abilities — `maintenance_overview` (what's
+  overdue / due soon across the household), `create_maintenance_task`
+  (interval or one-off reminders), `complete_maintenance_task`,
+  `log_maintenance_entry` (ad-hoc repairs) — and now surfaces an item's
+  related items, Paperless documents, Home Assistant device, maintenance
+  schedules and recent history in `get_item`. Every write still asks for
+  confirmation first. Fixed-calendar schedules stay in the web UI.
+- **Link Paperless documents by hand.** A new "Link document" dialog on
+  an item's Connections section attaches a Paperless-ngx document by id or
+  pasted URL; admins can also full-text search Paperless from the dialog.
+  Linking verifies the document exists and re-applies the Stockroom tag +
+  backlink on the Paperless side (best-effort). The assistant can do the
+  same via `link_paperless_document`, and read a linked document's text
+  with `get_paperless_document` (linked documents only).
+- **Suggest item fields from a linked document.** A ✨ action on each
+  linked-document row re-reads the document's OCR text and proposes values
+  for the item's fields — empty fields fill in, conflicts surface as
+  explicit "Document says: X — apply?" choices, nothing is overwritten
+  without a click.
+- **Paperless document info on links.** Linked-document chips now show the
+  document's title and type (cached locally) instead of a bare id, on the
+  item page and in the assistant. A second "Refresh document info" button
+  (and a daily background job) updates the cache after renames in
+  Paperless, without writing anything back. `paperless:relink
+  --metadata-only` exposes the same refresh on the CLI.
+- **Home Assistant maintenance API.** The `/api/v1` API now exposes
+  maintenance so Home Assistant can drive reminders: overdue / due-soon
+  counters on `GET /statistics`, `GET /items/{item}/maintenance-tasks`,
+  `POST /items/{item}/maintenance-tasks` (create) and
+  `POST /maintenance-tasks/{task}/complete`. See [the API
+  reference](./docs/api.md).
+
+### Changed
+
+- **Create / edit item forms are centred** instead of hugging the left
+  edge on wide screens, and the duplicate "Find image" button on the
+  form is gone — one trigger now lives in the image panel.
+
+### Fixed
+
+- **Hybrid (semantic) search could not be enabled on an existing
+  install.** The entrypoint synced search settings against the previous
+  boot's cached config (so a newly set `SCOUT_HYBRID_EMBEDDER` was
+  invisible until a second boot), and Meilisearch refuses to register a
+  `userProvided` embedder while the index still holds vector-less
+  documents. The entrypoint now clears the stale cache on boot, and the
+  "Rebuild search index" button flushes + re-syncs before reimporting —
+  the supported way to switch hybrid search on. The full procedure is
+  documented in `.env.docker.example`.
+- **Cross-container state silently broke in the self-host stack.** With
+  `CACHE_STORE=file` each container cached privately, so e.g. the reindex
+  progress bar never moved. The cache now defaults to the database store,
+  like sessions and the queue. Search indexing is also queued
+  (`SCOUT_QUEUE=true`) so saving an item never blocks on an embedding
+  round-trip.
+- **Queue and scheduler containers always reported `unhealthy`.** They
+  inherited the base image's Caddy-admin healthcheck, which only the web
+  role can pass; they now use role-aware probes.
+- **The assistant sometimes invented a `/maintenance/{id}` link.**
+  Maintenance tasks have no page of their own — such links now resolve to
+  the task's item page (or degrade to text), and the prompt was updated to
+  prevent it.
+
+### Internal
+
+- A repo-wide Prettier pass cleared accumulated formatting drift, and a
+  `pre-commit` hook now keeps staged frontend files formatted.
+
 ## [2026.06.03] — 2026-06-06
 
 ### Added
@@ -409,7 +482,9 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.02...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.04...HEAD
+[2026.06.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.03...2026.06.04
+[2026.06.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.02...2026.06.03
 [2026.06.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.01...2026.06.02
 [2026.06.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.09...2026.06.01
 [2026.05.09]: https://github.com/JeffreyDissmann/stockroom/compare/2026.05.08...2026.05.09

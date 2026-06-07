@@ -66,7 +66,9 @@ function rebuild() {
 
                 <div v-if="status" data-test="reindex-status" style="border-top: 1px solid var(--border); padding-top: 20px">
                     <template v-if="status.state === 'running'">
-                        <p style="font-size: 13px; margin-bottom: 8px">{{ $t('household.search_index.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}</p>
+                        <p style="font-size: 13px; margin-bottom: 8px">
+                            {{ $t('household.search_index.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}
+                        </p>
                         <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
                             <div :style="{ width: `${percent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
                         </div>
@@ -74,7 +76,9 @@ function rebuild() {
                     <p v-else-if="status.state === 'done'" style="font-size: 13px; color: var(--fg)">
                         {{ $tChoice('household.search_index.done', status.indexed ?? status.total ?? 0) }}
                     </p>
-                    <p v-else-if="status.state === 'failed'" style="font-size: 13px; color: var(--neg)">{{ $t('household.search_index.failed', { error: status.error ?? '' }) }}</p>
+                    <p v-else-if="status.state === 'failed'" style="font-size: 13px; color: var(--neg)">
+                        {{ $t('household.search_index.failed', { error: status.error ?? '' }) }}
+                    </p>
                 </div>
             </div>
         </HouseholdLayout>

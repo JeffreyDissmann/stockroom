@@ -15,8 +15,8 @@
  */
 import BulkMoveDialog from '@/components/BulkMoveDialog.vue';
 import BulkTagDialog from '@/components/BulkTagDialog.vue';
-import { trans } from '@/composables/useTranslations';
 import { useBulkSelection } from '@/composables/useBulkSelection';
+import { trans } from '@/composables/useTranslations';
 import type { SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { ArrowLeftRight, Tag, Trash2, X } from 'lucide-vue-next';
@@ -115,11 +115,7 @@ function performUndo() {
             return;
         }
         const [idStr, parentId] = entries[idx++];
-        router.patch(
-            `/items/${idStr}/move`,
-            { parent_id: parentId },
-            { preserveScroll: true, onFinish: next },
-        );
+        router.patch(`/items/${idStr}/move`, { parent_id: parentId }, { preserveScroll: true, onFinish: next });
     };
     next();
 }
@@ -154,21 +150,8 @@ function performUndo() {
         </div>
     </div>
 
-    <BulkMoveDialog
-        v-if="moveOpen"
-        :count="count"
-        :excluding-id="bulk.ids.value[0]"
-        @move="applyMove"
-        @close="moveOpen = false"
-    />
-    <BulkTagDialog
-        v-if="tagOpen"
-        :tags="tags"
-        :direction="tagOpen"
-        :count="count"
-        @apply="(id) => applyTag(tagOpen!, id)"
-        @close="tagOpen = null"
-    />
+    <BulkMoveDialog v-if="moveOpen" :count="count" :excluding-id="bulk.ids.value[0]" @move="applyMove" @close="moveOpen = false" />
+    <BulkTagDialog v-if="tagOpen" :tags="tags" :direction="tagOpen" :count="count" @apply="(id) => applyTag(tagOpen!, id)" @close="tagOpen = null" />
 
     <Transition name="undo">
         <div v-if="undoMap" class="undo-toast" data-test="bulk-undo-toast">
@@ -285,6 +268,8 @@ function performUndo() {
 }
 .undo-enter-active,
 .undo-leave-active {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
 }
 </style>

@@ -72,8 +72,8 @@ class PreferencesController extends Controller
     /**
      * Operator repair (#7): dispatches a background job that walks every
      * distinct Paperless doc id we have local items linked to and re-applies
-     * the Stockroom annotation (linked tag + `Stockroom URL` custom field).
-     * Idempotent — safe to re-run.
+     * the Stockroom annotation (linked tag + `Stockroom URL` custom field)
+     * and refreshes the cached metadata. Idempotent — safe to re-run.
      *
      * Queued rather than inline because a household with hundreds of linked
      * docs and a slow Paperless instance could blow past PHP's request
@@ -82,6 +82,23 @@ class PreferencesController extends Controller
      */
     #[Middleware(EnsurePaperlessEnabled::class)]
     public function relinkAllPaperless(): RedirectResponse
+    {
+        return $this->dispatchRelink(metadataOnly: false);
+    }
+
+    /**
+     * The read-only (on Paperless) variant: refresh the cached
+     * title/type/correspondent snapshot without re-applying tags or
+     * backlinks. The same operation the daily scheduler runs, exposed as a
+     * second button for an on-demand refresh after renames in Paperless.
+     */
+    #[Middleware(EnsurePaperlessEnabled::class)]
+    public function refreshPaperlessMetadata(): RedirectResponse
+    {
+        return $this->dispatchRelink(metadataOnly: true);
+    }
+
+    private function dispatchRelink(bool $metadataOnly): RedirectResponse
     {
         $count = PaperlessLink::query()
             ->distinct()
@@ -93,12 +110,13 @@ class PreferencesController extends Controller
             // status" until the worker actually picks up the job.
             Cache::put(RelinkAllPaperlessDocumentsJob::STATUS_KEY, [
                 'state' => 'running',
+                'mode' => $metadataOnly ? 'metadata' : 'relink',
                 'done' => 0,
                 'failed' => 0,
                 'total' => $count,
             ], now()->addHour());
 
-            RelinkAllPaperlessDocumentsJob::dispatch();
+            RelinkAllPaperlessDocumentsJob::dispatch($metadataOnly);
         }
 
         return back()->with('paperless_relink_count', $count);

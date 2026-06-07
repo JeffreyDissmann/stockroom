@@ -67,10 +67,13 @@ the route requires.
 | GET | `/tags` | read | All tags. |
 | GET | `/search?q=` | read | Hybrid keyword + semantic search. |
 | GET | `/home-assistant-links` | read | Every item that has a Home Assistant link, with the link embedded. |
+| GET | `/items/{item}/maintenance-tasks` | read | Maintenance schedules on an item. |
 | POST | `/items` | write | Create an item. |
 | PATCH | `/items/{item}` | write | Partially update an item. |
 | PUT | `/items/{item}/home-assistant-link` | write | Set or replace the item's Home Assistant link. |
 | DELETE | `/items/{item}/home-assistant-link` | write | Remove the link. |
+| POST | `/items/{item}/maintenance-tasks` | write | Create a maintenance reminder. |
+| POST | `/maintenance-tasks/{task}/complete` | write | Mark a task done, rolling its schedule. |
 
 ### `GET /user`
 
@@ -98,11 +101,14 @@ curl -s https://stockroom.example/api/v1/user \
   ],
   "by_room": [
     { "id": 1, "name": "Garage", "icon": "home", "children_count": 24 }
-  ]
+  ],
+  "maintenance": { "overdue": 2, "due_soon": 1 }
 }
 ```
 
 `value` excludes sold items. `by_tag`/`by_room` are ordered fullest-first.
+`maintenance.overdue` counts active tasks past due; `maintenance.due_soon`
+counts active tasks inside their per-task reminder window but not yet overdue.
 
 ### `GET /items`
 
@@ -267,6 +273,41 @@ curl -s "https://stockroom.example/api/v1/home-assistant-links?instance_id=5b1e7
 }
 ```
 
+### `GET /items/{item}/maintenance-tasks`
+
+The maintenance schedules on one item, soonest due first. Includes archived
+one-offs (flagged `is_active: false`). Household-wide overdue/due-soon counts
+live on `GET /statistics` (`maintenance.*`).
+
+```json
+{
+  "data": [
+    {
+      "id": 7,
+      "item_id": 42,
+      "title": "Descale",
+      "description": null,
+      "schedule_type": "interval",
+      "interval_value": 3,
+      "interval_unit": "months",
+      "next_due_at": "2026-09-01",
+      "last_completed_at": "2026-06-01",
+      "reminder_lead_days": 7,
+      "is_active": true,
+      "due_in_days": -4,
+      "is_overdue": true,
+      "needs_attention": true,
+      "created_at": "2026-01-01T10:00:00+00:00",
+      "updated_at": "2026-06-01T10:00:00+00:00"
+    }
+  ]
+}
+```
+
+`due_in_days` is negative when overdue, `0` when due today, `null` for an
+archived one-off. `schedule_type` is `interval`, `calendar`, or `one_off`;
+`interval_value`/`interval_unit` are populated for `interval` only.
+
 ### `POST /items`
 
 Create an item (e.g. Home Assistant auto-creating one for a device). Goes through
@@ -341,4 +382,47 @@ Removes the link. Returns `204 No Content`.
 ```bash
 curl -s -X DELETE https://stockroom.example/api/v1/items/42/home-assistant-link \
   -H "Authorization: Bearer $TOKEN"
+```
+
+### `POST /items/{item}/maintenance-tasks`
+
+Create a maintenance reminder on an item. **Interval** (repeats N units after
+each completion) or **one-off** (a single due date that archives itself when
+done) — fixed-calendar (RRULE) schedules are created in the web UI only.
+`next_due_at` for an interval task is derived from today; a one-off keeps the
+date you send. Returns the created `MaintenanceTaskResource` with `201 Created`.
+
+| Field | Rules |
+| ----- | ----- |
+| `title` | required, string, max 255 |
+| `schedule_type` | required, `interval`\|`one_off` |
+| `interval_value` | required if `interval`, int 1–999 |
+| `interval_unit` | required if `interval`, `days`\|`weeks`\|`months`\|`years` |
+| `next_due_at` | required if `one_off`, date (`YYYY-MM-DD`) |
+| `description` | optional, string |
+| `reminder_lead_days` | optional int 0–365 (default 7) |
+
+```bash
+curl -s -X POST https://stockroom.example/api/v1/items/42/maintenance-tasks \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"title":"Descale","schedule_type":"interval","interval_value":3,"interval_unit":"months"}'
+```
+
+### `POST /maintenance-tasks/{task}/complete`
+
+Mark a task done: records a history entry (performed by the token's user) and
+rolls the schedule forward — interval tasks re-base on the completion date,
+one-offs archive themselves. Returns the updated `MaintenanceTaskResource`.
+Completing an already-archived task is a `422`.
+
+| Field | Rules |
+| ----- | ----- |
+| `completed_at` | optional, date, not in the future (defaults to today) |
+| `notes` | optional, string |
+| `cost` | optional, numeric ≥ 0 |
+
+```bash
+curl -s -X POST https://stockroom.example/api/v1/maintenance-tasks/7/complete \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"cost":4.50,"notes":"Used citric acid."}'
 ```

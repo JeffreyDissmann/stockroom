@@ -14,6 +14,7 @@ use App\Http\Controllers\Items\BulkController;
 use App\Http\Controllers\Items\HomeAssistantLinkController;
 use App\Http\Controllers\Items\MaintenanceEntryController;
 use App\Http\Controllers\Items\MaintenanceTaskController;
+use App\Http\Controllers\Items\PaperlessFieldSuggestionController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
 use App\Http\Controllers\MaintenanceController;
@@ -83,7 +84,24 @@ Route::middleware('auth')->group(function () {
     Route::delete('items/{item}/related-items/{related}', [RelatedItemController::class, 'destroy'])->name('items.related-items.destroy');
 
     // Paperless-ngx link maintenance (#7). Links are created by the intake
-    // job from a webhook — the user just gets to remove them.
+    // job from a webhook or by hand from the Connections card. Store needs
+    // the integration up (it verifies the doc against Paperless); destroy
+    // is pure local and stays available even when Paperless is turned off.
+    Route::post('items/{item}/paperless-links', [PaperlessLinkController::class, 'store'])
+        ->middleware(EnsurePaperlessEnabled::class)
+        ->name('items.paperless-links.store');
+    // Document search for the manual-link picker. Admin-only: Paperless
+    // per-user permissions can't be mirrored, so free search over the
+    // service token stays with household admins — members link by id/URL.
+    Route::get('paperless/documents', [PaperlessLinkController::class, 'search'])
+        ->middleware(['can:admin', EnsurePaperlessEnabled::class])
+        ->name('paperless.documents.search');
+    // Re-read a linked document and propose field values for the edit form.
+    // Member-accessible: the doc is already linked, so its content is
+    // household-visible (Paperless + AI gates via controller attribute).
+    Route::post('items/{item}/paperless-links/{document}/suggest-fields', PaperlessFieldSuggestionController::class)
+        ->whereNumber('document')
+        ->name('items.paperless-links.suggest-fields');
     Route::delete('items/{item}/paperless-links/{document}', [PaperlessLinkController::class, 'destroy'])
         ->whereNumber('document')
         ->name('items.paperless-links.destroy');

@@ -56,14 +56,7 @@ function submit() {
             </DialogHeader>
 
             <div class="form-row">
-                <input
-                    v-model="search"
-                    type="search"
-                    class="field"
-                    :placeholder="$t('tags.filter.search')"
-                    autofocus
-                    data-test="bulk-tag-search"
-                />
+                <input v-model="search" type="search" class="field" :placeholder="$t('tags.filter.search')" autofocus data-test="bulk-tag-search" />
             </div>
 
             <ul v-if="filtered.length" class="bulk-tag-grid" data-test="bulk-tag-list">
@@ -87,13 +80,7 @@ function submit() {
                 <DialogClose as-child>
                     <button type="button" class="btn-ghost">{{ $t('common.cancel') }}</button>
                 </DialogClose>
-                <button
-                    type="button"
-                    class="btn-primary"
-                    :disabled="selected === null"
-                    data-test="bulk-tag-submit"
-                    @click="submit"
-                >
+                <button type="button" class="btn-primary" :disabled="selected === null" data-test="bulk-tag-submit" @click="submit">
                     {{ direction === 'attach' ? $t('items.bulk.attach_tag') : $t('items.bulk.detach_tag') }}
                 </button>
             </DialogFooter>
@@ -123,9 +110,13 @@ function submit() {
     background: var(--bg);
     color: var(--fg-muted);
     cursor: pointer;
-    transition: border-color 0.12s, background 0.12s;
+    transition:
+        border-color 0.12s,
+        background 0.12s;
 }
-.bulk-tag-option:hover { border-color: var(--border-strong); }
+.bulk-tag-option:hover {
+    border-color: var(--border-strong);
+}
 .bulk-tag-option--on {
     border-color: var(--accent);
     background: color-mix(in srgb, var(--accent) 8%, transparent);

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Models\MaintenanceTask;
 use App\Models\Tag;
 use App\Services\InventoryStatistics;
 use Illuminate\Http\JsonResponse;
@@ -47,6 +48,8 @@ class StatisticsController extends Controller
             'by_type' => $byType,
             'by_tag' => $byTag,
             'by_room' => $byRoom,
+            // Overdue / due-soon counters for the HA maintenance sensors.
+            'maintenance' => MaintenanceTask::attentionCounts(),
         ]);
     }
 }

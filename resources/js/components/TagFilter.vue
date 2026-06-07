@@ -66,12 +66,19 @@ function clear(): void {
                     @click="toggle(tag.id)"
                 >
                     <Checkbox :checked="isSelected(tag.id)" tabindex="-1" class="pointer-events-none size-4" />
-                    <span class="size-2.5 shrink-0 rounded-full" :style="{ background: tag.color ?? 'transparent', border: tag.color ? 'none' : '1px solid var(--border)' }" />
+                    <span
+                        class="size-2.5 shrink-0 rounded-full"
+                        :style="{ background: tag.color ?? 'transparent', border: tag.color ? 'none' : '1px solid var(--border)' }"
+                    />
                     <span class="truncate">{{ tag.name }}</span>
                 </button>
             </div>
             <div v-if="selected.length" class="border-t p-1">
-                <button type="button" class="flex w-full items-center justify-center gap-1.5 rounded-sm px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground" @click="clear">
+                <button
+                    type="button"
+                    class="flex w-full items-center justify-center gap-1.5 rounded-sm px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    @click="clear"
+                >
                     <Check class="size-3" />
                     {{ $t('tags.filter.clear', { count: selected.length }) }}
                 </button>

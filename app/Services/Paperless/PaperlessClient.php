@@ -10,17 +10,20 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * Thin client for the Paperless-ngx REST API. Only knows the operations the
- * webhook job needs:
+ * webhook job and the manual-link flow need:
  *
  *   - document($id)              : fetch a doc's content + metadata
  *   - download($id)              : raw bytes (kept lazy; not used in v1)
  *   - addTag($id, $tag)          : tag swap after processing
  *   - removeTag($id, $tag)       : ditto
  *   - setCustomField($id, $name, $value) : write the link-back back-reference
+ *   - searchDocuments($query)    : id/title pairs for the manual-link picker
  *
- * Deliberately no `search`. Paperless has per-user permissions Stockroom
- * can't reasonably mirror, so the integration only ever touches docs a user
- * explicitly pushed to us via the workflow.
+ * Search note: Paperless has per-user permissions Stockroom can't mirror —
+ * searchDocuments sees everything the service token sees. That's why the
+ * search route is gated to household admins (decision 2026-06-07); members
+ * link documents by id/URL, which only ever touches docs they explicitly
+ * reference.
  */
 class PaperlessClient
 {
@@ -42,6 +45,14 @@ class PaperlessClient
 
     /** @var array<string, int> */
     private array $customFieldIdCache = [];
+
+    /**
+     * Reverse lookups (id → name) for document metadata, memoized like the
+     * name → id caches above. Keyed by "{endpoint}:{id}".
+     *
+     * @var array<string, string|null>
+     */
+    private array $nameByIdCache = [];
 
     public function __construct(
         private readonly string $baseUrl,
@@ -85,6 +96,78 @@ class PaperlessClient
         $payload = $response->json() ?? [];
 
         return $payload;
+    }
+
+    /**
+     * GET /api/documents/?query=… — full-text search (title, content,
+     * correspondent…) via Paperless's own search index, trimmed to the
+     * id/title pairs the manual-link picker renders. An empty query lists
+     * the most recently added documents instead, so the picker has instant
+     * content before the user types.
+     *
+     * @return list<array{id: int, title: string}>
+     */
+    public function searchDocuments(string $query, int $limit = 10): array
+    {
+        $query = trim($query);
+
+        $response = $this->request()->get('/api/documents/', $query === ''
+            ? ['ordering' => '-created', 'page_size' => $limit]
+            : ['query' => $query, 'page_size' => $limit]);
+
+        $this->ensureOk($response, 'searching documents');
+
+        return $response->collect('results')
+            ->map(static fn (array $doc): array => [
+                'id' => (int) $doc['id'],
+                'title' => (string) ($doc['title'] ?? ''),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Resolve a document_type id (as found in a document payload) to its
+     * display name. Null in, null out — most fields are optional on a doc.
+     */
+    public function documentTypeName(?int $id): ?string
+    {
+        return $id === null ? null : $this->nameById('document_types', $id);
+    }
+
+    /**
+     * Resolve a correspondent id to its display name.
+     */
+    public function correspondentName(?int $id): ?string
+    {
+        return $id === null ? null : $this->nameById('correspondents', $id);
+    }
+
+    /**
+     * Reverse id → name lookup, memoized per instance (see nameByIdCache).
+     * A 404 — the referenced type/correspondent was deleted in Paperless —
+     * resolves to null rather than throwing: metadata is best-effort and
+     * must never fail the operation that asked for it.
+     */
+    private function nameById(string $endpoint, int $id): ?string
+    {
+        $key = "{$endpoint}:{$id}";
+
+        if (array_key_exists($key, $this->nameByIdCache)) {
+            return $this->nameByIdCache[$key];
+        }
+
+        $response = $this->request()->get("/api/{$endpoint}/{$id}/");
+
+        if ($response->status() === 404) {
+            return $this->nameByIdCache[$key] = null;
+        }
+
+        $this->ensureOk($response, "resolving {$endpoint} {$id}");
+
+        $name = $response->json('name');
+
+        return $this->nameByIdCache[$key] = (is_string($name) && $name !== '' ? $name : null);
     }
 
     /**

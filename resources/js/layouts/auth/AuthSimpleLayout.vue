@@ -61,8 +61,16 @@ defineProps<{
         'context'
         'form';
 }
-.auth-grid__context { grid-area: context; justify-self: center; }
-.auth-grid__form { grid-area: form; justify-self: center; width: 100%; max-width: 380px; }
+.auth-grid__context {
+    grid-area: context;
+    justify-self: center;
+}
+.auth-grid__form {
+    grid-area: form;
+    justify-self: center;
+    width: 100%;
+    max-width: 380px;
+}
 
 /* Desktop: form on the left, context on the right. */
 @media (min-width: 768px) {
@@ -72,7 +80,11 @@ defineProps<{
         justify-content: center;
         align-items: center;
     }
-    .auth-grid__context { justify-self: start; }
-    .auth-grid__form { justify-self: end; }
+    .auth-grid__context {
+        justify-self: start;
+    }
+    .auth-grid__form {
+        justify-self: end;
+    }
 }
 </style>

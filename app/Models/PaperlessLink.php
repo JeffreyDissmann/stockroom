@@ -24,6 +24,12 @@ class PaperlessLink extends Model
     protected $fillable = [
         'item_id',
         'paperless_document_id',
+        // Cached display metadata (resolved names, not Paperless ids) —
+        // written at link time, refreshed by the repair job. See the
+        // 2026_06_07 migration for the snapshot semantics.
+        'document_title',
+        'document_type',
+        'correspondent',
     ];
 
     protected $casts = [

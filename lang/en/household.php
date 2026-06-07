@@ -28,13 +28,15 @@ return [
         'paperless_parent_no_match' => 'No matching rooms or containers.',
         'paperless_relink' => 'Repair Paperless links',
         'paperless_relink_action' => 'Re-link all documents',
-        'paperless_relink_help' => 'Walks every Paperless document that an item is currently linked to and re-applies the Stockroom tag and the backlink URL on the Paperless side. Useful after changing APP_URL or if the tag was removed manually. Runs in the background — a queue worker must be running.',
+        'paperless_relink_help' => 'Walks every Paperless document that an item is currently linked to and re-applies the Stockroom tag and the backlink URL on the Paperless side (and refreshes the cached title and type along the way). Useful after changing APP_URL or if the tag was removed manually. "Refresh document info" does only the title/type refresh — no writes back to Paperless — and also runs automatically once a day. Both run in the background, so a queue worker must be running.',
         'paperless_relink_confirm' => 'Re-apply the Stockroom tag and backlink URL on every linked Paperless document?',
         'paperless_relink_none' => 'No documents to re-link.',
         'paperless_relink_progress' => 'Re-linking… :done / :total',
         'paperless_relink_done' => 'Re-linked :count document.|Re-linked :count documents.',
         'paperless_relink_failed_count' => ':count failed.|:count failed.',
         'paperless_relink_failed' => 'Re-link job failed: :error',
+        'paperless_metadata_action' => 'Refresh document info',
+        'paperless_metadata_done' => 'Refreshed :count document.|Refreshed :count documents.',
     ],
 
     'import' => [
