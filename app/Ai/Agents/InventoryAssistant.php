@@ -11,6 +11,7 @@ use App\Ai\Tools\CreateItem;
 use App\Ai\Tools\CreateMaintenanceTask;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
+use App\Ai\Tools\GetPaperlessDocument;
 use App\Ai\Tools\InventoryStats;
 use App\Ai\Tools\LinkPaperlessDocument;
 use App\Ai\Tools\LogMaintenanceEntry;
@@ -60,6 +61,9 @@ class InventoryAssistant implements Agent, Conversational, HasTools
         $paperless = $this->paperlessEnabled()
             ? "\n".'- To attach a Paperless document the user references by id or URL ("link receipt 447 to'
                 ."\n".'  the washing machine"), call link_paperless_document (a write tool — confirm first).'
+                ."\n".'- To answer questions from a linked document ("what does the receipt say about the'
+                ."\n".'  warranty?"), call get_paperless_document with a document id from get_item. Only'
+                ."\n".'  documents linked to an item are readable.'
             : '';
 
         return <<<PROMPT
@@ -140,11 +144,11 @@ class InventoryAssistant implements Agent, Conversational, HasTools
             app(CreateMaintenanceTask::class),
             app(CompleteMaintenanceTask::class),
             app(LogMaintenanceEntry::class),
-            // Resolving the linker behind this tool throws when Paperless is
-            // unconfigured (see the container binding), so the tool only
-            // exists while the integration is up — mirroring the UI, where
-            // every Paperless surface disappears when it's disabled.
-            ...($this->paperlessEnabled() ? [app(LinkPaperlessDocument::class)] : []),
+            // Resolving the client/linker behind these tools throws when
+            // Paperless is unconfigured (see the container binding), so they
+            // only exist while the integration is up — mirroring the UI,
+            // where every Paperless surface disappears when it's disabled.
+            ...($this->paperlessEnabled() ? [app(GetPaperlessDocument::class), app(LinkPaperlessDocument::class)] : []),
             app(DeleteItem::class),
         ];
     }

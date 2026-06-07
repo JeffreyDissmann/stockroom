@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Ai;
 
 use App\Ai\Agents\InventoryAssistant;
+use App\Ai\Tools\GetPaperlessDocument;
 use App\Ai\Tools\LinkPaperlessDocument;
 use App\Models\Item;
 use App\Models\User;
@@ -119,7 +120,59 @@ class AssistantPaperlessToolsTest extends TestCase
         $this->assertSame(0, $item->paperlessLinks()->count());
     }
 
-    public function test_the_tool_is_only_registered_while_paperless_is_configured(): void
+    public function test_get_paperless_document_returns_capped_content_for_linked_documents(): void
+    {
+        Http::fake([
+            'https://paperless.test/api/documents/447/' => Http::response([
+                'id' => 447,
+                'title' => 'Washing machine receipt',
+                'content' => 'AEG L7WE17680 ... 2 Jahre Garantie ...',
+            ]),
+        ]);
+
+        $item = Item::factory()->create(['name' => 'Washing Machine']);
+        $item->paperlessLinks()->create(['paperless_document_id' => 447]);
+
+        $result = app(GetPaperlessDocument::class)->handle(new Request(['document_id' => 447]));
+
+        $this->assertStringContainsString('Washing machine receipt', $result);
+        $this->assertStringContainsString("Linked to: [Washing Machine](/items/{$item->id})", $result);
+        $this->assertStringContainsString('2 Jahre Garantie', $result);
+    }
+
+    public function test_get_paperless_document_truncates_very_long_content(): void
+    {
+        Http::fake([
+            'https://paperless.test/api/documents/447/' => Http::response([
+                'id' => 447,
+                'title' => 'Manual',
+                'content' => str_repeat('a', 12_000),
+            ]),
+        ]);
+
+        Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 447]);
+
+        $result = app(GetPaperlessDocument::class)->handle(new Request(['document_id' => 447]));
+
+        $this->assertStringContainsString('Truncated', $result);
+        // Capped content + framing lines stay well under the raw length.
+        $this->assertLessThan(11_000, strlen($result));
+    }
+
+    public function test_get_paperless_document_refuses_unlinked_documents_without_calling_paperless(): void
+    {
+        Http::fake();
+
+        // The doc may well exist in Paperless — but discovering unlinked
+        // content by id is browsing, which stays admin-only via the UI
+        // search. Unlinked reads exactly like nonexistent.
+        $result = app(GetPaperlessDocument::class)->handle(new Request(['document_id' => 999]));
+
+        $this->assertStringContainsString('No linked document with that id', $result);
+        Http::assertNothingSent();
+    }
+
+    public function test_the_tools_are_only_registered_while_paperless_is_configured(): void
     {
         $toolClasses = fn (): array => array_map(
             static fn (object $tool): string => $tool::class,
@@ -127,12 +180,16 @@ class AssistantPaperlessToolsTest extends TestCase
         );
 
         $this->assertContains(LinkPaperlessDocument::class, $toolClasses());
+        $this->assertContains(GetPaperlessDocument::class, $toolClasses());
         $this->assertStringContainsString('link_paperless_document', (new InventoryAssistant)->instructions());
+        $this->assertStringContainsString('get_paperless_document', (new InventoryAssistant)->instructions());
 
         // Mirrors the UI: every Paperless surface disappears when disabled.
         config()->set('paperless.url', '');
 
         $this->assertNotContains(LinkPaperlessDocument::class, $toolClasses());
+        $this->assertNotContains(GetPaperlessDocument::class, $toolClasses());
         $this->assertStringNotContainsString('link_paperless_document', (new InventoryAssistant)->instructions());
+        $this->assertStringNotContainsString('get_paperless_document', (new InventoryAssistant)->instructions());
     }
 }
