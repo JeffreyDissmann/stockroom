@@ -12,6 +12,7 @@ use App\Ai\Tools\CreateMaintenanceTask;
 use App\Ai\Tools\DeleteItem;
 use App\Ai\Tools\GetItem;
 use App\Ai\Tools\InventoryStats;
+use App\Ai\Tools\LinkPaperlessDocument;
 use App\Ai\Tools\LogMaintenanceEntry;
 use App\Ai\Tools\MaintenanceOverview;
 use App\Ai\Tools\MoveItem;
@@ -56,6 +57,10 @@ class InventoryAssistant implements Agent, Conversational, HasTools
     {
         $language = config('app.supported_locales.'.app()->getLocale().'.ai', 'English');
         $context = $this->currentItemContext();
+        $paperless = $this->paperlessEnabled()
+            ? "\n".'- To attach a Paperless document the user references by id or URL ("link receipt 447 to'
+                ."\n".'  the washing machine"), call link_paperless_document (a write tool — confirm first).'
+            : '';
 
         return <<<PROMPT
         You are the assistant for Stockroom, a shared home-inventory app. The inventory is a tree of
@@ -85,7 +90,7 @@ class InventoryAssistant implements Agent, Conversational, HasTools
           maintenance. **Always describe the exact change and get the user's explicit confirmation
           BEFORE calling any write tool** (create_item, update_item, move_item, assign_tags,
           create_maintenance_task, complete_maintenance_task, log_maintenance_entry, delete_item).
-          Deletion is permanent — be especially careful.
+          Deletion is permanent — be especially careful.{$paperless}
         - assign_tags can only attach tags that already exist; you cannot create tags.
         - When you mention a specific item, link it using the Markdown link the tools give you,
           written EXACTLY as [Name](/items/12) — never as [/items/12] or a bare URL. Reuse the exact
@@ -135,7 +140,21 @@ class InventoryAssistant implements Agent, Conversational, HasTools
             app(CreateMaintenanceTask::class),
             app(CompleteMaintenanceTask::class),
             app(LogMaintenanceEntry::class),
+            // Resolving the linker behind this tool throws when Paperless is
+            // unconfigured (see the container binding), so the tool only
+            // exists while the integration is up — mirroring the UI, where
+            // every Paperless surface disappears when it's disabled.
+            ...($this->paperlessEnabled() ? [app(LinkPaperlessDocument::class)] : []),
             app(DeleteItem::class),
         ];
+    }
+
+    /**
+     * Same definition as the `features.paperless` shared Inertia prop: URL
+     * and token both present — either alone is a half-configured install.
+     */
+    private function paperlessEnabled(): bool
+    {
+        return filled(config('paperless.url')) && filled(config('paperless.token'));
     }
 }
