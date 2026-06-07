@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 export const search = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ search.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 search.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ search.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

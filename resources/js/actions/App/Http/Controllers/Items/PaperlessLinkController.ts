@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::store
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:60
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:61
 * @route '/items/{item}/paperless-links'
 */
 export const store = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::store
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:60
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:61
 * @route '/items/{item}/paperless-links'
 */
 store.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ store.url = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::store
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:60
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:61
 * @route '/items/{item}/paperless-links'
 */
 store.post = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ store.post = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 export const search = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -74,7 +74,7 @@ search.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 search.url = (options?: RouteQueryOptions) => {
@@ -83,7 +83,7 @@ search.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -93,7 +93,7 @@ search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::search
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:41
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:44
 * @route '/paperless/documents'
 */
 search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -103,7 +103,7 @@ search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::destroy
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:73
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:74
 * @route '/items/{item}/paperless-links/{document}'
 */
 export const destroy = (args: { item: number | { id: number }, document: string | number } | [item: number | { id: number }, document: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -118,7 +118,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::destroy
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:73
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:74
 * @route '/items/{item}/paperless-links/{document}'
 */
 destroy.url = (args: { item: number | { id: number }, document: string | number } | [item: number | { id: number }, document: string | number ], options?: RouteQueryOptions) => {
@@ -146,7 +146,7 @@ destroy.url = (args: { item: number | { id: number }, document: string | number 
 
 /**
 * @see \App\Http\Controllers\Items\PaperlessLinkController::destroy
-* @see app/Http/Controllers/Items/PaperlessLinkController.php:73
+* @see app/Http/Controllers/Items/PaperlessLinkController.php:74
 * @route '/items/{item}/paperless-links/{document}'
 */
 destroy.delete = (args: { item: number | { id: number }, document: string | number } | [item: number | { id: number }, document: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

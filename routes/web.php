@@ -14,6 +14,7 @@ use App\Http\Controllers\Items\BulkController;
 use App\Http\Controllers\Items\HomeAssistantLinkController;
 use App\Http\Controllers\Items\MaintenanceEntryController;
 use App\Http\Controllers\Items\MaintenanceTaskController;
+use App\Http\Controllers\Items\PaperlessFieldSuggestionController;
 use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
 use App\Http\Controllers\MaintenanceController;
@@ -95,6 +96,12 @@ Route::middleware('auth')->group(function () {
     Route::get('paperless/documents', [PaperlessLinkController::class, 'search'])
         ->middleware(['can:admin', EnsurePaperlessEnabled::class])
         ->name('paperless.documents.search');
+    // Re-read a linked document and propose field values for the edit form.
+    // Member-accessible: the doc is already linked, so its content is
+    // household-visible (Paperless + AI gates via controller attribute).
+    Route::post('items/{item}/paperless-links/{document}/suggest-fields', PaperlessFieldSuggestionController::class)
+        ->whereNumber('document')
+        ->name('items.paperless-links.suggest-fields');
     Route::delete('items/{item}/paperless-links/{document}', [PaperlessLinkController::class, 'destroy'])
         ->whereNumber('document')
         ->name('items.paperless-links.destroy');
