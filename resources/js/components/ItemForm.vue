@@ -8,7 +8,6 @@ import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import LinkPaperlessDocumentDialog from '@/components/LinkPaperlessDocumentDialog.vue';
-import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
 import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
@@ -94,7 +93,6 @@ function onFilesUpdate(files: File[]) {
 // hard client-side timeout so the UI never hangs indefinitely.
 const aiEnabled = usePage<SharedData>().props.features.ai;
 const paperlessEnabled = usePage<SharedData>().props.features.paperless;
-const imageSearchEnabled = usePage<SharedData>().props.features.imageSearch;
 
 // The combined "Connections" section shows when the item has a Paperless doc
 // and/or a Home Assistant link — one, both, or none.
@@ -478,21 +476,18 @@ function submit() {
             <InputError :message="form.errors.parent_id" />
         </div>
 
+        <!-- The image panel hosts the single "Find image" trigger (the
+             "or Find image" row under the drop zone) — it used to be
+             duplicated by a second standalone button right below. -->
         <ItemImageManager
             :mode="mode"
             :item-id="item?.id ?? null"
+            :item-name="item?.name ?? null"
             :existing="item?.images ?? []"
             :files="queuedFiles"
             @update:files="onFilesUpdate"
         />
         <InputError :message="form.errors['images.0']" />
-
-        <!-- Find image — moved here from Show.vue per the UI cleanup. Only
-             shown when the item already exists (you can't attach a Brave
-             result to an unsaved form), and only when imageSearch is on. -->
-        <div v-if="mode === 'edit' && imageSearchEnabled && item" style="margin-top: 8px">
-            <SearchImageDialog :item-id="item.id" :item-name="item.name" />
-        </div>
 
         <div v-if="mode === 'create' && aiEnabled && queuedFiles.length > 0" class="ai-fill">
             <button type="button" class="btn-pill" :disabled="analyzing" data-test="ai-fill" @click="analyzeFromPhoto">

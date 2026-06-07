@@ -3,8 +3,8 @@ import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import { trans } from '@/composables/useTranslations';
 import itemImages from '@/routes/items/images';
 import type { ItemImageSummary, SharedData } from '@/types';
-import { useSortable } from '@vueuse/integrations/useSortable';
 import { router, usePage } from '@inertiajs/vue3';
+import { useSortable } from '@vueuse/integrations/useSortable';
 import { GripVertical, ImagePlus, Star, Trash2, Upload } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
@@ -20,11 +20,14 @@ const props = withDefaults(
     defineProps<{
         mode: Mode;
         itemId?: number | null;
+        // Prefills the image-search dialog's query with the item's name.
+        itemName?: string | null;
         existing?: ItemImageSummary[];
         files?: File[];
     }>(),
     {
         itemId: null,
+        itemName: null,
         existing: () => [],
         files: () => [],
     },
@@ -71,7 +74,10 @@ function makePending(file: File): PendingFile {
 }
 
 function syncPendingToProp() {
-    emit('update:files', pending.value.map((p) => p.file));
+    emit(
+        'update:files',
+        pending.value.map((p) => p.file),
+    );
 }
 
 function addFiles(fileList: FileList | File[]) {
@@ -176,7 +182,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
 
         <div v-if="mode === 'edit' && itemId && imageSearchEnabled" class="search-row">
             <span class="hint">{{ $t('items.images.or') }}</span>
-            <SearchImageDialog :item-id="itemId" />
+            <SearchImageDialog :item-id="itemId" :item-name="itemName ?? undefined" />
         </div>
 
         <p v-if="mode === 'create' && imageSearchEnabled" class="hint">
@@ -202,12 +208,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
                     >
                         <Star :size="13" :fill="image.is_primary ? 'currentColor' : 'none'" />
                     </button>
-                    <button
-                        type="button"
-                        class="img-btn img-btn-danger"
-                        :title="$t('items.images.delete')"
-                        @click="destroyImage(image)"
-                    >
+                    <button type="button" class="img-btn img-btn-danger" :title="$t('items.images.delete')" @click="destroyImage(image)">
                         <Trash2 :size="13" />
                     </button>
                 </div>
@@ -229,7 +230,9 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
 </template>
 
 <style scoped>
-.hidden { display: none; }
+.hidden {
+    display: none;
+}
 .dropzone {
     display: flex;
     align-items: center;
@@ -240,22 +243,48 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
     background: var(--bg-sunken);
     color: var(--fg-muted);
     cursor: pointer;
-    transition: background 0.12s, border-color 0.12s;
+    transition:
+        background 0.12s,
+        border-color 0.12s;
 }
-.dropzone:hover { background: var(--bg-hover); }
+.dropzone:hover {
+    background: var(--bg-hover);
+}
 .dropzone-active {
     background: var(--bg-active);
     border-color: var(--fg);
     color: var(--fg);
 }
-.dz-title { margin: 0; font-size: 13px; font-weight: 500; color: var(--fg); }
-.dz-hint { margin: 2px 0 0; font-size: 11.5px; color: var(--fg-subtle); }
-.hint { margin: 0; font-size: 12px; color: var(--fg-subtle); }
-.search-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.dz-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg);
+}
+.dz-hint {
+    margin: 2px 0 0;
+    font-size: 11.5px;
+    color: var(--fg-subtle);
+}
+.hint {
+    margin: 0;
+    font-size: 12px;
+    color: var(--fg-subtle);
+}
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
 
 /* .img-grid / .img-card / .img-thumb are shared globals (see app.css). */
-.img-grid { margin-top: 4px; }
-.img-card-pending { opacity: 0.85; }
+.img-grid {
+    margin-top: 4px;
+}
+.img-card-pending {
+    opacity: 0.85;
+}
 .drag-handle {
     position: absolute;
     top: 4px;
@@ -272,7 +301,9 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
     opacity: 0;
     transition: opacity 0.12s;
 }
-.img-card:hover .drag-handle { opacity: 1; }
+.img-card:hover .drag-handle {
+    opacity: 1;
+}
 .img-actions {
     position: absolute;
     bottom: 4px;
@@ -291,11 +322,21 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
     border-radius: 4px;
     cursor: pointer;
 }
-.img-btn:hover { background: rgba(0, 0, 0, 0.75); }
-.img-btn[disabled] { cursor: default; }
-.img-btn-primary { background: #f59e0b; }
-.img-btn-primary:hover { background: #f59e0b; }
-.img-btn-danger:hover { background: #b91c1c; }
+.img-btn:hover {
+    background: rgba(0, 0, 0, 0.75);
+}
+.img-btn[disabled] {
+    cursor: default;
+}
+.img-btn-primary {
+    background: #f59e0b;
+}
+.img-btn-primary:hover {
+    background: #f59e0b;
+}
+.img-btn-danger:hover {
+    background: #b91c1c;
+}
 .pending-badge {
     position: absolute;
     top: 4px;

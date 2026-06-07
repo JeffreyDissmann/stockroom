@@ -132,6 +132,21 @@ it('fills empty fields and proposes overrides when suggesting from a document', 
         ->assertNoJavaScriptErrors();
 });
 
+it('shows a single Find image trigger inside the image panel on edit', function () {
+    config()->set('services.brave.key', 'test-key');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // The "or Find image" row under the drop zone is THE trigger — the
+    // standalone duplicate below the panel was removed (2026-06-07).
+    $page->assertPresent('@image-search')
+        ->assertNoJavaScriptErrors();
+
+    expect($page->script('document.querySelectorAll(\'[data-test="image-search"]\').length'))->toBe(1);
+});
+
 it('lists items and filters with search across grid and list views', function () {
     Item::factory()->room()->create(['name' => 'Garage']);
     Item::factory()->room()->create(['name' => 'Kitchen']);
