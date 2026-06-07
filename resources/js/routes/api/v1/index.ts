@@ -3,6 +3,7 @@ import items from './items'
 import rooms from './rooms'
 import tags from './tags'
 import homeAssistantLinks from './home-assistant-links'
+import maintenanceTasks from './maintenance-tasks'
 /**
 * @see \App\Http\Controllers\Api\V1\UserController::__invoke
 * @see app/Http/Controllers/Api/V1/UserController.php:17
@@ -49,7 +50,7 @@ user.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 export const statistics = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -64,7 +65,7 @@ statistics.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 statistics.url = (options?: RouteQueryOptions) => {
@@ -73,7 +74,7 @@ statistics.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 statistics.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -83,7 +84,7 @@ statistics.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 statistics.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -143,6 +144,7 @@ const v1 = {
     tags: Object.assign(tags, tags),
     search: Object.assign(search, search),
     homeAssistantLinks: Object.assign(homeAssistantLinks, homeAssistantLinks),
+    maintenanceTasks: Object.assign(maintenanceTasks, maintenanceTasks),
 }
 
 export default v1

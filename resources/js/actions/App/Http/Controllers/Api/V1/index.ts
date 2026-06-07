@@ -5,6 +5,7 @@ import RoomController from './RoomController'
 import TagController from './TagController'
 import SearchController from './SearchController'
 import HomeAssistantLinkController from './HomeAssistantLinkController'
+import MaintenanceTaskController from './MaintenanceTaskController'
 
 const V1 = {
     UserController: Object.assign(UserController, UserController),
@@ -14,6 +15,7 @@ const V1 = {
     TagController: Object.assign(TagController, TagController),
     SearchController: Object.assign(SearchController, SearchController),
     HomeAssistantLinkController: Object.assign(HomeAssistantLinkController, HomeAssistantLinkController),
+    MaintenanceTaskController: Object.assign(MaintenanceTaskController, MaintenanceTaskController),
 }
 
 export default V1

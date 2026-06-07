@@ -1,4 +1,5 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
+import maintenanceTasks from './maintenance-tasks'
 import homeAssistantLink from './home-assistant-link'
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::index
@@ -207,6 +208,7 @@ update.patch = (args: { item: number | { id: number } } | [item: number | { id: 
 const items = {
     index: Object.assign(index, index),
     show: Object.assign(show, show),
+    maintenanceTasks: Object.assign(maintenanceTasks, maintenanceTasks),
     store: Object.assign(store, store),
     update: Object.assign(update, update),
     homeAssistantLink: Object.assign(homeAssistantLink, homeAssistantLink),

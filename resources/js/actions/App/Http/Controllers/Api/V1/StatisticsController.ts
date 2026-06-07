@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 const StatisticsController = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ StatisticsController.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 StatisticsController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ StatisticsController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 StatisticsController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ StatisticsController.get = (options?: RouteQueryOptions): RouteDefinition<'get'>
 
 /**
 * @see \App\Http\Controllers\Api\V1\StatisticsController::__invoke
-* @see app/Http/Controllers/Api/V1/StatisticsController.php:23
+* @see app/Http/Controllers/Api/V1/StatisticsController.php:24
 * @route '/api/v1/statistics'
 */
 StatisticsController.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
