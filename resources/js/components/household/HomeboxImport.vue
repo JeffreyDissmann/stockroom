@@ -101,7 +101,9 @@ function submit() {
 
             <!-- 'running': real progress, percent + counter. -->
             <template v-else-if="status.state === 'running'">
-                <p style="font-size: 13px; margin-bottom: 8px">{{ $t('household.import.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}</p>
+                <p style="font-size: 13px; margin-bottom: 8px">
+                    {{ $t('household.import.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}
+                </p>
                 <div class="hb-bar">
                     <div :style="{ width: `${percent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
                 </div>
@@ -111,11 +113,26 @@ function submit() {
             <div
                 v-else-if="status.state === 'done'"
                 data-test="import-status-done"
-                style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--pos) 12%, transparent); color: var(--pos)"
+                style="
+                    display: flex;
+                    gap: 10px;
+                    padding: 12px 14px;
+                    border-radius: 8px;
+                    background: color-mix(in srgb, var(--pos) 12%, transparent);
+                    color: var(--pos);
+                "
             >
                 <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
                 <p style="font-size: 13px; line-height: 1.5; margin: 0; color: var(--fg)">
-                    {{ $t('household.import.done', { entities: status.entities ?? 0, created: status.created ?? 0, updated: status.updated ?? 0, images: status.images ?? 0 }) }}<template v-if="status.imagesSkipped">{{ $t('household.import.skipped', { count: status.imagesSkipped }) }}</template>.
+                    {{
+                        $t('household.import.done', {
+                            entities: status.entities ?? 0,
+                            created: status.created ?? 0,
+                            updated: status.updated ?? 0,
+                            images: status.images ?? 0,
+                        })
+                    }}<template v-if="status.imagesSkipped">{{ $t('household.import.skipped', { count: status.imagesSkipped }) }}</template
+                    >.
                 </p>
             </div>
 
@@ -125,7 +142,14 @@ function submit() {
             <div
                 v-else-if="status.state === 'failed'"
                 data-test="import-status-failed"
-                style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--neg) 12%, transparent); color: var(--neg)"
+                style="
+                    display: flex;
+                    gap: 10px;
+                    padding: 12px 14px;
+                    border-radius: 8px;
+                    background: color-mix(in srgb, var(--neg) 12%, transparent);
+                    color: var(--neg);
+                "
             >
                 <AlertTriangle :size="18" style="flex-shrink: 0; margin-top: 1px" />
                 <div style="font-size: 13px; line-height: 1.5">
@@ -154,7 +178,11 @@ function submit() {
     animation: hb-slide 1.4s ease-in-out infinite;
 }
 @keyframes hb-slide {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(285%); } /* (100/35)*100% so the slug exits the right edge */
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(285%);
+    } /* (100/35)*100% so the slug exits the right edge */
 }
 </style>

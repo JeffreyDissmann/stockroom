@@ -64,7 +64,7 @@ watch(
         </template>
 
         <div class="page">
-            <div class="flex flex-wrap items-baseline justify-between gap-3 mb-5">
+            <div class="mb-5 flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                     <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ pageTitle }}</h2>
                     <p v-if="parent?.description" class="mt-1 text-sm" style="color: var(--fg-muted)">{{ parent.description }}</p>
@@ -86,14 +86,17 @@ watch(
             <div v-if="filtered.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
                 <p v-if="items.length === 0" style="margin: 0">
                     {{ $t('items.index.empty') }}
-                    <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">{{ $t('items.index.add_first') }}</Link>.
+                    <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">{{
+                        $t('items.index.add_first')
+                    }}</Link
+                    >.
                 </p>
                 <p v-else style="margin: 0">{{ $t('items.index.no_match') }}</p>
             </div>
 
             <ItemCollection v-else :items="filtered" :view="view" selectable />
 
-            <div v-if="parent" class="flex justify-end mt-6">
+            <div v-if="parent" class="mt-6 flex justify-end">
                 <Link :href="`/items/${parent.id}/edit`" class="btn-ghost">
                     <Pencil :size="14" />
                     {{ $t('items.edit_title', { name: parent.name }) }}

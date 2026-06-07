@@ -48,7 +48,9 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
         </template>
 
         <div class="page">
-            <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.edit_title', { name: item.name }) }}</h2>
+            <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">
+                {{ $t('items.edit_title', { name: item.name }) }}
+            </h2>
 
             <ItemForm
                 mode="edit"

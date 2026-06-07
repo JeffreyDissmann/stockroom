@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import itemRoutes from '@/routes/items';
 import type { ItemSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
@@ -118,7 +127,9 @@ function move() {
                         <Check v-if="selectedId === target.id" :size="14" class="ml-auto shrink-0" />
                     </button>
                 </li>
-                <li v-if="!loading && targets.length === 0 && query" class="move-empty">{{ includeAll ? $t('items.move.no_match_items') : $t('items.move.no_match_locations') }}</li>
+                <li v-if="!loading && targets.length === 0 && query" class="move-empty">
+                    {{ includeAll ? $t('items.move.no_match_items') : $t('items.move.no_match_locations') }}
+                </li>
             </ul>
 
             <label class="flex items-center gap-2 text-sm" style="color: var(--fg-muted)">

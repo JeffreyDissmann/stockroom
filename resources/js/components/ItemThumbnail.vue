@@ -20,7 +20,12 @@ const chosenIcon = computed(() => (props.item.icon ? (itemIconMap[props.item.ico
 
 const initials = computed(() => {
     const words = (props.item.name ?? '').trim().split(/\s+/).filter(Boolean);
-    return (words.slice(0, 2).map((w) => [...w][0]).join('') || '?').toUpperCase();
+    return (
+        words
+            .slice(0, 2)
+            .map((w) => [...w][0])
+            .join('') || '?'
+    ).toUpperCase();
 });
 
 const iconClass = computed(() => {

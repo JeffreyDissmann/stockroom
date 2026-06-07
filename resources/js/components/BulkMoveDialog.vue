@@ -5,8 +5,8 @@
  * never excludes anything and never offers "include all items" — bulk
  * targets are always rooms or containers.
  */
-import { trans } from '@/composables/useTranslations';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { trans } from '@/composables/useTranslations';
 import { router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
 import { Check, CornerUpRight } from 'lucide-vue-next';
@@ -84,14 +84,7 @@ void props;
             </DialogHeader>
 
             <div class="form-row">
-                <input
-                    v-model="query"
-                    type="search"
-                    class="field"
-                    :placeholder="trans('items.move.search')"
-                    autofocus
-                    data-test="bulk-move-search"
-                />
+                <input v-model="query" type="search" class="field" :placeholder="trans('items.move.search')" autofocus data-test="bulk-move-search" />
             </div>
 
             <ul class="bulk-move-list" data-test="bulk-move-list">
@@ -118,7 +111,9 @@ void props;
                         @click="selectedId = target.id"
                     >
                         <Check v-if="selectedId === target.id" :size="14" />
-                        <span>{{ target.name }}<span v-if="target.path" class="bulk-move-path"> · {{ target.path }}</span></span>
+                        <span
+                            >{{ target.name }}<span v-if="target.path" class="bulk-move-path"> · {{ target.path }}</span></span
+                        >
                     </button>
                 </li>
             </ul>

@@ -98,7 +98,14 @@ function destroyTag(tag: TagRow) {
                 data-test="tag-delete-error"
                 role="alert"
                 class="mb-6"
-                style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 8px; background: color-mix(in srgb, var(--neg) 12%, transparent); color: var(--neg)"
+                style="
+                    display: flex;
+                    gap: 10px;
+                    padding: 12px 14px;
+                    border-radius: 8px;
+                    background: color-mix(in srgb, var(--neg) 12%, transparent);
+                    color: var(--neg);
+                "
             >
                 <AlertTriangle :size="18" style="flex-shrink: 0; margin-top: 1px" />
                 <p style="font-size: 13px; line-height: 1.5; margin: 0; color: var(--fg)">
@@ -147,7 +154,13 @@ function destroyTag(tag: TagRow) {
                             </div>
                             <div class="form-row">
                                 <label :for="`edit-color-${tag.id}`">{{ $t('tags.color') }}</label>
-                                <input :id="`edit-color-${tag.id}`" v-model="editForm.color" type="color" class="field" style="padding: 2px; height: 32px" />
+                                <input
+                                    :id="`edit-color-${tag.id}`"
+                                    v-model="editForm.color"
+                                    type="color"
+                                    class="field"
+                                    style="padding: 2px; height: 32px"
+                                />
                                 <InputError :message="editForm.errors.color" />
                             </div>
                             <div class="flex gap-2">

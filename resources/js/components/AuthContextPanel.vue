@@ -54,11 +54,7 @@ const versionLabel = computed(() => {
             </li>
             <li>
                 <Scale :size="14" />
-                <a
-                    href="https://github.com/JeffreyDissmann/stockroom/blob/main/LICENSE"
-                    target="_blank"
-                    rel="noopener"
-                >
+                <a href="https://github.com/JeffreyDissmann/stockroom/blob/main/LICENSE" target="_blank" rel="noopener">
                     {{ trans('auth_context.license') }}
                 </a>
             </li>

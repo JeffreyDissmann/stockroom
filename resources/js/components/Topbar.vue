@@ -66,31 +66,18 @@ const visibleCrumbs = computed<(CrumbView | EllipsisView)[]>(() => {
                 <ChevronRight v-if="i > 0" class="sep" :size="12" />
 
                 <template v-if="entry.type === 'crumb'">
-                    <Link
-                        v-if="!entry.isCurrent"
-                        :href="entry.crumb.href"
-                        class="crumb-link"
-                    >{{ entry.crumb.title }}</Link>
+                    <Link v-if="!entry.isCurrent" :href="entry.crumb.href" class="crumb-link">{{ entry.crumb.title }}</Link>
                     <span v-else class="current crumb-link">{{ entry.crumb.title }}</span>
                 </template>
 
                 <DropdownMenu v-else>
                     <DropdownMenuTrigger as-child>
-                        <button
-                            type="button"
-                            class="crumb-ellipsis"
-                            :aria-label="$t('common.more')"
-                            data-test="breadcrumb-ellipsis"
-                        >
+                        <button type="button" class="crumb-ellipsis" :aria-label="$t('common.more')" data-test="breadcrumb-ellipsis">
                             <MoreHorizontal :size="12" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem
-                            v-for="(crumb, idx) in entry.hidden"
-                            :key="idx"
-                            as-child
-                        >
+                        <DropdownMenuItem v-for="(crumb, idx) in entry.hidden" :key="idx" as-child>
                             <Link :href="crumb.href">{{ crumb.title }}</Link>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -134,5 +121,8 @@ const visibleCrumbs = computed<(CrumbView | EllipsisView)[]>(() => {
     color: var(--fg-muted);
     cursor: pointer;
 }
-.crumb-ellipsis:hover { color: var(--fg); border-color: var(--border-strong); }
+.crumb-ellipsis:hover {
+    color: var(--fg);
+    border-color: var(--border-strong);
+}
 </style>

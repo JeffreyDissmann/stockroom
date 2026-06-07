@@ -91,13 +91,26 @@ function searchNow() {
                  the user arrived here from a Paperless doc's stockroom_url
                  custom field. Click the × to drop the filter and broaden
                  back to the full inventory; other filters stay in place. -->
-            <div v-if="paperlessEnabled && filters.paperless_document !== null" class="flex items-center gap-2 mb-3" data-test="paperless-filter-chip">
+            <div
+                v-if="paperlessEnabled && filters.paperless_document !== null"
+                class="mb-3 flex items-center gap-2"
+                data-test="paperless-filter-chip"
+            >
                 <span class="chip active" style="display: inline-flex; align-items: center; gap: 6px">
                     <FileText :size="12" />
                     {{ $t('search.paperless_filter', { id: filters.paperless_document }) }}
                     <button
                         type="button"
-                        style="margin-left: 4px; display: inline-flex; align-items: center; padding: 0; background: transparent; border: 0; color: inherit; cursor: pointer"
+                        style="
+                            margin-left: 4px;
+                            display: inline-flex;
+                            align-items: center;
+                            padding: 0;
+                            background: transparent;
+                            border: 0;
+                            color: inherit;
+                            cursor: pointer;
+                        "
                         :aria-label="$t('search.paperless_filter_clear')"
                         data-test="paperless-filter-clear"
                         @click="apply({ paperless_document: null })"
@@ -107,9 +120,11 @@ function searchNow() {
                 </span>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 mb-4">
+            <div class="mb-4 flex flex-wrap items-center gap-2">
                 <div class="flex items-center gap-1">
-                    <button type="button" :class="['chip', filters.type === null ? 'active' : '']" @click="apply({ type: null })">{{ $t('common.all') }}</button>
+                    <button type="button" :class="['chip', filters.type === null ? 'active' : '']" @click="apply({ type: null })">
+                        {{ $t('common.all') }}
+                    </button>
                     <button
                         v-for="t in types"
                         :key="t.value"
@@ -123,7 +138,12 @@ function searchNow() {
 
                 <TagFilter :tags="tags" :model-value="filters.tags" @update:model-value="(value) => apply({ tags: value })" />
 
-                <select class="field" style="max-width: 150px" :value="filters.sort" @change="apply({ sort: ($event.target as HTMLSelectElement).value })">
+                <select
+                    class="field"
+                    style="max-width: 150px"
+                    :value="filters.sort"
+                    @change="apply({ sort: ($event.target as HTMLSelectElement).value })"
+                >
                     <option value="relevance">{{ $t('search.sort.relevance') }}</option>
                     <option value="name">{{ $t('search.sort.name') }}</option>
                     <option value="added">{{ $t('search.sort.added') }}</option>
@@ -145,14 +165,14 @@ function searchNow() {
             <template v-else>
                 <ItemCollection :items="items.data" :view="view" selectable />
 
-                <nav v-if="items.links.length > 3" class="flex flex-wrap gap-1 mt-6 justify-center">
+                <nav v-if="items.links.length > 3" class="mt-6 flex flex-wrap justify-center gap-1">
                     <component
                         :is="link.url ? Link : 'span'"
                         v-for="(link, i) in items.links"
                         :key="i"
                         :href="link.url ?? undefined"
                         :preserve-scroll="true"
-                        :class="['chip', link.active ? 'active' : '', !link.url ? 'opacity-40 pointer-events-none' : '']"
+                        :class="['chip', link.active ? 'active' : '', !link.url ? 'pointer-events-none opacity-40' : '']"
                     >
                         <span v-html="link.label" />
                     </component>

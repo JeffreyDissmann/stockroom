@@ -50,7 +50,7 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
 </script>
 
 <template>
-    <table v-if="view === 'list'" class="table card" style="border-radius: var(--radius)">
+    <table v-if="view === 'list'" class="card table" style="border-radius: var(--radius)">
         <thead>
             <tr>
                 <th v-if="selectable && bulk.isSelectMode.value" class="num" style="width: 32px" />
@@ -93,7 +93,9 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
                         </div>
                     </div>
                 </td>
-                <td class="hide-on-mobile"><span class="tag">{{ item.type.label }}</span></td>
+                <td class="hide-on-mobile">
+                    <span class="tag">{{ item.type.label }}</span>
+                </td>
                 <td class="hide-on-mobile">
                     <div class="flex flex-wrap gap-1">
                         <TagBadge v-for="tag in item.tags ?? []" :key="tag.id" :tag="tag" />
@@ -156,7 +158,7 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
                         <span>{{ item.type.label }}</span>
                         <span v-if="(item.children_count ?? 0) > 0" class="mono">{{ item.children_count }} inside</span>
                     </div>
-                    <div v-if="item.tags?.length" class="flex flex-wrap gap-1 mt-2">
+                    <div v-if="item.tags?.length" class="mt-2 flex flex-wrap gap-1">
                         <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                     </div>
                 </div>
@@ -209,7 +211,10 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
     color: var(--fg-muted);
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.12s, color 0.12s, border-color 0.12s;
+    transition:
+        opacity 0.12s,
+        color 0.12s,
+        border-color 0.12s;
 }
 .item-card-wrap:hover .item-remove-btn,
 .item-remove-btn:focus-visible {
@@ -233,7 +238,9 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
     border-radius: 4px;
     background: var(--bg-elev);
     color: var(--accent-fg);
-    transition: background-color 0.12s, border-color 0.12s;
+    transition:
+        background-color 0.12s,
+        border-color 0.12s;
 }
 .bulk-check--on {
     background: var(--accent);
@@ -257,7 +264,9 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
 /* Truncate the description on desktop so a long line doesn't double the
    row height — the full text is still on the item's Show page. Capped
    at 320px (~ 2/3 of the row width on standard layouts). */
-.row-name-body { min-width: 0; }
+.row-name-body {
+    min-width: 0;
+}
 .row-name-sub {
     white-space: nowrap;
     overflow: hidden;
@@ -282,8 +291,12 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
    line to a soft 2-line wrap so it stays useful even when the row is
    the only thing visible. */
 @media (max-width: 880px) {
-    .hide-on-mobile { display: none; }
-    .row-name-tags { display: flex; }
+    .hide-on-mobile {
+        display: none;
+    }
+    .row-name-tags {
+        display: flex;
+    }
     .row-name-sub {
         white-space: normal;
         max-width: none;

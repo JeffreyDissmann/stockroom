@@ -9,7 +9,15 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const { isOpen, close, toggle } = useAssistant();
 const { fileInput, attachedImage, attachedPreview, pickImage, onImageSelected, clearImage } = useAssistantImageAttach();
-const { messages, conversationId, sending, error, rehydrate, startNewChat: resetChat, send: sendTurn } = useAssistantChat({
+const {
+    messages,
+    conversationId,
+    sending,
+    error,
+    rehydrate,
+    startNewChat: resetChat,
+    send: sendTurn,
+} = useAssistantChat({
     onMessagesChanged: () => scrollToEnd(),
 });
 

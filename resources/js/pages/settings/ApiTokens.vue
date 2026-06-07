@@ -110,11 +110,7 @@ const copyToken = async (token: string) => {
                 <HeadingSmall :title="$t('settings.api_tokens.title')" :description="$t('settings.api_tokens.description')" />
 
                 <!-- One-time plaintext token, shown immediately after creation. -->
-                <div
-                    v-if="plainTextToken"
-                    class="space-y-2 rounded-lg border border-green-500/40 bg-green-500/5 p-4"
-                    data-test="api-token-plaintext"
-                >
+                <div v-if="plainTextToken" class="space-y-2 rounded-lg border border-green-500/40 bg-green-500/5 p-4" data-test="api-token-plaintext">
                     <p class="text-sm font-medium">{{ $t('settings.api_tokens.created_title') }}</p>
                     <div class="flex items-center gap-2">
                         <code class="flex-1 break-all rounded bg-muted px-3 py-2 font-mono text-sm">{{ plainTextToken }}</code>
@@ -182,7 +178,11 @@ const copyToken = async (token: string) => {
                                         {{ ability }}
                                     </span>
                                     <span class="ml-1">
-                                        {{ token.last_used_at ? $t('settings.api_tokens.last_used', { time: token.last_used_at }) : $t('settings.api_tokens.never_used') }}
+                                        {{
+                                            token.last_used_at
+                                                ? $t('settings.api_tokens.last_used', { time: token.last_used_at })
+                                                : $t('settings.api_tokens.never_used')
+                                        }}
                                     </span>
                                 </p>
                             </div>
