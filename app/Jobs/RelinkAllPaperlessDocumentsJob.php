@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\PaperlessLink;
 use App\Services\Paperless\PaperlessClient;
+use App\Services\Paperless\PaperlessLinker;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,12 +22,17 @@ use Throwable;
  * Operator repair tool (#7): walks every distinct Paperless document id that
  * local items currently link to and re-applies the Stockroom annotation on
  * the Paperless side — the linked tag plus the `Stockroom URL` custom field
- * — by calling the same `annotateProcessed` path the intake job uses.
+ * — by calling the same `annotateProcessed` path the intake job uses. Each
+ * doc's display metadata (title/type/correspondent) is refreshed on the
+ * local link rows in the same pass — this is THE backfill and staleness
+ * story for the snapshot columns: pre-metadata rows (and adopt-command
+ * rows, which are created bare) fill in here, and a rename in Paperless
+ * heals on the next run.
  *
  * Use cases: a user deleted the linked tag in Paperless and wants it back;
  * the Stockroom APP_URL changed and existing docs still point at the old
  * host; an intake run silently dropped the annotation step because of a
- * transient Paperless outage.
+ * transient Paperless outage; link rows showing stale or missing titles.
  *
  * Idempotent — annotateProcessed is a set-arithmetic tag swap plus a
  * single-key custom-field write, so running this twice produces the same
@@ -45,7 +51,7 @@ class RelinkAllPaperlessDocumentsJob implements ShouldBeEncrypted, ShouldQueue
 
     public const STATUS_KEY = 'paperless.relink';
 
-    public function handle(PaperlessClient $client): void
+    public function handle(PaperlessClient $client, PaperlessLinker $linker): void
     {
         $linkField = (string) config('paperless.link_custom_field');
         $triggerTag = (string) config('paperless.trigger_tag');
@@ -77,6 +83,16 @@ class RelinkAllPaperlessDocumentsJob implements ShouldBeEncrypted, ShouldQueue
             $backlink = PaperlessLink::stockroomBacklinkFor((int) $docId);
 
             try {
+                // Refresh the local metadata snapshot from the same fetch
+                // window. The extra document GET (annotateProcessed does its
+                // own internally) is the price of keeping its one-PATCH
+                // signature untouched; type/correspondent name lookups are
+                // memoized on the client, so they cost ~one call per batch.
+                $metadata = $linker->metadataFromDocument($client->document((int) $docId));
+                PaperlessLink::query()
+                    ->where('paperless_document_id', $docId)
+                    ->update($metadata);
+
                 $client->annotateProcessed((int) $docId, $triggerTag, $linkedTag, $linkField, $backlink);
                 $ok++;
             } catch (Throwable $e) {

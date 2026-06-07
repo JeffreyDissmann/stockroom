@@ -60,13 +60,18 @@ class AssistantToolsTest extends TestCase
         $item = Item::factory()->create(['name' => 'Washing Machine']);
         $manual = Item::factory()->container()->create(['name' => 'Manuals Box']);
         $item->linkRelated($manual);
-        $item->paperlessLinks()->create(['paperless_document_id' => 447]);
+        $item->paperlessLinks()->create([
+            'paperless_document_id' => 447,
+            'document_title' => 'AEG receipt',
+            'document_type' => 'Rechnung',
+        ]);
         $link = HomeAssistantLink::factory()->for($item)->create(['friendly_name' => 'Washer']);
 
         $result = app(GetItem::class)->handle(new Request(['id' => $item->id]));
 
         $this->assertStringContainsString("Related items: [Manuals Box](/items/{$manual->id})", $result);
-        $this->assertStringContainsString('[Document 447](https://paperless.test/documents/447/)', $result);
+        // Cached snapshot drives the label: "type: title", not a bare id.
+        $this->assertStringContainsString('[Rechnung: AEG receipt](https://paperless.test/documents/447/)', $result);
         $this->assertStringContainsString("Home Assistant device: [Washer]({$link->url})", $result);
     }
 

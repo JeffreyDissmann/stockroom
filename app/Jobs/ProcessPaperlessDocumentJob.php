@@ -12,6 +12,7 @@ use App\Models\Setting;
 use App\Services\Brave\AttachFirstImage;
 use App\Services\Paperless\PaperlessClient;
 use App\Services\Paperless\PaperlessException;
+use App\Services\Paperless\PaperlessLinker;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -59,14 +60,18 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
 
         $extracted = $this->extractItems($ocr);
 
-        $items = DB::transaction(function () use ($extracted, $title): array {
+        // Resolved once, outside the transaction (the type/correspondent
+        // lookups are network calls), then stamped onto every link row.
+        $metadata = app(PaperlessLinker::class)->metadataFromDocument($doc);
+
+        $items = DB::transaction(function () use ($extracted, $title, $metadata): array {
             if ($extracted === []) {
                 // Placeholder fallback when the AI returned nothing — at
                 // least one item per doc so the user has a hook to find it.
-                return [$this->createItem(['name' => $title])];
+                return [$this->createItem(['name' => $title], $metadata)];
             }
 
-            return array_map(fn (array $proposal) => $this->createItem($proposal), $extracted);
+            return array_map(fn (array $proposal) => $this->createItem($proposal, $metadata), $extracted);
         });
 
         // Opportunistic auto-cover: when Brave is configured, search the
@@ -146,12 +151,14 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
 
     /**
      * Create a single Stockroom item from an extraction proposal, plus
-     * the PaperlessLink back-reference. Field whitelist mirrors what
-     * DocumentExtractor's schema can produce.
+     * the PaperlessLink back-reference (carrying the doc's display
+     * metadata). Field whitelist mirrors what DocumentExtractor's schema
+     * can produce.
      *
      * @param  array<string, mixed>  $proposal
+     * @param  array{document_title: ?string, document_type: ?string, correspondent: ?string}  $metadata
      */
-    private function createItem(array $proposal): Item
+    private function createItem(array $proposal, array $metadata): Item
     {
         $item = Item::create([
             'type' => ItemType::Item,
@@ -187,6 +194,7 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
 
         $item->paperlessLinks()->create([
             'paperless_document_id' => $this->documentId,
+            ...$metadata,
         ]);
 
         return $item;

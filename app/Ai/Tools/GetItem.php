@@ -141,11 +141,20 @@ class GetItem implements Tool
      */
     private function paperlessLinkLabel(PaperlessLink $link): string
     {
+        // Prefer the cached title (with the type as a qualifier) so the model
+        // sees "Rechnung: AEG receipt" instead of a bare id; fall back to the
+        // id on rows the repair job hasn't filled in yet.
+        $label = match (true) {
+            $link->document_title !== null && $link->document_type !== null => "{$link->document_type}: {$link->document_title}",
+            $link->document_title !== null => $link->document_title,
+            default => "Document {$link->paperless_document_id}",
+        };
+
         $url = $link->paperlessUrl();
 
         return $url !== null
-            ? "[Document {$link->paperless_document_id}]({$url})"
-            : "document #{$link->paperless_document_id}";
+            ? "[{$label}]({$url})"
+            : "{$label} (#{$link->paperless_document_id})";
     }
 
     /**

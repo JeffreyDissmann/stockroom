@@ -28,7 +28,7 @@ return [
         'paperless_parent_no_match' => 'Keine passenden Räume oder Behälter.',
         'paperless_relink' => 'Paperless-Verknüpfungen reparieren',
         'paperless_relink_action' => 'Alle Dokumente erneut verknüpfen',
-        'paperless_relink_help' => 'Geht jedes Paperless-Dokument durch, mit dem ein Gegenstand verknüpft ist, und setzt das Stockroom-Schlagwort und die Rück-URL auf der Paperless-Seite neu. Nützlich nach Änderungen an APP_URL oder wenn das Schlagwort manuell entfernt wurde. Läuft im Hintergrund – ein Queue-Worker muss aktiv sein.',
+        'paperless_relink_help' => 'Geht jedes Paperless-Dokument durch, mit dem ein Gegenstand verknüpft ist, und setzt das Stockroom-Schlagwort und die Rück-URL auf der Paperless-Seite neu. Außerdem werden der zwischengespeicherte Titel und Dokumenttyp jeder Verknüpfung aktualisiert – führe es also nach dem Umbenennen von Dokumenten oder Dokumenttypen in Paperless aus. Nützlich nach Änderungen an APP_URL oder wenn das Schlagwort manuell entfernt wurde. Läuft im Hintergrund – ein Queue-Worker muss aktiv sein.',
         'paperless_relink_confirm' => 'Stockroom-Schlagwort und Rück-URL auf jedem verknüpften Paperless-Dokument erneut setzen?',
         'paperless_relink_none' => 'Keine Dokumente zum Verknüpfen.',
         'paperless_relink_progress' => 'Verknüpfe… :done / :total',

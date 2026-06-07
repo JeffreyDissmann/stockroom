@@ -31,7 +31,9 @@ use Illuminate\Console\Command;
  *
  * Optionally with `--relink`, runs the RelinkAllPaperlessDocumentsJob
  * synchronously afterwards so the adopted docs immediately get the
- * Stockroom tag and backlink URL on the Paperless side.
+ * Stockroom tag and backlink URL on the Paperless side — and, since the
+ * adopted rows are created without display metadata (title/type), their
+ * snapshot columns filled in. Without the flag, the next repair run does it.
  */
 class PaperlessAdoptCustomField extends Command
 {

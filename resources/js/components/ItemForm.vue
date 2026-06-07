@@ -24,6 +24,10 @@ type Mode = 'create' | 'edit';
 interface PaperlessLinkSummary {
     document_id: number;
     url: string;
+    // Cached snapshot from Paperless — null until the repair job has seen
+    // the link; the chip falls back to the bare #id.
+    title: string | null;
+    type: string | null;
 }
 
 interface HomeAssistantLinkSummary {
@@ -676,9 +680,18 @@ function submit() {
                     <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
                         <!-- The suggest action sits right next to the link text, away
                              from the destructive unlink ✕ at the far edge of the row. -->
-                        <a :href="link.url" target="_blank" rel="noopener" class="paperless-link" style="flex: 0 1 auto; min-width: 0">
+                        <a
+                            :href="link.url"
+                            target="_blank"
+                            rel="noopener"
+                            class="paperless-link"
+                            style="flex: 0 1 auto; min-width: 0"
+                            :title="`#${link.document_id}`"
+                        >
                             <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                            <span class="paperless-id">#{{ link.document_id }}</span>
+                            <span v-if="link.type" class="paperless-type">{{ link.type }}</span>
+                            <span v-if="link.title" class="paperless-id truncate">{{ link.title }}</span>
+                            <span v-else class="paperless-id">#{{ link.document_id }}</span>
                             <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
                         </a>
                         <button
@@ -885,6 +898,15 @@ function submit() {
 .paperless-id {
     font-family: var(--font-mono, monospace);
     color: var(--fg);
+}
+/* Document-type pill from the cached Paperless snapshot ("Rechnung"). */
+.paperless-type {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+    color: var(--fg-muted);
 }
 .paperless-host {
     color: var(--fg-muted);

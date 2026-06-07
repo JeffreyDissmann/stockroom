@@ -13,11 +13,11 @@ return new class extends Migration
      * Connections card and the assistant can show "Rechnung · AEG receipt"
      * instead of a bare #id without a Paperless round-trip per render.
      *
-     * Snapshots, not live state: written wherever a link is created (manual
-     * link, intake, adopt command) and refreshed by the "Repair Paperless
-     * links" job — a rename in Paperless heals on the next repair run. All
-     * nullable: rows from before this migration carry no metadata until
-     * repaired, and a document may have no type/correspondent at all.
+     * Snapshots, not live state: written at link time (manual link, intake)
+     * and refreshed by the "Repair Paperless links" job — which is also the
+     * backfill for rows that start bare (pre-migration rows, adopt-command
+     * rows) and the healing path when something is renamed in Paperless.
+     * All nullable: a document may have no type/correspondent at all.
      * `document_type` and `correspondent` store the resolved NAMES (the
      * Paperless API returns ids; we never need those again after resolving).
      */

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Jobs\RelinkAllPaperlessDocumentsJob;
 use App\Models\Item;
+use App\Models\PaperlessLink;
 use App\Services\Paperless\PaperlessClient;
+use App\Services\Paperless\PaperlessLinker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -54,6 +56,41 @@ function relinkFakes(): callable
     };
 }
 
+it('backfills the metadata snapshot on every link row of a repaired document', function () {
+    Http::fake(function ($request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/api/document_types/3/')) {
+            return Http::response(['id' => 3, 'name' => 'Rechnung']);
+        }
+        if (str_contains($url, '/api/tags/') || str_contains($url, '/api/custom_fields/')) {
+            return Http::response(['results' => [['id' => 9, 'name' => 'x']]]);
+        }
+        if (preg_match('#/api/documents/100/$#', $url)) {
+            return $request->method() === 'PATCH'
+                ? Http::response([], 200)
+                : Http::response([
+                    'id' => 100,
+                    'title' => 'Rechnung AEG',
+                    'document_type' => 3,
+                    'tags' => [],
+                    'custom_fields' => [],
+                ]);
+        }
+
+        return Http::response([], 404);
+    });
+
+    // Two bare rows for the same doc — e.g. pre-migration or adopt-created.
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]);
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]);
+
+    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class), app(PaperlessLinker::class));
+
+    expect(PaperlessLink::query()->pluck('document_title')->all())->toBe(['Rechnung AEG', 'Rechnung AEG'])
+        ->and(PaperlessLink::query()->pluck('document_type')->unique()->all())->toBe(['Rechnung']);
+});
+
 it('PATCHes every distinct linked Paperless document with the canonical annotation', function () {
     Http::fake(relinkFakes());
 
@@ -61,7 +98,7 @@ it('PATCHes every distinct linked Paperless document with the canonical annotati
     Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]); // duplicate doc id
     Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 200]);
 
-    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class));
+    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class), app(PaperlessLinker::class));
 
     // One PATCH per distinct doc id — not three (the two links pointing at
     // doc 100 must collapse to a single PATCH).
@@ -112,7 +149,7 @@ it('keeps going when a single document re-link fails', function () {
 
     Log::spy();
 
-    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class));
+    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class), app(PaperlessLinker::class));
 
     Log::shouldHaveReceived('warning')
         ->withArgs(fn ($msg) => $msg === 'paperless.relink.doc_failed')
@@ -126,7 +163,7 @@ it('does nothing when no links exist', function () {
     Http::preventStrayRequests();
     Http::fake();
 
-    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class));
+    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class), app(PaperlessLinker::class));
 
     Http::assertNothingSent();
 });
@@ -139,7 +176,7 @@ it('writes a running → done status into the cache as it progresses', function 
 
     Cache::forget(RelinkAllPaperlessDocumentsJob::STATUS_KEY);
 
-    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class));
+    (new RelinkAllPaperlessDocumentsJob)->handle(app(PaperlessClient::class), app(PaperlessLinker::class));
 
     expect(Cache::get(RelinkAllPaperlessDocumentsJob::STATUS_KEY))
         ->toMatchArray(['state' => 'done', 'done' => 2, 'failed' => 0, 'total' => 2]);

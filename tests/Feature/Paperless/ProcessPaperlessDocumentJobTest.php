@@ -57,6 +57,48 @@ function fakePaperless(array $docPayload, int $docId): void
     });
 }
 
+it('stamps the document display metadata onto the created link rows', function () {
+    Http::fake(function ($request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/api/document_types/3/')) {
+            return Http::response(['id' => 3, 'name' => 'Rechnung']);
+        }
+        if (str_contains($url, '/api/correspondents/4/')) {
+            return Http::response(['id' => 4, 'name' => 'baby-walz']);
+        }
+        if (str_contains($url, '/api/documents/547/')) {
+            return $request->method() === 'PATCH'
+                ? Http::response([], 200)
+                : Http::response([
+                    'id' => 547,
+                    'title' => 'Rechnung Flaschenwärmer',
+                    'document_type' => 3,
+                    'correspondent' => 4,
+                    'content' => '',
+                    'tags' => [9],
+                    'custom_fields' => [],
+                ]);
+        }
+        if (str_contains($url, '/api/tags/') || str_contains($url, '/api/custom_fields/')) {
+            return Http::response(['results' => [['id' => 9, 'name' => 'x']]]);
+        }
+
+        return Http::response([], 404);
+    });
+
+    // Empty extraction → placeholder item; the link metadata is what's
+    // under test, and it's identical on every path.
+    DocumentExtractor::fake([['items' => []]]);
+
+    (new ProcessPaperlessDocumentJob(547))->handle(PaperlessClient::fromConfig());
+
+    $link = PaperlessLink::sole();
+    expect($link->document_title)->toBe('Rechnung Flaschenwärmer')
+        ->and($link->document_type)->toBe('Rechnung')
+        ->and($link->correspondent)->toBe('baby-walz');
+});
+
 it('creates one Stockroom item per extracted product (multi-item receipt)', function () {
     // Doc 547 in dev (real receipt) has TWO line items — adapter + bottle
     // warmer. Modelled here as the agent's structured output.

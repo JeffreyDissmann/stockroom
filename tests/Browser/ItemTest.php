@@ -44,6 +44,25 @@ it('exposes the Home Assistant unlink control on the edit page', function () {
         ->assertNoJavaScriptErrors();
 });
 
+it('shows the cached document title and type on the Paperless chip', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+
+    $item = Item::factory()->create(['name' => 'Washing Machine']);
+    $item->paperlessLinks()->create([
+        'paperless_document_id' => 547,
+        'document_title' => 'AEG receipt',
+        'document_type' => 'Rechnung',
+    ]);
+
+    $page = visit("/items/{$item->id}");
+
+    // The read-only Connections card shows title + type pill, not a bare #id.
+    $page->assertSee('AEG receipt')
+        ->assertSee('Rechnung')
+        ->assertNoJavaScriptErrors();
+});
+
 it('groups Home Assistant and Paperless into one Connections section on edit', function () {
     config()->set('paperless.url', 'https://paperless.test');
     config()->set('paperless.token', 'secret');
