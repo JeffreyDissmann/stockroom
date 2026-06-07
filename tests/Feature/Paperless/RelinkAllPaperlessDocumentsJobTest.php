@@ -116,6 +116,40 @@ it('PATCHes every distinct linked Paperless document with the canonical annotati
             && (string) $e['value'] === 'https://stockroom.test/search?paperless_document=200'));
 });
 
+it('refreshes metadata without writing back to Paperless in metadata-only mode', function () {
+    Http::fake(function ($request) {
+        $url = $request->url();
+
+        if (str_contains($url, '/api/document_types/3/')) {
+            return Http::response(['id' => 3, 'name' => 'Rechnung']);
+        }
+        if (preg_match('#/api/documents/100/$#', $url)) {
+            return Http::response([
+                'id' => 100,
+                'title' => 'AEG receipt',
+                'document_type' => 3,
+                'tags' => [],
+                'custom_fields' => [],
+            ]);
+        }
+
+        return Http::response([], 404);
+    });
+
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]);
+
+    (new RelinkAllPaperlessDocumentsJob(metadataOnly: true))->handle(app(PaperlessClient::class), app(PaperlessLinker::class));
+
+    // Metadata landed…
+    expect(PaperlessLink::sole())
+        ->document_title->toBe('AEG receipt')
+        ->document_type->toBe('Rechnung');
+
+    // …and nothing was written back to Paperless (no PATCH, no tag/field lookups).
+    expect(collect(Http::recorded())->every(fn ($p) => $p[0]->method() === 'GET'))->toBeTrue();
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), '/api/tags/') || str_contains($r->url(), '/api/custom_fields/'));
+});
+
 it('keeps going when a single document re-link fails', function () {
     // Custom-field lookup always succeeds; doc 100 PATCH errors out, doc 200
     // succeeds. The job should log the 100 failure and still PATCH 200.

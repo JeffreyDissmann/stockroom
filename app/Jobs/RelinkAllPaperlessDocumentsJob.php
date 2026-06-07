@@ -51,11 +51,21 @@ class RelinkAllPaperlessDocumentsJob implements ShouldBeEncrypted, ShouldQueue
 
     public const STATUS_KEY = 'paperless.relink';
 
+    /**
+     * @param  bool  $metadataOnly  Refresh the local title/type/correspondent
+     *                              snapshot only, skipping the Paperless-side
+     *                              tag + backlink PATCH. This is the read-only
+     *                              (on Paperless) variant the daily scheduler
+     *                              runs; the full relink stays a manual action.
+     */
+    public function __construct(public readonly bool $metadataOnly = false) {}
+
     public function handle(PaperlessClient $client, PaperlessLinker $linker): void
     {
         $linkField = (string) config('paperless.link_custom_field');
         $triggerTag = (string) config('paperless.trigger_tag');
         $linkedTag = (string) config('paperless.linked_tag');
+        $mode = $this->metadataOnly ? 'metadata' : 'relink';
 
         // Unique doc ids only — many items can point at the same doc, but we
         // only need to PATCH each doc once. The explicit `select()` before
@@ -73,15 +83,13 @@ class RelinkAllPaperlessDocumentsJob implements ShouldBeEncrypted, ShouldQueue
 
         // Log the intent up front so a crash mid-batch still leaves a
         // record that the job ran and how much it was attempting.
-        Log::info('paperless.relink.starting', ['total' => $total]);
+        Log::info('paperless.relink.starting', ['total' => $total, 'mode' => $mode]);
 
-        $this->putStatus(['state' => 'running', 'done' => 0, 'failed' => 0, 'total' => $total]);
+        $this->putStatus(['state' => 'running', 'mode' => $mode, 'done' => 0, 'failed' => 0, 'total' => $total]);
 
         $ok = 0;
         $failed = 0;
         foreach ($documentIds as $docId) {
-            $backlink = PaperlessLink::stockroomBacklinkFor((int) $docId);
-
             try {
                 // Refresh the local metadata snapshot from the same fetch
                 // window. The extra document GET (annotateProcessed does its
@@ -93,7 +101,16 @@ class RelinkAllPaperlessDocumentsJob implements ShouldBeEncrypted, ShouldQueue
                     ->where('paperless_document_id', $docId)
                     ->update($metadata);
 
-                $client->annotateProcessed((int) $docId, $triggerTag, $linkedTag, $linkField, $backlink);
+                // Metadata-only runs stop here — no writes back to Paperless.
+                if (! $this->metadataOnly) {
+                    $client->annotateProcessed(
+                        (int) $docId,
+                        $triggerTag,
+                        $linkedTag,
+                        $linkField,
+                        PaperlessLink::stockroomBacklinkFor((int) $docId),
+                    );
+                }
                 $ok++;
             } catch (Throwable $e) {
                 // Per-doc failure (404 doc gone, transient 5xx, Guzzle
@@ -109,16 +126,17 @@ class RelinkAllPaperlessDocumentsJob implements ShouldBeEncrypted, ShouldQueue
                 ]);
             }
 
-            $this->putStatus(['state' => 'running', 'done' => $ok, 'failed' => $failed, 'total' => $total]);
+            $this->putStatus(['state' => 'running', 'mode' => $mode, 'done' => $ok, 'failed' => $failed, 'total' => $total]);
         }
 
         Log::info('paperless.relink.summary', [
             'total' => $total,
             'ok' => $ok,
             'failed' => $failed,
+            'mode' => $mode,
         ]);
 
-        $this->putStatus(['state' => 'done', 'done' => $ok, 'failed' => $failed, 'total' => $total]);
+        $this->putStatus(['state' => 'done', 'mode' => $mode, 'done' => $ok, 'failed' => $failed, 'total' => $total]);
     }
 
     public function failed(?Throwable $exception): void

@@ -148,13 +148,47 @@ it('queues the relink-all job and seeds the cache status to running', function (
         ->post('/household/preferences/paperless/relink-all')
         ->assertRedirect();
 
-    Bus::assertDispatched(RelinkAllPaperlessDocumentsJob::class);
+    Bus::assertDispatched(RelinkAllPaperlessDocumentsJob::class, fn ($job) => $job->metadataOnly === false);
 
     // Cache is seeded synchronously so the redirect-followed edit() picks it
     // up and the UI shows the progress bar without waiting on the worker.
     $status = Cache::get(RelinkAllPaperlessDocumentsJob::STATUS_KEY);
     expect($status)
-        ->toMatchArray(['state' => 'running', 'done' => 0, 'failed' => 0, 'total' => 2]);
+        ->toMatchArray(['state' => 'running', 'mode' => 'relink', 'done' => 0, 'failed' => 0, 'total' => 2]);
+});
+
+it('queues a metadata-only refresh from the second endpoint', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    Bus::fake();
+
+    Item::factory()->create()->paperlessLinks()->create(['paperless_document_id' => 100]);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->post('/household/preferences/paperless/refresh-metadata')
+        ->assertRedirect();
+
+    Bus::assertDispatched(RelinkAllPaperlessDocumentsJob::class, fn ($job) => $job->metadataOnly === true);
+    expect(Cache::get(RelinkAllPaperlessDocumentsJob::STATUS_KEY))
+        ->toMatchArray(['state' => 'running', 'mode' => 'metadata', 'total' => 1]);
+});
+
+it('404s the metadata refresh endpoint when Paperless is not configured', function () {
+    config()->set('paperless.url', '');
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->post('/household/preferences/paperless/refresh-metadata')
+        ->assertNotFound();
+});
+
+it('denies the metadata refresh endpoint to non-admins', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'TOKEN');
+
+    $this->actingAs(User::factory()->create())
+        ->post('/household/preferences/paperless/refresh-metadata')
+        ->assertForbidden();
 });
 
 it('does not dispatch the relink job when no documents are linked', function () {

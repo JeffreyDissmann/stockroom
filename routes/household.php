@@ -58,6 +58,10 @@ Route::middleware('auth')->group(function () {
         // the controller method via attribute — belt and braces.
         Route::post('household/preferences/paperless/relink-all', [PreferencesController::class, 'relinkAllPaperless'])
             ->name('household.preferences.paperless.relink-all');
+        // The read-only variant: refresh cached document title/type only,
+        // no writes back to Paperless. Also run daily by the scheduler.
+        Route::post('household/preferences/paperless/refresh-metadata', [PreferencesController::class, 'refreshPaperlessMetadata'])
+            ->name('household.preferences.paperless.refresh-metadata');
 
         Route::post('household/import', [ImportController::class, 'start'])->name('household.import.start');
 

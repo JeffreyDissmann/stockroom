@@ -45,7 +45,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:113
+* @see app/Http/Controllers/Household/PreferencesController.php:131
 * @route '/household/preferences/paperless-parent-targets'
 */
 export const paperlessParentTargets = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -60,7 +60,7 @@ paperlessParentTargets.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:113
+* @see app/Http/Controllers/Household/PreferencesController.php:131
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ paperlessParentTargets.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:113
+* @see app/Http/Controllers/Household/PreferencesController.php:131
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -79,7 +79,7 @@ paperlessParentTargets.get = (options?: RouteQueryOptions): RouteDefinition<'get
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::paperlessParentTargets
-* @see app/Http/Controllers/Household/PreferencesController.php:113
+* @see app/Http/Controllers/Household/PreferencesController.php:131
 * @route '/household/preferences/paperless-parent-targets'
 */
 paperlessParentTargets.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -89,7 +89,7 @@ paperlessParentTargets.head = (options?: RouteQueryOptions): RouteDefinition<'he
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:139
+* @see app/Http/Controllers/Household/PreferencesController.php:157
 * @route '/household/preferences'
 */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -104,7 +104,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:139
+* @see app/Http/Controllers/Household/PreferencesController.php:157
 * @route '/household/preferences'
 */
 update.url = (options?: RouteQueryOptions) => {
@@ -113,7 +113,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::update
-* @see app/Http/Controllers/Household/PreferencesController.php:139
+* @see app/Http/Controllers/Household/PreferencesController.php:157
 * @route '/household/preferences'
 */
 update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -155,6 +155,40 @@ relinkAllPaperless.post = (options?: RouteQueryOptions): RouteDefinition<'post'>
     method: 'post',
 })
 
-const PreferencesController = { edit, paperlessParentTargets, update, relinkAllPaperless }
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::refreshPaperlessMetadata
+* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @route '/household/preferences/paperless/refresh-metadata'
+*/
+export const refreshPaperlessMetadata = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: refreshPaperlessMetadata.url(options),
+    method: 'post',
+})
+
+refreshPaperlessMetadata.definition = {
+    methods: ["post"],
+    url: '/household/preferences/paperless/refresh-metadata',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::refreshPaperlessMetadata
+* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @route '/household/preferences/paperless/refresh-metadata'
+*/
+refreshPaperlessMetadata.url = (options?: RouteQueryOptions) => {
+    return refreshPaperlessMetadata.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Household\PreferencesController::refreshPaperlessMetadata
+* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @route '/household/preferences/paperless/refresh-metadata'
+*/
+refreshPaperlessMetadata.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: refreshPaperlessMetadata.url(options),
+    method: 'post',
+})
+
+const PreferencesController = { edit, paperlessParentTargets, update, relinkAllPaperless, refreshPaperlessMetadata }
 
 export default PreferencesController
