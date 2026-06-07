@@ -83,7 +83,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('items/{item}/related-items/{related}', [RelatedItemController::class, 'destroy'])->name('items.related-items.destroy');
 
     // Paperless-ngx link maintenance (#7). Links are created by the intake
-    // job from a webhook — the user just gets to remove them.
+    // job from a webhook or by hand from the Connections card. Store needs
+    // the integration up (it verifies the doc against Paperless); destroy
+    // is pure local and stays available even when Paperless is turned off.
+    Route::post('items/{item}/paperless-links', [PaperlessLinkController::class, 'store'])
+        ->middleware(EnsurePaperlessEnabled::class)
+        ->name('items.paperless-links.store');
     Route::delete('items/{item}/paperless-links/{document}', [PaperlessLinkController::class, 'destroy'])
         ->whereNumber('document')
         ->name('items.paperless-links.destroy');

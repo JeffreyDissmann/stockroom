@@ -146,6 +146,10 @@ return [
             'archived' => 'Diese Aufgabe wurde bereits erledigt.',
             'not_skippable' => 'Nur Aufgaben mit festem Rhythmus können eine Fälligkeit überspringen.',
         ],
+        'paperless_document' => [
+            'unparseable' => 'Gib eine Dokument-ID oder eine Paperless-Dokument-URL ein.',
+            'unverified' => 'Das Dokument konnte in Paperless nicht überprüft werden.',
+        ],
     ],
 
     'attributes' => [

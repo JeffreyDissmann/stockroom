@@ -191,6 +191,10 @@ return [
             'archived' => 'This task has already been completed.',
             'not_skippable' => 'Only tasks on a fixed schedule can skip an occurrence.',
         ],
+        'paperless_document' => [
+            'unparseable' => 'Enter a document id or a Paperless document URL.',
+            'unverified' => 'The document could not be verified in Paperless.',
+        ],
     ],
 
     /*
