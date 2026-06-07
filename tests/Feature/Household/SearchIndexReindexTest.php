@@ -85,4 +85,24 @@ class SearchIndexReindexTest extends TestCase
 
         $this->assertSame('done', Cache::get(RebuildSearchIndexJob::STATUS_KEY)['state'] ?? null);
     }
+
+    public function test_job_indexes_inline_even_when_scout_queueing_is_enabled(): void
+    {
+        config(['scout.queue' => true]);
+
+        Item::withoutSyncingToSearch(fn () => Item::factory()->count(3)->create());
+
+        Queue::fake();
+
+        (new RebuildSearchIndexJob)->handle();
+
+        // The rebuild must not fan out MakeSearchable jobs — it indexes
+        // inline so the reported progress reflects work actually done.
+        Queue::assertNothingPushed();
+
+        $status = Cache::get(RebuildSearchIndexJob::STATUS_KEY);
+
+        $this->assertSame('done', $status['state']);
+        $this->assertSame(3, $status['indexed']);
+    }
 }

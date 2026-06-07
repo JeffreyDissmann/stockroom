@@ -39,6 +39,11 @@ class RebuildSearchIndexJob implements ShouldQueue
 
         $this->putStatus(['state' => 'running', 'done' => 0, 'total' => $total]);
 
+        // Index inline even when SCOUT_QUEUE is on — this already IS the
+        // background job, and fanning out per-chunk MakeSearchable jobs would
+        // report "done" while embedding still sits in the queue.
+        config(['scout.queue' => false]);
+
         Item::removeAllFromSearch();
 
         if (config('scout.driver') === 'meilisearch') {
