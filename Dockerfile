@@ -81,7 +81,8 @@ COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
 # Entrypoint orchestrates first-boot housekeeping (key, migrate, caches, admin
 # seed) before exec'ing the requested role (web / queue / scheduler).
 COPY docker/entrypoint.sh /usr/local/bin/stockroom-entrypoint
-RUN chmod +x /usr/local/bin/stockroom-entrypoint
+COPY docker/healthcheck.sh /usr/local/bin/stockroom-healthcheck
+RUN chmod +x /usr/local/bin/stockroom-entrypoint /usr/local/bin/stockroom-healthcheck
 
 # Storage and bootstrap caches need to be writable. Pre-create the layout so
 # the first request doesn't trip over a missing dir.
@@ -109,5 +110,10 @@ ENV SERVER_NAME=:8080 \
     APP_COMMIT=${APP_COMMIT}
 
 EXPOSE 8080
+
+# Override the frankenphp base image's HEALTHCHECK (it probes Caddy's admin
+# endpoint, which worker roles never run) with a role-aware probe.
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 --start-period=60s \
+    CMD ["stockroom-healthcheck"]
 
 ENTRYPOINT ["stockroom-entrypoint"]

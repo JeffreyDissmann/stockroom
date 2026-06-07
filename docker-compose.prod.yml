@@ -54,6 +54,14 @@ services:
         volumes:
             - app-storage:/app/storage/app
             - app-cache:/app/bootstrap/cache
+        healthcheck:
+            # Workers don't serve HTTP, so probe that the role process is
+            # alive (it runs as PID 1). Overrides the base image's Caddy
+            # probe, which would report worker containers unhealthy forever.
+            test: ["CMD", "grep", "-q", "queue:work", "/proc/1/cmdline"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
 
     scheduler:
         image: ghcr.io/jeffreydissmann/stockroom:latest
@@ -67,6 +75,11 @@ services:
         volumes:
             - app-storage:/app/storage/app
             - app-cache:/app/bootstrap/cache
+        healthcheck:
+            test: ["CMD", "grep", "-q", "schedule:work", "/proc/1/cmdline"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
 
     db:
         image: postgres:17-alpine
