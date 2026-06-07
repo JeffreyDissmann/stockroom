@@ -62,5 +62,11 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
                 ->name('items.home-assistant-link.update');
             Route::delete('items/{item}/home-assistant-link', [HomeAssistantLinkController::class, 'destroy'])
                 ->name('items.home-assistant-link.destroy');
+
+            // Create a reminder on an item; complete one by task id.
+            Route::post('items/{item}/maintenance-tasks', [MaintenanceTaskController::class, 'store'])
+                ->name('items.maintenance-tasks.store');
+            Route::post('maintenance-tasks/{maintenanceTask}/complete', [MaintenanceTaskController::class, 'complete'])
+                ->name('maintenance-tasks.complete');
         });
     });
