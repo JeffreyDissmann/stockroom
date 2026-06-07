@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AiFieldBadge from '@/components/AiFieldBadge.vue';
 import CustomFieldsInput from '@/components/CustomFieldsInput.vue';
+import IconPicker from '@/components/IconPicker.vue';
 import InputError from '@/components/InputError.vue';
 import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
-import SearchImageDialog from '@/components/SearchImageDialog.vue';
-import IconPicker from '@/components/IconPicker.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
+import LinkPaperlessDocumentDialog from '@/components/LinkPaperlessDocumentDialog.vue';
+import SearchImageDialog from '@/components/SearchImageDialog.vue';
 import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
 import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
@@ -71,9 +72,10 @@ const form = useForm({
     sold_price: props.item?.sold_price ?? '',
     sold_date: props.item?.sold_date ?? '',
     sold_notes: props.item?.sold_notes ?? '',
-    custom_fields: Object.fromEntries(
-        (props.item?.custom_fields ?? []).map((f) => [f.custom_field_id, f.value]),
-    ) as Record<number, string | number | boolean | null>,
+    custom_fields: Object.fromEntries((props.item?.custom_fields ?? []).map((f) => [f.custom_field_id, f.value])) as Record<
+        number,
+        string | number | boolean | null
+    >,
 });
 
 const isPlace = computed(() => form.type === 'room' || form.type === 'container');
@@ -95,9 +97,7 @@ const imageSearchEnabled = usePage<SharedData>().props.features.imageSearch;
 
 // The combined "Connections" section shows when the item has a Paperless doc
 // and/or a Home Assistant link — one, both, or none.
-const hasConnections = computed(
-    () => (paperlessEnabled && (props.paperlessLinks?.length ?? 0) > 0) || props.homeAssistantLink != null,
-);
+const hasConnections = computed(() => (paperlessEnabled && (props.paperlessLinks?.length ?? 0) > 0) || props.homeAssistantLink != null);
 const analyzing = ref(false);
 const analyzeError = ref<string | null>(null);
 
@@ -269,7 +269,7 @@ function submit() {
                     v-for="type in types"
                     :key="type.value"
                     type="button"
-                    class="flex flex-col items-center gap-1.5 p-3 text-[13px] transition rounded-md border"
+                    class="flex flex-col items-center gap-1.5 rounded-md border p-3 text-[13px] transition"
                     :style="{
                         borderColor: form.type === type.value ? 'var(--fg)' : 'var(--border)',
                         background: form.type === type.value ? 'var(--bg-sunken)' : 'var(--bg-elev)',
@@ -317,7 +317,12 @@ function submit() {
             <div class="appearance">
                 <span class="appearance-preview">
                     <ItemThumbnail
-                        :item="{ name: form.name || 'Item', type: { value: form.type, label: '', icon: '' }, thumb_url: null, icon: form.icon || null }"
+                        :item="{
+                            name: form.name || 'Item',
+                            type: { value: form.type, label: '', icon: '' },
+                            thumb_url: null,
+                            icon: form.icon || null,
+                        }"
                         size="md"
                     />
                 </span>
@@ -396,165 +401,195 @@ function submit() {
         </div>
 
         <template v-if="showDetails">
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-        <p class="section-label">{{ $t('items.form.section_purchase') }}</p>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+            <p class="section-label">{{ $t('items.form.section_purchase') }}</p>
 
-        <div class="form-grid">
-            <div class="form-row">
-                <label for="manufacturer">{{ $t('items.form.manufacturer') }} <AiFieldBadge :state="fieldStates.manufacturer" /></label>
-                <input
-                    id="manufacturer"
-                    v-model="form.manufacturer"
-                    :placeholder="$t('items.form.manufacturer_placeholder')"
-                    :class="['field', fieldStates.manufacturer ? `ai-${fieldStates.manufacturer}` : '']"
-                    @input="clearAiFlag('manufacturer')"
-                />
-                <InputError :message="form.errors.manufacturer" />
+            <div class="form-grid">
+                <div class="form-row">
+                    <label for="manufacturer">{{ $t('items.form.manufacturer') }} <AiFieldBadge :state="fieldStates.manufacturer" /></label>
+                    <input
+                        id="manufacturer"
+                        v-model="form.manufacturer"
+                        :placeholder="$t('items.form.manufacturer_placeholder')"
+                        :class="['field', fieldStates.manufacturer ? `ai-${fieldStates.manufacturer}` : '']"
+                        @input="clearAiFlag('manufacturer')"
+                    />
+                    <InputError :message="form.errors.manufacturer" />
+                </div>
+                <div class="form-row">
+                    <label for="model_number">{{ $t('items.form.model_number') }} <AiFieldBadge :state="fieldStates.model_number" /></label>
+                    <input
+                        id="model_number"
+                        v-model="form.model_number"
+                        :class="['field', fieldStates.model_number ? `ai-${fieldStates.model_number}` : '']"
+                        @input="clearAiFlag('model_number')"
+                    />
+                    <InputError :message="form.errors.model_number" />
+                </div>
+                <div class="form-row">
+                    <label for="serial_number">{{ $t('items.form.serial_number') }} <AiFieldBadge :state="fieldStates.serial_number" /></label>
+                    <input
+                        id="serial_number"
+                        v-model="form.serial_number"
+                        :class="['field', fieldStates.serial_number ? `ai-${fieldStates.serial_number}` : '']"
+                        @input="clearAiFlag('serial_number')"
+                    />
+                    <InputError :message="form.errors.serial_number" />
+                </div>
+                <div class="form-row">
+                    <label for="purchased_from">{{ $t('items.form.purchased_from') }}</label>
+                    <input
+                        id="purchased_from"
+                        v-model="form.purchased_from"
+                        class="field"
+                        :placeholder="$t('items.form.purchased_from_placeholder')"
+                    />
+                    <InputError :message="form.errors.purchased_from" />
+                </div>
+                <div class="form-row">
+                    <label for="purchase_date">{{ $t('items.form.purchase_date') }}</label>
+                    <input id="purchase_date" v-model="form.purchase_date" type="date" class="field" />
+                    <InputError :message="form.errors.purchase_date" />
+                </div>
+                <div class="form-row">
+                    <label for="purchase_price">{{ $t('items.form.purchase_price', { code: currency.code }) }}</label>
+                    <input
+                        id="purchase_price"
+                        v-model="form.purchase_price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="field"
+                        :placeholder="$t('items.form.price_placeholder')"
+                    />
+                    <InputError :message="form.errors.purchase_price" />
+                </div>
             </div>
-            <div class="form-row">
-                <label for="model_number">{{ $t('items.form.model_number') }} <AiFieldBadge :state="fieldStates.model_number" /></label>
-                <input
-                    id="model_number"
-                    v-model="form.model_number"
-                    :class="['field', fieldStates.model_number ? `ai-${fieldStates.model_number}` : '']"
-                    @input="clearAiFlag('model_number')"
-                />
-                <InputError :message="form.errors.model_number" />
-            </div>
-            <div class="form-row">
-                <label for="serial_number">{{ $t('items.form.serial_number') }} <AiFieldBadge :state="fieldStates.serial_number" /></label>
-                <input
-                    id="serial_number"
-                    v-model="form.serial_number"
-                    :class="['field', fieldStates.serial_number ? `ai-${fieldStates.serial_number}` : '']"
-                    @input="clearAiFlag('serial_number')"
-                />
-                <InputError :message="form.errors.serial_number" />
-            </div>
-            <div class="form-row">
-                <label for="purchased_from">{{ $t('items.form.purchased_from') }}</label>
-                <input id="purchased_from" v-model="form.purchased_from" class="field" :placeholder="$t('items.form.purchased_from_placeholder')" />
-                <InputError :message="form.errors.purchased_from" />
-            </div>
-            <div class="form-row">
-                <label for="purchase_date">{{ $t('items.form.purchase_date') }}</label>
-                <input id="purchase_date" v-model="form.purchase_date" type="date" class="field" />
-                <InputError :message="form.errors.purchase_date" />
-            </div>
-            <div class="form-row">
-                <label for="purchase_price">{{ $t('items.form.purchase_price', { code: currency.code }) }}</label>
-                <input id="purchase_price" v-model="form.purchase_price" type="number" min="0" step="0.01" class="field" :placeholder="$t('items.form.price_placeholder')" />
-                <InputError :message="form.errors.purchase_price" />
-            </div>
-        </div>
 
-        <!-- "Connections" section: external links this item has — a Home
+            <!-- "Connections" section: external links this item has — a Home
              Assistant device and/or Paperless documents — in one section,
              matching the read-only Connections card on Show.vue. Edit-only,
              so a destructive unlink requires entering Edit first. Sits above
-             Custom fields. An item may have one, both, or none. -->
-        <template v-if="mode === 'edit' && hasConnections">
+             Custom fields. An item may have one, both, or none — with
+             Paperless enabled the section always shows, hosting the
+             "link a document" input. -->
+            <template v-if="mode === 'edit' && (hasConnections || paperlessEnabled)">
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+                <p class="section-label">{{ $t('items.links.section_title') }}</p>
+                <ul v-if="hasConnections" class="paperless-list" data-test="connections-edit-list">
+                    <li v-if="homeAssistantLink" class="paperless-row" data-test="ha-edit-row">
+                        <a v-if="homeAssistantLink.url" :href="homeAssistantLink.url" target="_blank" rel="noopener" class="paperless-link">
+                            <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                            <span class="paperless-id">{{
+                                homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id
+                            }}</span>
+                            <span class="paperless-host truncate">{{ $t('items.home_assistant.open_in_home_assistant') }}</span>
+                        </a>
+                        <span v-else class="paperless-link">
+                            <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                            <span class="paperless-id">{{
+                                homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id
+                            }}</span>
+                        </span>
+                        <button
+                            type="button"
+                            class="btn-ghost"
+                            style="padding: 4px 8px"
+                            data-test="ha-unlink"
+                            :aria-label="$t('items.home_assistant.unlink')"
+                            @click="unlinkHomeAssistant"
+                        >
+                            <X :size="14" />
+                        </button>
+                    </li>
+                    <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
+                        <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
+                            <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
+                            <span class="paperless-id">#{{ link.document_id }}</span>
+                            <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
+                        </a>
+                        <button
+                            type="button"
+                            class="btn-ghost"
+                            style="padding: 4px 8px"
+                            :data-test="`paperless-unlink-${link.document_id}`"
+                            :aria-label="$t('items.paperless.unlink')"
+                            @click="unlinkPaperless(link.document_id)"
+                        >
+                            <X :size="14" />
+                        </button>
+                    </li>
+                </ul>
+                <div v-if="paperlessEnabled && item">
+                    <LinkPaperlessDocumentDialog :item="item" />
+                </div>
+            </template>
+
+            <template v-if="customFields.length">
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+                <p class="section-label">{{ $t('items.form.section_custom') }}</p>
+                <CustomFieldsInput v-model="form.custom_fields" :fields="customFields" :errors="form.errors" />
+            </template>
+
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-            <p class="section-label">{{ $t('items.links.section_title') }}</p>
-            <ul class="paperless-list" data-test="connections-edit-list">
-                <li v-if="homeAssistantLink" class="paperless-row" data-test="ha-edit-row">
-                    <a
-                        v-if="homeAssistantLink.url"
-                        :href="homeAssistantLink.url"
-                        target="_blank"
-                        rel="noopener"
-                        class="paperless-link"
-                    >
-                        <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
-                        <span class="paperless-host truncate">{{ $t('items.home_assistant.open_in_home_assistant') }}</span>
-                    </a>
-                    <span v-else class="paperless-link">
-                        <House :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                        <span class="paperless-id">{{ homeAssistantLink.friendly_name || homeAssistantLink.entity_id || homeAssistantLink.device_id }}</span>
-                    </span>
-                    <button
-                        type="button"
-                        class="btn-ghost"
-                        style="padding: 4px 8px"
-                        data-test="ha-unlink"
-                        :aria-label="$t('items.home_assistant.unlink')"
-                        @click="unlinkHomeAssistant"
-                    >
-                        <X :size="14" />
-                    </button>
-                </li>
-                <li v-for="link in paperlessLinks" :key="link.document_id" class="paperless-row">
-                    <a :href="link.url" target="_blank" rel="noopener" class="paperless-link">
-                        <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />
-                        <span class="paperless-id">#{{ link.document_id }}</span>
-                        <span class="paperless-host truncate">{{ $t('items.paperless.open_in_paperless') }}</span>
-                    </a>
-                    <button
-                        type="button"
-                        class="btn-ghost"
-                        style="padding: 4px 8px"
-                        :data-test="`paperless-unlink-${link.document_id}`"
-                        :aria-label="$t('items.paperless.unlink')"
-                        @click="unlinkPaperless(link.document_id)"
-                    >
-                        <X :size="14" />
-                    </button>
-                </li>
-            </ul>
-        </template>
+            <p class="section-label">{{ $t('items.form.section_warranty') }}</p>
 
-        <template v-if="customFields.length">
+            <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+                <input v-model="form.lifetime_warranty" type="checkbox" />
+                {{ $t('items.form.lifetime_warranty') }}
+            </label>
+            <div class="form-grid">
+                <div class="form-row">
+                    <label for="warranty_expires">{{ $t('items.form.warranty_expires') }}</label>
+                    <input id="warranty_expires" v-model="form.warranty_expires" type="date" class="field" :disabled="form.lifetime_warranty" />
+                    <InputError :message="form.errors.warranty_expires" />
+                </div>
+            </div>
+            <div class="form-row">
+                <label for="warranty_details">{{ $t('items.form.warranty_details') }}</label>
+                <textarea
+                    id="warranty_details"
+                    v-model="form.warranty_details"
+                    rows="2"
+                    class="field"
+                    :placeholder="$t('items.form.warranty_details_placeholder')"
+                />
+                <InputError :message="form.errors.warranty_details" />
+            </div>
+
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-            <p class="section-label">{{ $t('items.form.section_custom') }}</p>
-            <CustomFieldsInput v-model="form.custom_fields" :fields="customFields" :errors="form.errors" />
-        </template>
+            <p class="section-label">{{ $t('items.form.section_sold') }}</p>
 
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-        <p class="section-label">{{ $t('items.form.section_warranty') }}</p>
-
-        <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
-            <input v-model="form.lifetime_warranty" type="checkbox" />
-            {{ $t('items.form.lifetime_warranty') }}
-        </label>
-        <div class="form-grid">
-            <div class="form-row">
-                <label for="warranty_expires">{{ $t('items.form.warranty_expires') }}</label>
-                <input id="warranty_expires" v-model="form.warranty_expires" type="date" class="field" :disabled="form.lifetime_warranty" />
-                <InputError :message="form.errors.warranty_expires" />
-            </div>
-        </div>
-        <div class="form-row">
-            <label for="warranty_details">{{ $t('items.form.warranty_details') }}</label>
-            <textarea id="warranty_details" v-model="form.warranty_details" rows="2" class="field" :placeholder="$t('items.form.warranty_details_placeholder')" />
-            <InputError :message="form.errors.warranty_details" />
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
-        <p class="section-label">{{ $t('items.form.section_sold') }}</p>
-
-        <div class="form-grid">
-            <div class="form-row">
-                <label for="sold_to">{{ $t('items.form.sold_to') }}</label>
-                <input id="sold_to" v-model="form.sold_to" class="field" :placeholder="$t('items.form.sold_to_placeholder')" />
-                <InputError :message="form.errors.sold_to" />
+            <div class="form-grid">
+                <div class="form-row">
+                    <label for="sold_to">{{ $t('items.form.sold_to') }}</label>
+                    <input id="sold_to" v-model="form.sold_to" class="field" :placeholder="$t('items.form.sold_to_placeholder')" />
+                    <InputError :message="form.errors.sold_to" />
+                </div>
+                <div class="form-row">
+                    <label for="sold_price">{{ $t('items.form.sold_price', { code: currency.code }) }}</label>
+                    <input
+                        id="sold_price"
+                        v-model="form.sold_price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="field"
+                        :placeholder="$t('items.form.price_placeholder')"
+                    />
+                    <InputError :message="form.errors.sold_price" />
+                </div>
+                <div class="form-row">
+                    <label for="sold_date">{{ $t('items.form.sold_date') }}</label>
+                    <input id="sold_date" v-model="form.sold_date" type="date" class="field" />
+                    <InputError :message="form.errors.sold_date" />
+                </div>
             </div>
             <div class="form-row">
-                <label for="sold_price">{{ $t('items.form.sold_price', { code: currency.code }) }}</label>
-                <input id="sold_price" v-model="form.sold_price" type="number" min="0" step="0.01" class="field" :placeholder="$t('items.form.price_placeholder')" />
-                <InputError :message="form.errors.sold_price" />
+                <label for="sold_notes">{{ $t('items.form.sold_notes') }}</label>
+                <textarea id="sold_notes" v-model="form.sold_notes" rows="2" class="field" />
+                <InputError :message="form.errors.sold_notes" />
             </div>
-            <div class="form-row">
-                <label for="sold_date">{{ $t('items.form.sold_date') }}</label>
-                <input id="sold_date" v-model="form.sold_date" type="date" class="field" />
-                <InputError :message="form.errors.sold_date" />
-            </div>
-        </div>
-        <div class="form-row">
-            <label for="sold_notes">{{ $t('items.form.sold_notes') }}</label>
-            <textarea id="sold_notes" v-model="form.sold_notes" rows="2" class="field" />
-            <InputError :message="form.errors.sold_notes" />
-        </div>
         </template>
 
         <div class="flex justify-end gap-2">
@@ -629,22 +664,46 @@ function submit() {
 }
 /* Paperless link chips — same shape as Show.vue's read-only block, plus
    a trailing × per row that fires the unlink action. */
-.paperless-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.paperless-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 .paperless-row {
-    display: flex; align-items: center; gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 6px 10px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--bg-elev);
 }
 .paperless-link {
-    display: flex; align-items: center; gap: 8px;
-    flex: 1; min-width: 0;
-    color: inherit; text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
     font-size: 13px;
 }
-.paperless-link:hover .paperless-host { color: var(--accent); }
-.paperless-id { font-family: var(--font-mono, monospace); color: var(--fg); }
-.paperless-host { color: var(--fg-muted); }
-.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paperless-link:hover .paperless-host {
+    color: var(--accent);
+}
+.paperless-id {
+    font-family: var(--font-mono, monospace);
+    color: var(--fg);
+}
+.paperless-host {
+    color: var(--fg-muted);
+}
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 </style>

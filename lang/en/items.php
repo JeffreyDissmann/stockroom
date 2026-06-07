@@ -107,6 +107,15 @@ return [
         'open_in_paperless' => 'Open in Paperless',
         'unlink' => 'Unlink document',
         'unlink_confirm' => 'Unlink this Paperless document from the item?',
+        'add_trigger' => 'Link document',
+        'add_title' => 'Link a Paperless document to :name',
+        'hint_search' => 'Search Paperless, or enter a document id / URL.',
+        'hint_id' => 'Enter a document id or paste a Paperless document URL.',
+        'add_placeholder_search' => 'Search Paperless, or enter a document id / URL…',
+        'add_placeholder_id' => 'Document id or Paperless URL…',
+        'link_document' => 'Link document #:id',
+        'search_unreachable' => 'Paperless could not be reached.',
+        'search_empty' => 'No matching documents.',
     ],
 
     // Shared "Connections" section that groups external links (Paperless docs +

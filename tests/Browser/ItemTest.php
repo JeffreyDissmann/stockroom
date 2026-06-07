@@ -60,6 +60,41 @@ it('groups Home Assistant and Paperless into one Connections section on edit', f
         ->assertNoJavaScriptErrors();
 });
 
+it('offers the link-document dialog in Connections when Paperless is enabled', function () {
+    config()->set('paperless.url', 'https://paperless.test');
+    config()->set('paperless.token', 'secret');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // The section shows even with no existing links — it hosts the trigger.
+    // Typing a bare id in the dialog offers the direct "Link document #447"
+    // row (no Paperless round-trip; ids skip the admin-only search).
+    $page->assertSee('Connections')
+        ->assertPresent('@paperless-add')
+        ->click('@paperless-add')
+        ->assertPresent('@paperless-add-input')
+        ->fill('@paperless-add-input', '447')
+        ->assertPresent('@paperless-add-direct')
+        ->assertPresent('@paperless-add-submit')
+        ->assertNoJavaScriptErrors();
+});
+
+it('hides the link-document trigger when Paperless is disabled', function () {
+    config()->set('paperless.url', '');
+
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    HomeAssistantLink::factory()->create(['item_id' => $item->id, 'friendly_name' => 'Drill']);
+
+    $page = visit("/items/{$item->id}/edit");
+
+    // The HA link still renders the section; the Paperless trigger does not.
+    $page->assertPresent('@connections-edit-list')
+        ->assertMissing('@paperless-add')
+        ->assertNoJavaScriptErrors();
+});
+
 it('lists items and filters with search across grid and list views', function () {
     Item::factory()->room()->create(['name' => 'Garage']);
     Item::factory()->room()->create(['name' => 'Kitchen']);
