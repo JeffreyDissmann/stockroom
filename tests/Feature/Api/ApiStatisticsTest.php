@@ -6,6 +6,7 @@ namespace Tests\Feature\Api;
 
 use App\Enums\ItemType;
 use App\Models\Item;
+use App\Models\MaintenanceTask;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,5 +47,20 @@ class ApiStatisticsTest extends TestCase
             ->assertJsonPath('by_tag.0.items_count', 1)
             ->assertJsonPath('by_room.0.name', 'Garage')
             ->assertJsonPath('by_room.0.children_count', 2);
+    }
+
+    public function test_includes_maintenance_attention_counters(): void
+    {
+        MaintenanceTask::factory()->overdue(5)->create();
+        MaintenanceTask::factory()->overdue(2)->create();
+        MaintenanceTask::factory()->dueSoon(3)->create();   // inside the 7-day default window
+        MaintenanceTask::factory()->create();               // due in a month — neither
+
+        Sanctum::actingAs(User::factory()->create(), ['read']);
+
+        $this->getJson('/api/v1/statistics')
+            ->assertOk()
+            ->assertJsonPath('maintenance.overdue', 2)
+            ->assertJsonPath('maintenance.due_soon', 1);
     }
 }

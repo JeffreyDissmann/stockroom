@@ -125,6 +125,25 @@ class MaintenanceTask extends Model
             ->values();
     }
 
+    /**
+     * Overdue / due-soon counts across the household — the numbers behind the
+     * API's maintenance sensors. Derived from needingAttention() so the
+     * "due soon" definition stays identical to the dashboard card and digest:
+     * due_soon is everything needing attention that isn't already overdue.
+     *
+     * @return array{overdue: int, due_soon: int}
+     */
+    public static function attentionCounts(): array
+    {
+        $attention = self::needingAttention();
+        $overdue = $attention->filter(fn (self $task): bool => $task->isOverdue())->count();
+
+        return [
+            'overdue' => $overdue,
+            'due_soon' => $attention->count() - $overdue,
+        ];
+    }
+
     public function isOverdue(): bool
     {
         return $this->is_active

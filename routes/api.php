@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\HomeAssistantLinkController;
 use App\Http\Controllers\Api\V1\ItemController;
+use App\Http\Controllers\Api\V1\MaintenanceTaskController;
 use App\Http\Controllers\Api\V1\RoomController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\StatisticsController;
@@ -45,6 +46,11 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
             // integration's Repair feature (vs. list + per-item N+1).
             Route::get('home-assistant-links', [HomeAssistantLinkController::class, 'index'])
                 ->name('home-assistant-links.index');
+
+            // Maintenance schedules on an item (overdue/due-soon counters live
+            // on the statistics endpoint).
+            Route::get('items/{item}/maintenance-tasks', [MaintenanceTaskController::class, 'index'])
+                ->name('items.maintenance-tasks.index');
         });
 
         // Write endpoints — require a token with the `write` ability.
