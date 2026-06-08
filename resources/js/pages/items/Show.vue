@@ -194,7 +194,7 @@ function destroyItem() {
                 {{ $t('common.delete') }}
             </button>
 
-            <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-primary">
+            <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-primary" data-test="topbar-add-child">
                 <Plus :size="14" />
                 {{ $t('items.show.add_child') }}
             </Link>
@@ -429,9 +429,9 @@ function destroyItem() {
                  halves the scroll distance to Maintenance/Activity below. -->
             <div class="section-split mt-8">
                 <section>
-                    <div class="mb-3 flex items-center justify-between gap-3">
+                    <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                         <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
                             <BulkSelectToggle v-if="children.length" />
                             <ItemViewToggle v-if="children.length" v-model="contentsView" />
                             <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
@@ -457,9 +457,9 @@ function destroyItem() {
                      Matches the Contents section's grid/list toggle so the two
                      sibling lists feel like the same UI element. -->
                 <section data-test="related-items-section">
-                    <div class="mb-3 flex items-center justify-between gap-3">
+                    <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                         <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
                             <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
                             <LinkRelatedItemDialog :item="item" />
                         </div>

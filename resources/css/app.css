@@ -270,6 +270,11 @@
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    /* Cap at the row width so flex-wrap actually wraps the buttons onto a
+       second line on a narrow phone. Without it, `flex: 0 0 auto` sizes the
+       group to max-content (one line) and a long action label — e.g. the
+       German "Unterelement hinzufügen" — overflows the viewport and clips. */
+    max-width: 100%;
 }
 .btn-pill {
     display: inline-flex;
