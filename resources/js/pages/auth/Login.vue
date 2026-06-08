@@ -52,7 +52,7 @@ const submit = () => {
                         v-model="form.email"
                         placeholder="email@example.com"
                     />
-                    <InputError :message="form.errors.email" />
+                    <InputError data-test="login-error" :message="form.errors.email" />
                 </div>
 
                 <div class="grid gap-2">

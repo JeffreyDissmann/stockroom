@@ -63,7 +63,7 @@ it('does not leak raw translation keys in the mobile more menu', function () {
     // an entry pointing at the redirect — so the dropdown rendered the raw key.
     $page = visit('/dashboard')->on()->iPhone14Pro();
 
-    $page->click('More')
+    $page->click('@open-more')
         ->assertDontSee('household.nav.import')
         ->assertDontSee('nav.import')
         ->assertNoJavaScriptErrors();
@@ -72,7 +72,7 @@ it('does not leak raw translation keys in the mobile more menu', function () {
 it('opens the assistant from the mobile more menu', function () {
     $page = visit('/dashboard')->on()->iPhone14Pro();
 
-    $page->click('More')
+    $page->click('@open-more')
         ->click('@open-assistant-mobile')
         ->assertSee('Ask me where something is') // the panel's empty state
         ->assertPresent('@assistant-new') // the "New chat" reset control

@@ -40,7 +40,10 @@ it('rejects invalid credentials', function () {
         ->type('#password', 'wrong-password')
         ->click('Log in')
         ->assertPathIs('/login')
-        ->assertSee('These credentials do not match our records.');
+        // Assert the validation error is shown without asserting its text —
+        // guest pages render in the server's APP_LOCALE, which isn't English
+        // in every environment. The visible error is the language-neutral signal.
+        ->assertVisible('@login-error');
 });
 
 it('logs out via the user menu back to the login screen', function () {

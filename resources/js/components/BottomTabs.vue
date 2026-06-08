@@ -79,7 +79,7 @@ const moreActive = computed(() => /^\/(tags|activity|maintenance|household|setti
 
         <DropdownMenu>
             <DropdownMenuTrigger as-child>
-                <button type="button" :class="moreActive ? 'active' : ''" :aria-label="$t('common.more')">
+                <button type="button" :class="moreActive ? 'active' : ''" :aria-label="$t('common.more')" data-test="open-more">
                     <MoreHorizontal />
                     {{ $t('common.more') }}
                 </button>
