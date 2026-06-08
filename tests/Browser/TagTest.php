@@ -11,6 +11,10 @@ beforeEach(function () {
 });
 
 it('creates a tag from the inline form', function () {
+    // The settings migration seeds a protected "Box" tag, so the empty state
+    // never shows on a real install — clear tags to exercise it here.
+    Tag::query()->delete();
+
     $page = visit('/tags');
 
     $page->assertSee('No tags yet.')
