@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1 — build the frontend (production Vite bundle)
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS frontend
+FROM node:24-alpine AS frontend
 
 WORKDIR /app
 
