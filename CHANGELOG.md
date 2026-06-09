@@ -7,6 +7,23 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.05] — 2026-06-09
+
+### Added
+
+- **The auth screens are now translated.** Login, register, password
+  reset / forgot / confirm and the invalid-invite page were hardcoded
+  English, so on a German install the pitch panel showed German while the
+  form stayed English. Every auth UI string now goes through the
+  translation layer (English + German).
+
+### Changed
+
+- **The mobile assistant button gets out of the way.** The floating
+  assistant shortcut used to sit over the bottom-right of the page and
+  cover content; it now slides away while you scroll down and returns when
+  you scroll back up.
+
 ### Fixed
 
 - **Item page action buttons were cut off on a narrow phone.** A long
@@ -14,6 +31,14 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
   topbar action row — and the Contents / Related / Maintenance section
   toolbars — past the right edge instead of wrapping. Those rows now wrap
   onto a second line so every control stays reachable.
+- **Dashboard "maintenance due" card clipped a long item name** on a
+  narrow phone; it now truncates with an ellipsis.
+
+### Internal
+
+- Fixed three flaky/locale-dependent browser tests (mobile More-menu
+  selector, login-error assertion, the seeded "Box" tag) so the browser
+  suite is green again.
 
 ## [2026.06.04] — 2026-06-07
 
@@ -490,7 +515,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.04...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.05...HEAD
+[2026.06.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.04...2026.06.05
 [2026.06.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.03...2026.06.04
 [2026.06.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.02...2026.06.03
 [2026.06.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.01...2026.06.02
