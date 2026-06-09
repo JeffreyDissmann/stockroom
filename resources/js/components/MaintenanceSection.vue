@@ -59,7 +59,7 @@ function deleteTask(task: MaintenanceTaskRow) {
 
 <template>
     <section class="mt-8" data-test="maintenance-section">
-        <div class="mb-3 flex items-center justify-between gap-3">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <h3 class="section-label" style="margin: 0">{{ $t('maintenance.section_title') }}</h3>
             <button type="button" class="btn-pill" data-test="maintenance-task-add" @click="openCreate">
                 <Plus :size="14" />

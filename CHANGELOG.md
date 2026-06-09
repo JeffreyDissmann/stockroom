@@ -7,6 +7,14 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+### Fixed
+
+- **Item page action buttons were cut off on a narrow phone.** A long
+  action label (notably the German "Unterelement hinzufügen") pushed the
+  topbar action row — and the Contents / Related / Maintenance section
+  toolbars — past the right edge instead of wrapping. Those rows now wrap
+  onto a second line so every control stays reachable.
+
 ## [2026.06.04] — 2026-06-07
 
 ### Added

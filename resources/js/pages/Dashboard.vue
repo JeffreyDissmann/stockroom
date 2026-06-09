@@ -252,6 +252,8 @@ const valueLabel = computed(() =>
     background: var(--bg-hover);
 }
 .dash-mnt-title {
+    flex: 1 1 auto;
+    min-width: 0;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
@@ -259,7 +261,14 @@ const valueLabel = computed(() =>
 }
 .dash-mnt-item {
     margin-left: auto;
-    flex-shrink: 0;
+    /* Secondary info — allow it to shrink and ellipsize so a long item
+       name can't push the row past the viewport on a narrow phone. */
+    min-width: 0;
+    max-width: 50%;
+    flex-shrink: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: var(--fg-subtle);
     font-size: 12.5px;
 }

@@ -292,3 +292,28 @@ it('toggles a tag on while creating an item', function () {
 
     expect(Item::where('name', 'Hammer')->firstOrFail()->tags()->count())->toBe(1);
 });
+
+it('keeps the item-page action row inside the viewport on a narrow phone', function () {
+    // Regression: the long German "Unterelement hinzufügen" label used to push
+    // the topbar action row (and the Contents toolbar) past the right edge on
+    // a phone, clipping the button and the ⋮ menu. Both rows now wrap.
+    $this->actingAs(User::factory()->create(['locale' => 'de']));
+
+    $room = Item::factory()->room()->create(['name' => 'Abstellraum']);
+    Item::factory()->create(['name' => 'Schrauben', 'parent_id' => $room->id]);
+
+    $page = visit("/items/{$room->id}")->on()->iPhone14Pro();
+
+    $page->assertSee('Abstellraum')
+        ->assertPresent('@topbar-add-child')
+        ->assertPresent('@item-actions-more')
+        ->assertNoJavaScriptErrors();
+
+    // The add-child button's right edge must sit within the viewport — a
+    // clipped (overflowing) button would report a right beyond innerWidth.
+    $overflow = $page->script(
+        '(() => { const el = document.querySelector(\'[data-test="topbar-add-child"]\');'
+        .' return el.getBoundingClientRect().right - window.innerWidth; })()'
+    );
+    expect($overflow)->toBeLessThanOrEqual(1);
+});
