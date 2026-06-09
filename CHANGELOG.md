@@ -7,6 +7,16 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.06] — 2026-06-09
+
+### Internal
+
+- CI and the image build now run on **Node 24**. GitHub forces JS actions
+  onto Node 24 from 2026-06-16 (Node 20 removed 2026-09-16), so every
+  GitHub Action was bumped to its current major and the build toolchain
+  (`node-version`, `node:24-alpine`, `@types/node`) moved to 24. Build/run
+  only — no change to the running application.
+
 ## [2026.06.05] — 2026-06-09
 
 ### Added
@@ -515,7 +525,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.05...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.06...HEAD
+[2026.06.06]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.05...2026.06.06
 [2026.06.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.04...2026.06.05
 [2026.06.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.03...2026.06.04
 [2026.06.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.02...2026.06.03
