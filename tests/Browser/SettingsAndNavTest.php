@@ -88,6 +88,33 @@ it('shows a floating assistant button on mobile and opens the panel from it', fu
         ->assertNoJavaScriptErrors();
 });
 
+it('hides the FAB while scrolling down and shows it again scrolling up', function () {
+    // Needs a tall, scrollable page so the scroll handler fires.
+    App\Models\Item::factory()->count(24)->create();
+
+    $page = visit('/items')->on()->iPhone14Pro();
+    $page->assertPresent('@open-assistant-fab');
+
+    // Scroll, flush (two rAFs let Vue apply the class), then read, all in one
+    // call: Inertia's scroll region restores scrollTop between round-trips, so
+    // set + assert must share a call.
+    $fab = "document.querySelector('[data-test=\"open-assistant-fab\"]').classList.contains('is-hidden')";
+    $flush = 'await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));';
+
+    // Scrolling down hides it.
+    expect($page->script(
+        "(async()=>{const el=document.querySelector('.main-scroll');el.scrollTop=500;el.dispatchEvent(new Event('scroll'));{$flush}return {$fab};})()"
+    ))->toBeTrue();
+
+    // Scrolling back up shows it again.
+    expect($page->script(
+        "(async()=>{const el=document.querySelector('.main-scroll');el.scrollTop=500;el.dispatchEvent(new Event('scroll'));"
+        . "el.scrollTop=0;el.dispatchEvent(new Event('scroll'));{$flush}return {$fab};})()"
+    ))->toBeFalse();
+
+    $page->assertNoJavaScriptErrors();
+});
+
 it('hides the floating assistant button on desktop', function () {
     // The FAB is mobile-only. A scoped <style> rule used to override Tailwind's
     // `md:hidden` on specificity, leaking the button onto desktop; this test

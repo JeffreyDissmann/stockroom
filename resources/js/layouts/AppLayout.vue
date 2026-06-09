@@ -9,12 +9,47 @@ import { useBulkSelection } from '@/composables/useBulkSelection';
 import type { BreadcrumbItemType, SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { Sparkles } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const page = usePage<SharedData>();
 const aiEnabled = page.props.features.ai;
 const { open: openAssistant } = useAssistant();
 const bulk = useBulkSelection();
+
+// ── Assistant FAB scroll behaviour ──────────────────────────────────────────
+// The FAB floats over the bottom-right of the scroll area, so it can cover
+// content. It slides away while you scroll down (revealing whatever it
+// covered) and returns when you scroll up or are near the top.
+const mainScroll = ref<HTMLElement | null>(null);
+const fabHidden = ref(false);
+let lastScrollTop = 0;
+
+function onScroll() {
+    const el = mainScroll.value;
+    if (!el) return;
+    const top = el.scrollTop;
+    // Always visible near the top; otherwise follow scroll direction.
+    if (top < 80) {
+        fabHidden.value = false;
+    } else if (top > lastScrollTop + 4) {
+        fabHidden.value = true; // scrolling down
+    } else if (top < lastScrollTop - 4) {
+        fabHidden.value = false; // scrolling up
+    }
+    lastScrollTop = top;
+}
+
+onMounted(() => mainScroll.value?.addEventListener('scroll', onScroll, { passive: true }));
+onBeforeUnmount(() => mainScroll.value?.removeEventListener('scroll', onScroll));
+
+// Reset on navigation — a fresh page starts scrolled to the top with the FAB shown.
+watch(
+    () => page.url,
+    () => {
+        lastScrollTop = 0;
+        fabHidden.value = false;
+    },
+);
 
 // Mobile assistant FAB only surfaces on the pages where you're actually
 // browsing items — Dashboard (the recent-activity feed) and Inventory
@@ -53,7 +88,7 @@ withDefaults(
                     <slot name="topbar-actions" />
                 </template>
             </Topbar>
-            <div class="main-scroll">
+            <div ref="mainScroll" class="main-scroll">
                 <slot />
             </div>
             <BottomTabs />
@@ -63,7 +98,7 @@ withDefaults(
         <button
             v-if="showAssistantFab"
             type="button"
-            class="assistant-fab inline-flex items-center justify-center md:hidden"
+            :class="['assistant-fab inline-flex items-center justify-center md:hidden', { 'is-hidden': fabHidden }]"
             :title="$t('nav.assistant')"
             :aria-label="$t('nav.assistant')"
             data-test="open-assistant-fab"
@@ -97,8 +132,18 @@ withDefaults(
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
     cursor: pointer;
     z-index: 40;
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
 }
 .assistant-fab:active {
     transform: translateY(1px);
+}
+/* Slide the FAB out of the way while scrolling down. translateY clears the
+   button (48px) + its bottom offset so it leaves the viewport entirely. */
+.assistant-fab.is-hidden {
+    transform: translateY(140px);
+    opacity: 0;
+    pointer-events: none;
 }
 </style>
