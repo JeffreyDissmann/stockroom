@@ -25,7 +25,7 @@ it('logs in with valid credentials and lands on the dashboard', function () {
 
     $page->type('#email', 'admin@stockroom.local')
         ->type('#password', 'password')
-        ->click('Log in')
+        ->click('@login-submit')
         ->assertPathIs('/dashboard')
         ->assertSee('Welcome back')
         ->assertNoJavaScriptErrors();
@@ -38,7 +38,7 @@ it('rejects invalid credentials', function () {
 
     $page->type('#email', 'admin@stockroom.local')
         ->type('#password', 'wrong-password')
-        ->click('Log in')
+        ->click('@login-submit')
         ->assertPathIs('/login')
         // Assert the validation error is shown without asserting its text —
         // guest pages render in the server's APP_LOCALE, which isn't English

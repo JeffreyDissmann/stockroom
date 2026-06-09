@@ -34,27 +34,44 @@ const submit = () => {
 
 <template>
     <AuthBase
-        title="Create your account"
-        :description="invitedBy ? `${invitedBy} invited you to share this home inventory.` : 'Set up your account to join this home inventory.'"
+        :title="$t('auth_form.register.title')"
+        :description="invitedBy ? $t('auth_form.register.description_invited', { name: invitedBy }) : $t('auth_form.register.description')"
     >
-        <Head title="Create account" />
+        <Head :title="$t('auth_form.register.meta')" />
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="name">Name</Label>
-                    <Input id="name" type="text" required autofocus tabindex="1" autocomplete="name" v-model="form.name" placeholder="Full name" />
+                    <Label for="name">{{ $t('auth_form.fields.name') }}</Label>
+                    <Input
+                        id="name"
+                        type="text"
+                        required
+                        autofocus
+                        tabindex="1"
+                        autocomplete="name"
+                        v-model="form.name"
+                        :placeholder="$t('auth_form.placeholders.name')"
+                    />
                     <InputError :message="form.errors.name" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input id="email" type="email" required tabindex="2" autocomplete="email" v-model="form.email" placeholder="email@example.com" />
+                    <Label for="email">{{ $t('auth_form.fields.email') }}</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        required
+                        tabindex="2"
+                        autocomplete="email"
+                        v-model="form.email"
+                        :placeholder="$t('auth_form.placeholders.email')"
+                    />
                     <InputError :message="form.errors.email" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password">Password</Label>
+                    <Label for="password">{{ $t('auth_form.fields.password') }}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -62,13 +79,13 @@ const submit = () => {
                         tabindex="3"
                         autocomplete="new-password"
                         v-model="form.password"
-                        placeholder="Password"
+                        :placeholder="$t('auth_form.placeholders.password')"
                     />
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation">Confirm password</Label>
+                    <Label for="password_confirmation">{{ $t('auth_form.fields.confirm_password') }}</Label>
                     <Input
                         id="password_confirmation"
                         type="password"
@@ -76,20 +93,20 @@ const submit = () => {
                         tabindex="4"
                         autocomplete="new-password"
                         v-model="form.password_confirmation"
-                        placeholder="Confirm password"
+                        :placeholder="$t('auth_form.placeholders.confirm_password')"
                     />
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
                 <Button type="submit" class="mt-2 w-full" tabindex="5" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
-                    Create account
+                    {{ $t('auth_form.register.submit') }}
                 </Button>
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
-                Already have an account?
-                <TextLink :href="login().url" class="underline underline-offset-4" tabindex="6">Log in</TextLink>
+                {{ $t('auth_form.register.have_account') }}
+                <TextLink :href="login().url" class="underline underline-offset-4" tabindex="6">{{ $t('auth_form.register.log_in') }}</TextLink>
             </div>
         </form>
     </AuthBase>
