@@ -71,6 +71,18 @@ class ApiItemWriteTest extends TestCase
         $this->assertTrue($item->tags->contains($tag));
     }
 
+    public function test_update_sets_the_battery_type(): void
+    {
+        $item = Item::factory()->create(['type' => ItemType::Item]);
+        $this->actAsWriter();
+
+        $this->patchJson("/api/v1/items/{$item->id}", ['battery_type' => 'CR2032'])
+            ->assertOk()
+            ->assertJsonPath('data.battery_type', 'CR2032');
+
+        $this->assertSame('CR2032', $item->refresh()->battery_type);
+    }
+
     public function test_update_replaces_tags_when_key_present(): void
     {
         $item = Item::factory()->create(['type' => ItemType::Item]);

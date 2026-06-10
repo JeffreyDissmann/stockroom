@@ -1,6 +1,9 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
 import maintenanceTasks from './maintenance-tasks'
+import battery from './battery'
 import homeAssistantLink from './home-assistant-link'
+import batteryReadings from './battery-readings'
+import batteryChanges from './battery-changes'
 /**
 * @see \App\Http\Controllers\Api\V1\ItemController::index
 * @see app/Http/Controllers/Api/V1/ItemController.php:31
@@ -209,9 +212,12 @@ const items = {
     index: Object.assign(index, index),
     show: Object.assign(show, show),
     maintenanceTasks: Object.assign(maintenanceTasks, maintenanceTasks),
+    battery: Object.assign(battery, battery),
     store: Object.assign(store, store),
     update: Object.assign(update, update),
     homeAssistantLink: Object.assign(homeAssistantLink, homeAssistantLink),
+    batteryReadings: Object.assign(batteryReadings, batteryReadings),
+    batteryChanges: Object.assign(batteryChanges, batteryChanges),
 }
 
 export default items

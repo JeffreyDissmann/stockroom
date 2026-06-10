@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\BatteryController;
 use App\Http\Controllers\Api\V1\HomeAssistantLinkController;
 use App\Http\Controllers\Api\V1\ItemController;
 use App\Http\Controllers\Api\V1\MaintenanceTaskController;
@@ -51,6 +52,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
             // on the statistics endpoint).
             Route::get('items/{item}/maintenance-tasks', [MaintenanceTaskController::class, 'index'])
                 ->name('items.maintenance-tasks.index');
+
+            // Battery state: current level, type, depletion forecast, reminder.
+            Route::get('items/{item}/battery', [BatteryController::class, 'show'])
+                ->name('items.battery.show');
         });
 
         // Write endpoints — require a token with the `write` ability.
@@ -68,5 +73,11 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
                 ->name('items.maintenance-tasks.store');
             Route::post('maintenance-tasks/{maintenanceTask}/complete', [MaintenanceTaskController::class, 'complete'])
                 ->name('maintenance-tasks.complete');
+
+            // Push a battery level sample; record an explicit swap.
+            Route::post('items/{item}/battery-readings', [BatteryController::class, 'storeReading'])
+                ->name('items.battery-readings.store');
+            Route::post('items/{item}/battery-changes', [BatteryController::class, 'storeChange'])
+                ->name('items.battery-changes.store');
         });
     });

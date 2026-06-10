@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::index
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:28
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:33
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 export const index = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::index
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:28
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:33
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 index.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ index.url = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::index
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:28
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:33
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 index.get = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -59,7 +59,7 @@ index.get = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::index
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:28
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:33
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 index.head = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -69,7 +69,7 @@ index.head = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::store
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:37
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:42
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 export const store = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -84,7 +84,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::store
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:37
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:42
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 store.url = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -117,7 +117,7 @@ store.url = (args: { item: number | { id: number } } | [item: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::store
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:37
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:42
 * @route '/api/v1/items/{item}/maintenance-tasks'
 */
 store.post = (args: { item: number | { id: number } } | [item: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -127,7 +127,7 @@ store.post = (args: { item: number | { id: number } } | [item: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::complete
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:54
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:59
 * @route '/api/v1/maintenance-tasks/{maintenanceTask}/complete'
 */
 export const complete = (args: { maintenanceTask: number | { id: number } } | [maintenanceTask: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -142,7 +142,7 @@ complete.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::complete
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:54
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:59
 * @route '/api/v1/maintenance-tasks/{maintenanceTask}/complete'
 */
 complete.url = (args: { maintenanceTask: number | { id: number } } | [maintenanceTask: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -175,7 +175,7 @@ complete.url = (args: { maintenanceTask: number | { id: number } } | [maintenanc
 
 /**
 * @see \App\Http\Controllers\Api\V1\MaintenanceTaskController::complete
-* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:54
+* @see app/Http/Controllers/Api/V1/MaintenanceTaskController.php:59
 * @route '/api/v1/maintenance-tasks/{maintenanceTask}/complete'
 */
 complete.post = (args: { maintenanceTask: number | { id: number } } | [maintenanceTask: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({

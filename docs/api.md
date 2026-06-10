@@ -68,12 +68,15 @@ the route requires.
 | GET | `/search?q=` | read | Hybrid keyword + semantic search. |
 | GET | `/home-assistant-links` | read | Every item that has a Home Assistant link, with the link embedded. |
 | GET | `/items/{item}/maintenance-tasks` | read | Maintenance schedules on an item. |
+| GET | `/items/{item}/battery` | read | Current battery level, type, depletion forecast and reminder. |
 | POST | `/items` | write | Create an item. |
-| PATCH | `/items/{item}` | write | Partially update an item. |
+| PATCH | `/items/{item}` | write | Partially update an item (incl. `battery_type`). |
 | PUT | `/items/{item}/home-assistant-link` | write | Set or replace the item's Home Assistant link. |
 | DELETE | `/items/{item}/home-assistant-link` | write | Remove the link. |
 | POST | `/items/{item}/maintenance-tasks` | write | Create a maintenance reminder. |
 | POST | `/maintenance-tasks/{task}/complete` | write | Mark a task done, rolling its schedule. |
+| POST | `/items/{item}/battery-readings` | write | Push a battery level sample. |
+| POST | `/items/{item}/battery-changes` | write | Record an explicit battery swap. |
 
 ### `GET /user`
 
@@ -167,6 +170,7 @@ Full `ItemResource`: all detail/acquisition/warranty/sale fields plus `tags`,
     "manufacturer": "Bosch",
     "model_number": "GSR 18V-55",
     "serial_number": null,
+    "battery_type": "18650",
     "purchase_price": "89.99",
     "purchase_date": "2025-03-01",
     "lifetime_warranty": false,
@@ -337,10 +341,15 @@ Partial update — send only the fields you want to change. `name`/`type` are
 validated only when present. **Tags**: include the `tags` key to replace the
 item's tags; omit it to leave them untouched.
 
+The device's **`battery_type`** (`"AA"`, `"CR2032"`, `"AA ×4"`, …) is a plain
+item field set here — a free string, so any cell can be recorded. It's a fixed
+property of the device; the per-battery *level* history goes through the battery
+endpoints below.
+
 ```bash
 curl -s -X PATCH https://stockroom.example/api/v1/items/42 \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"quantity":3}'
+  -d '{"quantity":3,"battery_type":"CR2032"}'
 ```
 
 ### `PUT /items/{item}/home-assistant-link`
@@ -425,4 +434,92 @@ Completing an already-archived task is a `422`.
 curl -s -X POST https://stockroom.example/api/v1/maintenance-tasks/7/complete \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"cost":4.50,"notes":"Used citric acid."}'
+```
+
+Completing an item's **"Replace battery"** task (the system-managed forecast
+reminder) is treated as a battery change: it closes the current battery cycle
+and opens a fresh one, same as `POST /items/{item}/battery-changes`.
+
+## Battery tracking
+
+An item becomes **battery-tracked** the first time it receives a level reading.
+Stockroom keeps one *cycle* per physical battery (the open cycle is the current
+one; closed cycles are history) and a compressed time-series of level readings
+per cycle. From that history it fits a depletion line — pooled with the last few
+batteries so a fresh one is forecast from how its predecessors drained — and
+projects the date the level will cross the low threshold. That date drives a
+system-managed **"Replace battery"** maintenance reminder, so the dashboard
+card, the daily digest and the maintenance API all light up automatically.
+
+Set the battery **type** with `PATCH /items/{item}` (`battery_type`).
+
+### `GET /items/{item}/battery`
+
+Current state and the live forecast. `tracked` is `false` (and most fields
+`null`) for an item that has never reported a level. `projection` is `null` until
+there are enough readings to fit a draining line (≥3 samples, pooled across
+recent cycles); `confidence` is the fit's R² (0–1). `reminder` mirrors the
+"Replace battery" task — `next_due_at` is the predicted-low date.
+
+```bash
+curl -s https://stockroom.example/api/v1/items/42/battery \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "data": {
+    "tracked": true,
+    "battery_type": "CR2032",
+    "current_percent": 60,
+    "last_reading_at": "2026-06-10T08:00:00+00:00",
+    "is_low": false,
+    "installed_at": "2026-05-21T08:00:00+00:00",
+    "projection": {
+      "rate_per_day": -2.0,
+      "predicted_low_at": "2026-06-30",
+      "predicted_empty_at": "2026-07-10",
+      "confidence": 1.0,
+      "sample_count": 3
+    },
+    "reminder": { "next_due_at": "2026-06-30", "is_overdue": false, "reminder_lead_days": 3 }
+  }
+}
+```
+
+### `POST /items/{item}/battery-readings`
+
+Push a level sample — the main Home Assistant path (an automation forwarding a
+device's `battery_level`). Repeated identical values are compressed, and a jump
+from low back up to full is auto-detected as a battery change (closing the old
+cycle, opening a new one). Returns the same payload as `GET .../battery` with
+`201 Created`.
+
+| Field | Rules |
+| ----- | ----- |
+| `percent` | required, int 0–100 |
+| `recorded_at` | optional, date-time (defaults to now) |
+
+```bash
+curl -s -X POST https://stockroom.example/api/v1/items/42/battery-readings \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"percent":58}'
+```
+
+### `POST /items/{item}/battery-changes`
+
+Record an explicit battery swap (a button or automation, when the change isn't
+inferred from a level jump). Closes the current cycle, opens a fresh one and
+completes the "Replace battery" reminder. Returns the same payload as
+`GET .../battery` with `201 Created`.
+
+| Field | Rules |
+| ----- | ----- |
+| `changed_at` | optional, date, not in the future (defaults to now) |
+| `notes` | optional, string, max 2000 |
+
+```bash
+curl -s -X POST https://stockroom.example/api/v1/items/42/battery-changes \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"notes":"Fresh CR2032."}'
 ```
