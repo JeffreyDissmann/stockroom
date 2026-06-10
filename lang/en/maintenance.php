@@ -109,6 +109,7 @@ return [
         'nth_weekday_monthly' => 'Every :ordinal :weekday of the month',
         'nth_weekday_yearly' => 'Every :ordinal :weekday in :month',
         'one_off' => 'Once',
+        'forecast' => 'Predicted from battery level',
         'custom' => 'Custom schedule',
         'ordinals' => [
             '1' => 'first',

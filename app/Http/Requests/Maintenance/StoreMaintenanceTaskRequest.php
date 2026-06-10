@@ -36,7 +36,13 @@ class StoreMaintenanceTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'schedule_type' => ['required', new Enum(MaintenanceScheduleType::class)],
+            // Forecast tasks are system-managed (created when an item becomes
+            // battery-tracked); users pick from the rule-based types only.
+            'schedule_type' => ['required', (new Enum(MaintenanceScheduleType::class))->only([
+                MaintenanceScheduleType::Interval,
+                MaintenanceScheduleType::Calendar,
+                MaintenanceScheduleType::OneOff,
+            ])],
             'reminder_lead_days' => ['nullable', 'integer', 'min:0', 'max:365'],
 
             'interval_value' => ['required_if:schedule_type,interval', 'nullable', 'integer', 'min:1', 'max:999'],

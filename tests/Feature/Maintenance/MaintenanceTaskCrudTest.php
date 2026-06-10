@@ -84,6 +84,8 @@ describe('store', function () {
         'impossible date (Apr 31)' => [['title' => 'T', 'schedule_type' => 'calendar', 'schedule_preset' => ['preset' => 'yearly_on', 'month' => 4, 'day' => 31]], 'schedule_preset.day'],
         'one-off without date' => [['title' => 'T', 'schedule_type' => 'one_off'], 'next_due_at'],
         'lead days out of range' => [['title' => 'T', 'schedule_type' => 'one_off', 'next_due_at' => '2030-01-01', 'reminder_lead_days' => 999], 'reminder_lead_days'],
+        // Forecast tasks are system-managed; users may not create one.
+        'forecast not user-pickable' => [['title' => 'T', 'schedule_type' => 'forecast'], 'schedule_type'],
     ]);
 
     it('allows Feb 29 — a leap-year-only schedule is legitimate', function () {

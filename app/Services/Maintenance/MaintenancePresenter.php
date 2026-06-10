@@ -96,6 +96,7 @@ class MaintenancePresenter
             ]),
             MaintenanceScheduleType::Calendar => $this->calendarSummary($task),
             MaintenanceScheduleType::OneOff => __('maintenance.schedule.one_off'),
+            MaintenanceScheduleType::Forecast => __('maintenance.schedule.forecast'),
         };
     }
 

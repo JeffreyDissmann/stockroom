@@ -181,7 +181,7 @@ export interface MaintenanceTaskRow {
     id: number;
     title: string;
     description: string | null;
-    schedule_type: 'interval' | 'calendar' | 'one_off';
+    schedule_type: 'interval' | 'calendar' | 'one_off' | 'forecast';
     schedule_summary: string;
     next_due_at: string | null;
     due_in_days: number | null;

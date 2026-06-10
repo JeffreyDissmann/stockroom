@@ -23,6 +23,16 @@ enum MaintenanceScheduleType: string
      */
     case OneOff = 'one_off';
 
+    /**
+     * Due date is owned by an external forecast, not a stored rule — the
+     * battery depletion projection writes next_due_at through
+     * MaintenanceSchedule::applyForecast(). Completing it (a battery change)
+     * clears the date until the fresh battery's slope is learned. System
+     * managed: created when an item becomes battery-tracked, never offered
+     * in the schedule picker.
+     */
+    case Forecast = 'forecast';
+
     public function label(): string
     {
         return __('enums.maintenance_schedule_type.'.$this->value);

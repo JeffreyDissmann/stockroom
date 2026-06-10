@@ -54,6 +54,10 @@ describe('schedule summaries (en)', function () {
             fn () => MaintenanceTask::factory()->oneOff()->dueSoon()->create(),
             'Once',
         ],
+        'forecast' => [
+            fn () => MaintenanceTask::factory()->forecast()->dueSoon()->create(),
+            'Predicted from battery level',
+        ],
     ]);
 
     it('renders German summaries under the de locale', function () {

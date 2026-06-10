@@ -107,6 +107,7 @@ return [
         'nth_weekday_monthly' => 'Jeden :ordinal :weekday im Monat',
         'nth_weekday_yearly' => 'Jeden :ordinal :weekday im :month',
         'one_off' => 'Einmalig',
+        'forecast' => 'Aus dem Batteriestand prognostiziert',
         'custom' => 'Eigene Regel',
         'ordinals' => [
             '1' => 'ersten',
