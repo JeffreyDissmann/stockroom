@@ -21,6 +21,7 @@
         "laravel/scout": "^11.2",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.20",
+        "markrogoyski/math-php": "^2.13",
         "meilisearch/meilisearch-php": "^1.16",
         "simshaun/recurr": "^6.0",
         "spatie/laravel-activitylog": "^5.0"

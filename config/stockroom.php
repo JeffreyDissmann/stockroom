@@ -46,5 +46,12 @@ return [
             'min_percent' => 90,
             'min_jump' => 50,
         ],
+        // The depletion forecast pools the current battery with this many
+        // most-recent completed cycles, each re-based to "days since it was
+        // installed", into one age-aligned regression. A fresh battery leans
+        // on this history until its own readings accumulate and dominate.
+        'forecast' => [
+            'history_cycles' => 3,
+        ],
     ],
 ];
