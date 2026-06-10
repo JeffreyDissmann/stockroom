@@ -38,7 +38,7 @@ class BatteryService
      * reading, auto-detects a battery swap from a low→full jump, appends the
      * sample, and refreshes the depletion forecast.
      */
-    public function recordReading(Item $item, int $percent, ?CarbonInterface $at = null): BatteryReading
+    public function recordReading(Item $item, int $percent, CarbonInterface|string|null $at = null): BatteryReading
     {
         $percent = max(0, min(100, $percent));
         $at = $at ? CarbonImmutable::parse($at) : CarbonImmutable::now();
@@ -63,17 +63,17 @@ class BatteryService
      * battery" task in one transaction, then re-forecast the fresh battery.
      * The single path every change funnels through.
      */
-    public function changeBattery(Item $item, ?CarbonInterface $at = null, ?string $notes = null, bool $auto = false): BatteryCycle
+    public function changeBattery(Item $item, CarbonInterface|string|null $at = null, ?string $notes = null, ?int $performedBy = null, bool $auto = false): BatteryCycle
     {
         $at = $at ? CarbonImmutable::parse($at) : CarbonImmutable::now();
         $task = $this->ensureForecastTask($item);
 
-        $cycle = DB::transaction(function () use ($item, $task, $at, $notes, $auto): BatteryCycle {
+        $cycle = DB::transaction(function () use ($item, $task, $at, $notes, $performedBy, $auto): BatteryCycle {
             $cycle = $this->recorder->changeBattery($item, $at, $notes);
 
             $item->maintenanceEntries()->create([
                 'maintenance_task_id' => $task->id,
-                'performed_by' => null,
+                'performed_by' => $performedBy,
                 'completed_at' => $at,
                 'notes' => $notes,
                 'cost' => null,
