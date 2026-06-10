@@ -41,6 +41,7 @@ class Item extends Model
         'manufacturer',
         'model_number',
         'serial_number',
+        'battery_type',
         'lifetime_warranty',
         'warranty_expires',
         'warranty_details',
@@ -158,6 +159,38 @@ class Item extends Model
     public function customFieldValues(): HasMany
     {
         return $this->hasMany(CustomFieldValue::class);
+    }
+
+    /**
+     * Battery cycles (one per physical battery), newest install first. The
+     * open one is the current battery; the rest are history.
+     */
+    public function batteryCycles(): HasMany
+    {
+        return $this->hasMany(BatteryCycle::class)->orderByDesc('installed_at');
+    }
+
+    /**
+     * The current (open) battery cycle, or null when the item has no battery
+     * tracked / the last one was removed without a replacement.
+     */
+    public function currentBatteryCycle(): HasOne
+    {
+        return $this->hasOne(BatteryCycle::class)->whereNull('removed_at')->latestOfMany('installed_at');
+    }
+
+    public function batteryReadings(): HasMany
+    {
+        return $this->hasMany(BatteryReading::class);
+    }
+
+    /**
+     * The most recent battery reading across all cycles — the item's current
+     * level, for cheap list/summary rendering without loading the cycle.
+     */
+    public function latestBatteryReading(): HasOne
+    {
+        return $this->hasOne(BatteryReading::class)->latestOfMany('recorded_at');
     }
 
     public function primaryImage(): HasOne
