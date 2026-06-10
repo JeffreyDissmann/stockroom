@@ -8,6 +8,11 @@ return [
         'subtitle' => 'Every schedule across the household, soonest due first.',
         'empty' => 'No maintenance tasks match this filter.',
     ],
+    // Title of the system-managed task created when an item becomes
+    // battery-tracked; its due date is driven by the depletion forecast.
+    'battery' => [
+        'replace_title' => 'Replace battery',
+    ],
     'filters' => [
         'all' => 'All',
         'overdue' => 'Overdue',

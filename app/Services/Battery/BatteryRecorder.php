@@ -14,35 +14,24 @@ use Illuminate\Support\Facades\DB;
 /**
  * The mechanical writer of battery cycles and readings. Owns the
  * one-open-cycle-per-item invariant (no DB partial index — enforced here so
- * the model stays portable across pgsql/sqlite) and the auto-detection of a
- * battery swap from the reading stream Home Assistant pushes.
+ * the model stays portable across pgsql/sqlite).
  *
- * Knows nothing about maintenance or the activity feed: a battery change is
- * surfaced as a "Replace battery" maintenance-task completion by the layer
- * above (see the battery↔maintenance coordinator), which calls changeBattery
- * to perform the physical swap.
+ * Knows nothing about maintenance, swap detection or the activity feed: those
+ * are policy and live in BatteryService, which calls changeBattery to perform
+ * the physical swap and recordReading to append a sample.
  */
 class BatteryRecorder
 {
     /**
-     * Append a level sample to the item's current battery. Opens a first
-     * cycle if none exists yet, and auto-detects a swap when the level jumps
-     * from low back up to full (config stockroom.battery.change_detection):
-     * that closes the old cycle and opens a new one before recording, so the
-     * reading lands on the fresh battery. Readings are never activity-logged.
+     * Append a level sample to the item's current battery, opening a first
+     * cycle if none exists yet. Readings are never activity-logged.
      */
     public function recordReading(Item $item, int $percent, ?CarbonInterface $at = null): BatteryReading
     {
         $percent = max(0, min(100, $percent));
         $at = $at ? CarbonImmutable::parse($at) : CarbonImmutable::now();
 
-        $cycle = $item->currentBatteryCycle()->first();
-
-        if ($cycle === null) {
-            $cycle = $this->openCycle($item, $at);
-        } elseif ($this->looksLikeChange($cycle, $percent)) {
-            $cycle = $this->changeBattery($item, $at);
-        }
+        $cycle = $item->currentBatteryCycle()->first() ?? $this->openCycle($item, $at);
 
         return $this->appendCompressed($cycle, $item, $percent, $at);
     }
@@ -92,25 +81,6 @@ class BatteryRecorder
 
             return $this->openCycle($item, $at, $notes);
         });
-    }
-
-    /**
-     * Whether a new sample on the open cycle reads as a fresh battery: a jump
-     * up to at least min_percent that also rises by at least min_jump points
-     * over the last recorded level.
-     */
-    private function looksLikeChange(BatteryCycle $cycle, int $percent): bool
-    {
-        $last = $cycle->latestReading()->first();
-
-        if ($last === null) {
-            return false;
-        }
-
-        $rule = config('stockroom.battery.change_detection');
-
-        return $percent >= $rule['min_percent']
-            && ($percent - $last->percent) >= $rule['min_jump'];
     }
 
     private function openCycle(Item $item, CarbonImmutable $at, ?string $notes = null): BatteryCycle

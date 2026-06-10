@@ -42,6 +42,9 @@ return [
      */
     'battery' => [
         'low_threshold' => (int) env('BATTERY_LOW_THRESHOLD', 20),
+        // Days before the predicted-low date that the "Replace battery"
+        // reminder starts nagging — a heads-up window to actually swap it.
+        'reminder_lead_days' => (int) env('BATTERY_REMINDER_LEAD_DAYS', 3),
         'change_detection' => [
             'min_percent' => 90,
             'min_jump' => 50,
@@ -52,6 +55,11 @@ return [
         // on this history until its own readings accumulate and dominate.
         'forecast' => [
             'history_cycles' => 3,
+            // Minimum fit quality (R², 0–1) before a predicted date is written
+            // onto the reminder. 0 = always predict when draining; raise it to
+            // suppress dates from noisy data. The fit's R² is exposed either
+            // way so the UI can label a low-confidence prediction.
+            'min_r_squared' => (float) env('BATTERY_FORECAST_MIN_R2', 0.0),
         ],
     ],
 ];

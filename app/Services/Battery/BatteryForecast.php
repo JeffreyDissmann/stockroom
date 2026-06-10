@@ -22,7 +22,7 @@ use MathPHP\Statistics\Regression\Linear;
  * dates are then projected forward from the current battery's LATEST actual
  * reading, so the prediction reflects exactly where this battery is now.
  *
- * Returns null when the pooled samples can't support a fit (fewer than two,
+ * Returns null when the pooled samples can't support a fit (fewer than three,
  * no time spread), the battery isn't draining, or the current cycle has no
  * reading to anchor the projection.
  */
@@ -34,9 +34,10 @@ class BatteryForecast
     {
         $points = $this->pooledPoints($this->cohort($cycle));
 
-        // Need at least two samples spread across at least two instants in
-        // (battery-age) time, or the line is undefined.
-        if ($points->count() < 2 || $points->pluck(0)->unique()->count() < 2) {
+        // A least-squares line needs positive degrees of freedom (n - 2 > 0),
+        // so at least three samples, spread across at least two instants in
+        // (battery-age) time. History pooling reaches this quickly.
+        if ($points->count() < 3 || $points->pluck(0)->unique()->count() < 2) {
             return null;
         }
 

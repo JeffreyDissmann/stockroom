@@ -94,11 +94,14 @@ it('returns a past low date (overdue) when the battery is already below the thre
         ->and($projection->predictedLowAt->lt($cycle->latestReading->recorded_at))->toBeTrue();
 });
 
-it('returns null with fewer than two readings', function () {
-    $cycle = cycleWith(CarbonImmutable::parse('2026-01-01'), [[0, 80]]);
+it('returns null with fewer than three readings (degrees of freedom)', function (array $samples) {
+    $cycle = cycleWith(CarbonImmutable::parse('2026-01-01'), $samples);
 
     expect($this->forecast->project($cycle))->toBeNull();
-});
+})->with([
+    'one' => [[[0, 80]]],
+    'two' => [[[0, 90], [10, 70]]],
+]);
 
 it('returns null when the battery is not draining', function (array $samples) {
     $cycle = cycleWith(CarbonImmutable::parse('2026-01-01'), $samples);

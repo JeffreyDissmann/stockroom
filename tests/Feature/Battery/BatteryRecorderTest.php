@@ -34,41 +34,6 @@ it('appends to the same open cycle on a normal decline', function () {
         ->and($item->currentBatteryCycle->readings()->count())->toBe(2);
 });
 
-it('auto-detects a battery change on a low-to-full jump and splits cycles', function () {
-    $item = Item::factory()->create();
-
-    $this->recorder->recordReading($item, 8, now()->subDays(1));
-    $this->recorder->recordReading($item, 100, now());
-
-    expect($item->batteryCycles()->count())->toBe(2)
-        ->and(BatteryCycle::query()->open()->count())->toBe(1);
-
-    $current = $item->refresh()->currentBatteryCycle;
-
-    // The full reading landed on the fresh cycle, not the closed one.
-    expect($current->readings()->count())->toBe(1)
-        ->and($current->latestReading->percent)->toBe(100)
-        ->and($current->isOpen())->toBeTrue();
-});
-
-it('does not split when the rise is too small to be a swap', function () {
-    $item = Item::factory()->create();
-
-    $this->recorder->recordReading($item, 60, now()->subDays(1));
-    $this->recorder->recordReading($item, 95, now()); // up to >=90 but only +35
-
-    expect($item->batteryCycles()->count())->toBe(1)
-        ->and($item->currentBatteryCycle->readings()->count())->toBe(2);
-});
-
-it('does not split on the very first reading even if it is full', function () {
-    $item = Item::factory()->create();
-
-    $this->recorder->recordReading($item, 100, now());
-
-    expect($item->batteryCycles()->count())->toBe(1);
-});
-
 it('closes the open cycle and opens a new one on an explicit change', function () {
     $item = Item::factory()->create();
     $old = BatteryCycle::factory()->for($item)->create(['installed_at' => now()->subMonths(3)]);
