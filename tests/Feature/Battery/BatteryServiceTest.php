@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use App\Enums\MaintenanceScheduleType;
+use App\Jobs\RefreshBatteryForecast;
 use App\Models\BatteryCycle;
 use App\Models\Item;
 use App\Models\MaintenanceEntry;
 use App\Services\Battery\BatteryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
@@ -93,6 +95,35 @@ it('completes the task and opens a fresh cycle on an explicit change', function 
         ->and($item->refresh()->currentBatteryCycle->notes)->toBe('fresh pair')
         ->and(MaintenanceEntry::query()->where('maintenance_task_id', $task->id)->count())->toBe(1)
         ->and($task->refresh()->is_active)->toBeTrue();
+});
+
+it('defers the regression to a queued job rather than running it inline', function () {
+    Bus::fake([RefreshBatteryForecast::class]);
+    $item = Item::factory()->create();
+
+    $this->service->recordReading($item, 100, now()->subDays(20));
+    $this->service->recordReading($item, 60, now());
+
+    Bus::assertDispatched(RefreshBatteryForecast::class, fn (RefreshBatteryForecast $job): bool => $job->itemId === $item->id);
+
+    // The reading is recorded synchronously, but the reminder isn't computed
+    // until the job runs (faked here, so it never does).
+    expect($item->batteryCycles()->count())->toBe(1)
+        ->and(forecastTask($item)->next_due_at)->toBeNull();
+});
+
+it('caches the projection snapshot on the open cycle when the job runs', function () {
+    $item = Item::factory()->create();
+
+    $this->service->recordReading($item, 100, now()->subDays(20));
+    $this->service->recordReading($item, 80, now()->subDays(10));
+    $this->service->recordReading($item, 60, now());
+
+    // Sync queue ran the job inline → the snapshot is on the open cycle.
+    $forecast = $item->currentBatteryCycle->forecast;
+    expect($forecast)->not->toBeNull()
+        ->and($forecast['predicted_low_at'])->toBe(today()->addDays(20)->toDateString())
+        ->and($forecast['sample_count'])->toBe(3);
 });
 
 it('projects the predicted-low date onto the reminder as readings come in', function () {

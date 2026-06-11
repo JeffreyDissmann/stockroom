@@ -455,11 +455,17 @@ Set the battery **type** with `PATCH /items/{item}` (`battery_type`).
 
 ### `GET /items/{item}/battery`
 
-Current state and the live forecast. `tracked` is `false` (and most fields
-`null`) for an item that has never reported a level. `projection` is `null` until
-there are enough readings to fit a draining line (≥3 samples, pooled across
-recent cycles); `confidence` is the fit's R² (0–1). `reminder` mirrors the
-"Replace battery" task — `next_due_at` is the predicted-low date.
+Current state and the forecast. `tracked` is `false` (and most fields `null`)
+for an item that has never reported a level. `projection` is `null` until there
+are enough readings to fit a draining line (≥3 samples, pooled across recent
+cycles); `confidence` is the fit's R² (0–1). `reminder` mirrors the "Replace
+battery" task — `next_due_at` is the predicted-low date.
+
+The `projection` and `reminder` are recomputed **asynchronously** by a queued
+job after each reading/change, not on the request. They reflect the last
+completed forecast, so for a few seconds after a `POST` they may still show the
+*previous* reading's outlook; the level itself (`current_percent`) is always
+current.
 
 ```bash
 curl -s https://stockroom.example/api/v1/items/42/battery \

@@ -17,11 +17,10 @@ use App\Models\Item;
  */
 class BatteryPresenter
 {
-    public function __construct(private readonly BatteryForecast $forecast) {}
-
     /**
-     * Current level, type, the live depletion projection and the reminder —
-     * the same shape the API returns, for the panel header.
+     * Current level, type, the depletion projection and the reminder — for the
+     * panel header. The projection is the cached snapshot on the open cycle
+     * (written by RefreshBatteryForecast), so this never re-runs the regression.
      *
      * @return array<string, mixed>
      */
@@ -29,7 +28,6 @@ class BatteryPresenter
     {
         $cycle = $item->currentBatteryCycle()->first();
         $latest = $cycle?->latestReading()->first();
-        $projection = $cycle !== null ? $this->forecast->project($cycle) : null;
         $reminder = $item->maintenanceTasks()
             ->where('schedule_type', MaintenanceScheduleType::Forecast)
             ->first();
@@ -41,13 +39,7 @@ class BatteryPresenter
             'last_reading_at' => $latest?->recorded_at?->toIso8601String(),
             'is_low' => $latest !== null ? $latest->percent <= $this->lowThreshold() : null,
             'installed_at' => $cycle?->installed_at?->toIso8601String(),
-            'projection' => $projection !== null ? [
-                'rate_per_day' => round($projection->ratePerDay, 4),
-                'predicted_low_at' => $projection->predictedLowAt->toDateString(),
-                'predicted_empty_at' => $projection->predictedEmptyAt->toDateString(),
-                'confidence' => round($projection->rSquared, 4),
-                'sample_count' => $projection->sampleCount,
-            ] : null,
+            'projection' => $cycle?->forecast,
             'reminder' => $reminder !== null ? [
                 'next_due_at' => $reminder->next_due_at?->toDateString(),
                 'is_overdue' => $reminder->isOverdue(),

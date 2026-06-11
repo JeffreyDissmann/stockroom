@@ -27,11 +27,13 @@ class BatteryCycle extends Model
         'installed_at',
         'removed_at',
         'notes',
+        'forecast',
     ];
 
     protected $casts = [
         'installed_at' => 'datetime',
         'removed_at' => 'datetime',
+        'forecast' => 'array',
     ];
 
     public function item(): BelongsTo

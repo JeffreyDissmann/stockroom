@@ -196,6 +196,12 @@ class DatabaseSeeder extends Seeder
         $battery->recordReading($sensor, 80, now()->subDays(120));
         $battery->recordReading($sensor, 50, now()->subDays(60));
         $battery->recordReading($sensor, 14, now()->subDays(2));
+
+        // Readings only queue the forecast (RefreshBatteryForecast); compute it
+        // inline here so a bare `migrate:fresh --seed` (no queue worker) still
+        // produces the reminder dates and chart snapshot the demo shows off.
+        $battery->refreshForecast($detector);
+        $battery->refreshForecast($sensor);
     }
 
     /**

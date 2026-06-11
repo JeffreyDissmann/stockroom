@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Battery;
 
 use App\Enums\MaintenanceScheduleType;
+use App\Jobs\RefreshBatteryForecast;
 use App\Models\BatteryCycle;
 use App\Models\BatteryReading;
 use App\Models\Item;
@@ -55,7 +56,8 @@ class BatteryService
 
         $reading = $this->recorder->recordReading($item, $percent, $at);
 
-        $this->refreshForecast($item);
+        // The regression runs off the request thread — see RefreshBatteryForecast.
+        RefreshBatteryForecast::dispatch($item->id);
         $this->ensureBatteryTag($item);
 
         return $reading;
@@ -93,7 +95,8 @@ class BatteryService
             return $cycle;
         });
 
-        $this->refreshForecast($item);
+        // The regression runs off the request thread — see RefreshBatteryForecast.
+        RefreshBatteryForecast::dispatch($item->id);
         $this->ensureBatteryTag($item);
 
         return $cycle;
@@ -155,10 +158,14 @@ class BatteryService
     }
 
     /**
-     * Re-run the depletion forecast for the current battery and project its
-     * predicted-low date onto the reminder. Clears the date when there is no
-     * usable prediction (too little data, not draining, or the fit is below
-     * the configured confidence floor).
+     * Re-run the depletion forecast for the current battery: project its
+     * predicted-low date onto the reminder and cache the projection snapshot
+     * on the open cycle (so the API and panel render without recomputing). The
+     * reminder date is cleared when there is no usable prediction (too little
+     * data, not draining, or the fit is below the configured confidence floor).
+     *
+     * This is the heavy regression step; it runs in RefreshBatteryForecast off
+     * the request path, not inline with a reading.
      */
     public function refreshForecast(Item $item): void
     {
@@ -166,6 +173,19 @@ class BatteryService
         $cycle = $item->currentBatteryCycle()->first();
 
         $projection = $cycle !== null ? $this->forecast->project($cycle) : null;
+
+        // Snapshot the projection for display even when its confidence is too
+        // low to drive the reminder — the UI can label it accordingly.
+        if ($cycle !== null) {
+            $cycle->forecast = $projection !== null ? [
+                'rate_per_day' => round($projection->ratePerDay, 4),
+                'predicted_low_at' => $projection->predictedLowAt->toDateString(),
+                'predicted_empty_at' => $projection->predictedEmptyAt->toDateString(),
+                'confidence' => round($projection->rSquared, 4),
+                'sample_count' => $projection->sampleCount,
+            ] : null;
+            $cycle->save();
+        }
 
         $predictedLowAt = $projection !== null && $projection->rSquared >= $this->minRSquared()
             ? $projection->predictedLowAt
