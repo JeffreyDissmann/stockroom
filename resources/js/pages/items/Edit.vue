@@ -25,6 +25,7 @@ const props = defineProps<{
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];
+    batteryTypes: string[];
     paperlessLinks: PaperlessLinkSummary[];
     homeAssistantLink: HomeAssistantLinkSummary | null;
 }>();
@@ -62,6 +63,7 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
                     :tags="tags"
                     :types="types"
                     :custom-fields="customFields"
+                    :battery-types="batteryTypes"
                     :paperless-links="paperlessLinks"
                     :home-assistant-link="homeAssistantLink"
                 />

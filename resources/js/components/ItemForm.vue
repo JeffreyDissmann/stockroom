@@ -8,6 +8,7 @@ import ItemImageManager from '@/components/ItemImageManager.vue';
 import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import LinkPaperlessDocumentDialog from '@/components/LinkPaperlessDocumentDialog.vue';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
 import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
@@ -45,6 +46,8 @@ const props = defineProps<{
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];
+    // Curated battery-cell suggestions for the type picker (free string).
+    batteryTypes?: string[];
     submitLabel?: string;
     // Paperless-ngx documents linked to this item (#7). Edit-page only —
     // Show.vue renders the same chips read-only. Empty array on create.
@@ -69,6 +72,7 @@ const form = useForm({
     manufacturer: props.item?.manufacturer ?? '',
     model_number: props.item?.model_number ?? '',
     serial_number: props.item?.serial_number ?? '',
+    battery_type: props.item?.battery_type ?? '',
     lifetime_warranty: props.item?.lifetime_warranty ?? false,
     warranty_expires: props.item?.warranty_expires ?? '',
     warranty_details: props.item?.warranty_details ?? '',
@@ -83,6 +87,30 @@ const form = useForm({
 });
 
 const isPlace = computed(() => form.type === 'room' || form.type === 'container');
+
+// Battery type: a curated Select with a "Custom…" escape that reveals a text
+// input, so the free-string column still accepts an unusual cell. Sentinels
+// keep radix's value model non-empty.
+const BATTERY_NONE = '__none__';
+const BATTERY_CUSTOM = '__custom__';
+const isPresetBattery = (value: string): boolean => (props.batteryTypes ?? []).includes(value);
+const batteryCustom = ref(form.battery_type !== '' && !isPresetBattery(form.battery_type));
+
+const batterySelectValue = computed<string>({
+    get: () => {
+        if (batteryCustom.value) return BATTERY_CUSTOM;
+        return form.battery_type === '' ? BATTERY_NONE : form.battery_type;
+    },
+    set: (value) => {
+        if (value === BATTERY_CUSTOM) {
+            batteryCustom.value = true;
+            form.battery_type = '';
+        } else {
+            batteryCustom.value = false;
+            form.battery_type = value === BATTERY_NONE ? '' : value;
+        }
+    },
+});
 
 const queuedFiles = ref<File[]>([]);
 
@@ -582,6 +610,27 @@ function submit() {
                         @apply="applyProposal('serial_number')"
                         @dismiss="dismissProposal('serial_number')"
                     />
+                </div>
+                <div class="form-row">
+                    <label for="battery_type">{{ $t('items.form.battery_type') }}</label>
+                    <Select v-model="batterySelectValue">
+                        <SelectTrigger id="battery_type" data-test="item-battery-type">
+                            <SelectValue :placeholder="$t('items.form.battery_type_none')" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="BATTERY_NONE">{{ $t('items.form.battery_type_none') }}</SelectItem>
+                            <SelectItem v-for="bt in batteryTypes ?? []" :key="bt" :value="bt">{{ bt }}</SelectItem>
+                            <SelectItem :value="BATTERY_CUSTOM">{{ $t('items.form.battery_type_custom') }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <input
+                        v-if="batteryCustom"
+                        v-model="form.battery_type"
+                        class="field mt-2"
+                        :placeholder="$t('items.form.battery_type_placeholder')"
+                        data-test="item-battery-type-custom"
+                    />
+                    <InputError :message="form.errors.battery_type" />
                 </div>
                 <div class="form-row">
                     <label for="purchased_from">{{ $t('items.form.purchased_from') }} <AiFieldBadge :state="fieldStates.purchased_from" /></label>

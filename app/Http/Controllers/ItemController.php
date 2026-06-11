@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\BatteryType;
 use App\Enums\ItemType;
+use App\Enums\MaintenanceScheduleType;
 use App\Http\Requests\Item\MoveItemRequest;
 use App\Http\Requests\Item\StoreItemRequest;
 use App\Http\Requests\Item\UpdateItemRequest;
@@ -18,6 +20,7 @@ use App\Models\PaperlessLink;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Services\ActivityPresenter;
+use App\Services\Battery\BatteryPresenter;
 use App\Services\ItemImageProcessor;
 use App\Services\Items\ItemWriter;
 use App\Services\Maintenance\MaintenancePresenter;
@@ -37,6 +40,7 @@ class ItemController extends Controller
         private readonly ActivityPresenter $activityPresenter,
         private readonly ItemWriter $writer,
         private readonly MaintenancePresenter $maintenancePresenter,
+        private readonly BatteryPresenter $batteryPresenter,
     ) {}
 
     public function index(Request $request): Response
@@ -80,6 +84,7 @@ class ItemController extends Controller
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
+            'batteryTypes' => BatteryType::values(),
         ]);
     }
 
@@ -140,13 +145,24 @@ class ItemController extends Controller
             'homeAssistantLink' => $this->presentHomeAssistantLink($item),
             // Active schedules + full history (completions and ad-hoc
             // repairs). Archived one-offs only surface through their entry.
+            // The battery "Replace battery" forecast task is excluded — the
+            // battery panel below owns that reminder.
             'maintenance' => [
-                'tasks' => $item->maintenanceTasks()->active()->get()
+                'tasks' => $item->maintenanceTasks()->active()
+                    ->where('schedule_type', '!=', MaintenanceScheduleType::Forecast)
+                    ->get()
                     ->map(fn (MaintenanceTask $task) => $this->maintenancePresenter->presentTask($task))
                     ->values(),
                 'entries' => $item->maintenanceEntries()->with(['performer', 'task'])->get()
                     ->map(fn (MaintenanceEntry $entry) => $this->maintenancePresenter->presentEntry($entry))
                     ->values(),
+            ],
+            // Battery tracking: current level/type, depletion forecast, the
+            // reminder, and the per-cycle reading series for the chart. The
+            // panel renders only when the item has battery history.
+            'battery' => [
+                'summary' => $this->batteryPresenter->summary($item),
+                'cycles' => $this->batteryPresenter->cycles($item),
             ],
             'activities' => $activities,
             // For the bulk-tag dialog launched from the Contents section's
@@ -255,6 +271,7 @@ class ItemController extends Controller
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
+            'batteryTypes' => BatteryType::values(),
             // Paperless + Home Assistant links surface on Edit — that's where
             // the user can unlink. Show.vue lists the same links read-only.
             'paperlessLinks' => $this->presentPaperlessLinks($item),
@@ -457,6 +474,7 @@ class ItemController extends Controller
             $payload['manufacturer'] = $item->manufacturer;
             $payload['model_number'] = $item->model_number;
             $payload['serial_number'] = $item->serial_number;
+            $payload['battery_type'] = $item->battery_type;
             $payload['lifetime_warranty'] = $item->lifetime_warranty;
             $payload['warranty_expires'] = $item->warranty_expires?->toDateString();
             $payload['warranty_details'] = $item->warranty_details;

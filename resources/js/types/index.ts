@@ -127,6 +127,7 @@ export interface ItemSummary {
     manufacturer?: string | null;
     model_number?: string | null;
     serial_number?: string | null;
+    battery_type?: string | null;
     lifetime_warranty?: boolean;
     warranty_expires?: string | null;
     warranty_details?: string | null;
@@ -214,4 +215,41 @@ export interface MaintenanceEntryRow {
 export interface MaintenanceData {
     tasks: MaintenanceTaskRow[];
     entries: MaintenanceEntryRow[];
+}
+
+export interface BatteryProjection {
+    rate_per_day: number;
+    predicted_low_at: string;
+    predicted_empty_at: string;
+    confidence: number;
+    sample_count: number;
+}
+
+export interface BatterySummary {
+    tracked: boolean;
+    battery_type: string | null;
+    current_percent: number | null;
+    last_reading_at: string | null;
+    is_low: boolean | null;
+    installed_at: string | null;
+    projection: BatteryProjection | null;
+    reminder: { next_due_at: string | null; is_overdue: boolean } | null;
+}
+
+export interface BatteryReadingPoint {
+    recorded_at: string;
+    percent: number;
+}
+
+export interface BatteryCycleRow {
+    id: number;
+    installed_at: string;
+    removed_at: string | null;
+    is_current: boolean;
+    readings: BatteryReadingPoint[];
+}
+
+export interface BatteryData {
+    summary: BatterySummary;
+    cycles: BatteryCycleRow[];
 }

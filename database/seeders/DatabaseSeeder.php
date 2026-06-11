@@ -10,6 +10,7 @@ use App\Enums\MaintenanceScheduleType;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\Battery\BatteryService;
 use App\Services\ItemImageProcessor;
 use App\Services\Maintenance\MaintenanceSchedule;
 use Illuminate\Database\Seeder;
@@ -153,6 +154,48 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->seedDemoMaintenance($lawnmower, $coffeeMaker, $bicycle);
+        $this->seedDemoBatteries($office, $garage);
+    }
+
+    /**
+     * Two battery-tracked devices so the battery panel, depletion chart and
+     * the forecast-driven "Replace battery" reminder all have something to
+     * show on a fresh install. Readings go through BatteryService like real
+     * Home Assistant pushes — cycles, compression, forecast and reminder are
+     * all derived, never hand-set.
+     *
+     * - Smoke detector: a spent first battery (auto-detected swap on the jump
+     *   back to full) plus a healthy current one → a two-line chart and a
+     *   comfortably future replacement date.
+     * - Door sensor: a single battery drained into the low band → the low
+     *   badge and an overdue reminder.
+     */
+    private function seedDemoBatteries(Item $office, Item $garage): void
+    {
+        $battery = app(BatteryService::class);
+
+        $detector = $this->makeItem($office, ItemType::Item, 'Smoke detector', 'Ceiling unit by the office door. Reports its battery to Home Assistant.', [], null, [
+            'manufacturer' => 'Nest',
+            'model_number' => 'Protect 2nd gen',
+            'battery_type' => '9V',
+        ]);
+        // First 9V: full down to nearly flat over ~4 months.
+        $battery->recordReading($detector, 100, now()->subDays(210));
+        $battery->recordReading($detector, 70, now()->subDays(150));
+        $battery->recordReading($detector, 30, now()->subDays(90));
+        // Replaced — the jump back to full auto-detects the swap.
+        $battery->recordReading($detector, 100, now()->subDays(75));
+        $battery->recordReading($detector, 80, now()->subDays(45));
+        $battery->recordReading($detector, 60, now()->subDays(10));
+
+        $sensor = $this->makeItem($garage, ItemType::Item, 'Door sensor', 'Contact sensor on the side door. Battery is getting low.', [], null, [
+            'manufacturer' => 'Aqara',
+            'model_number' => 'MCCGQ11LM',
+            'battery_type' => 'CR2032',
+        ]);
+        $battery->recordReading($sensor, 80, now()->subDays(120));
+        $battery->recordReading($sensor, 50, now()->subDays(60));
+        $battery->recordReading($sensor, 14, now()->subDays(2));
     }
 
     /**
