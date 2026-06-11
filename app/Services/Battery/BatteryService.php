@@ -9,6 +9,8 @@ use App\Models\BatteryCycle;
 use App\Models\BatteryReading;
 use App\Models\Item;
 use App\Models\MaintenanceTask;
+use App\Models\Setting;
+use App\Models\Tag;
 use App\Services\Maintenance\MaintenanceSchedule;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -54,6 +56,7 @@ class BatteryService
         $reading = $this->recorder->recordReading($item, $percent, $at);
 
         $this->refreshForecast($item);
+        $this->ensureBatteryTag($item);
 
         return $reading;
     }
@@ -91,8 +94,46 @@ class BatteryService
         });
 
         $this->refreshForecast($item);
+        $this->ensureBatteryTag($item);
 
         return $cycle;
+    }
+
+    /**
+     * Keep the auto-managed "Battery" tag on a battery-tracked item. Additive
+     * (never disturbs other tags) and self-healing — if the tag was removed it
+     * is re-added on the next reading. The item is only re-indexed when the tag
+     * was actually attached, so steady-state readings stay cheap. The tag is
+     * never removed here: a device stays "battery-powered" between batteries.
+     */
+    private function ensureBatteryTag(Item $item): void
+    {
+        $attached = $item->tags()->syncWithoutDetaching([$this->batteryTag()->id]);
+
+        if (! empty($attached['attached'])) {
+            $item->searchable();
+        }
+    }
+
+    /**
+     * The tag to auto-assign. Honours a household-selected battery tag if set,
+     * else creates the default "Battery" tag on demand and records it as
+     * selected — which then protects it from deletion in the Tags UI. Mirrors
+     * HomeAssistantLinker.
+     */
+    private function batteryTag(): Tag
+    {
+        $selectedId = Setting::int('battery_tag_id');
+
+        if ($selectedId !== null && ($selected = Tag::query()->find($selectedId)) !== null) {
+            return $selected;
+        }
+
+        $tag = Tag::firstOrCreate(['name' => 'Battery'], ['color' => '#84cc16']);
+
+        Setting::set('battery_tag_id', $tag->id);
+
+        return $tag;
     }
 
     /**

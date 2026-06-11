@@ -78,6 +78,7 @@ return [
         'manufacturer_placeholder' => 'z. B. DeWalt',
         'model_number' => 'Modellnummer',
         'serial_number' => 'Seriennummer',
+        'tag_locked' => 'Automatisch zugewiesen – vom System verwaltet',
         'battery_type' => 'Batterietyp',
         'battery_type_none' => 'Keine Batterie',
         'battery_type_custom' => 'Benutzerdefiniert…',

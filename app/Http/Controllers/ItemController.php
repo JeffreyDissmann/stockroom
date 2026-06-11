@@ -272,6 +272,11 @@ class ItemController extends Controller
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
             'batteryTypes' => BatteryType::values(),
+            // Tags the user may not remove from this item — the auto-managed
+            // "Battery" tag while the item is battery-tracked. The picker
+            // renders these as locked chips (the tag is re-added on the next
+            // reading anyway).
+            'lockedTagIds' => $this->lockedTagIds($item),
             // Paperless + Home Assistant links surface on Edit — that's where
             // the user can unlink. Show.vue lists the same links read-only.
             'paperlessLinks' => $this->presentPaperlessLinks($item),
@@ -443,6 +448,21 @@ class ItemController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Tag ids the user may not detach from this item in the form — currently
+     * just the auto-managed "Battery" tag while the item is battery-tracked.
+     *
+     * @return list<int>
+     */
+    private function lockedTagIds(Item $item): array
+    {
+        $batteryTagId = Setting::int('battery_tag_id');
+
+        return $batteryTagId !== null && $item->batteryCycles()->exists()
+            ? [$batteryTagId]
+            : [];
     }
 
     private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false, bool $withThumbs = false, bool $withDetails = false): array

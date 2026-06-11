@@ -15,7 +15,7 @@ import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
 import paperlessLinksRoutes from '@/routes/items/paperless-links';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
-import { Check, FileText, House, Loader2, Sparkles, X } from 'lucide-vue-next';
+import { Check, FileText, House, Loader2, Lock, Sparkles, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const currency = usePage<SharedData>().props.currency;
@@ -48,6 +48,8 @@ const props = defineProps<{
     customFields: CustomFieldDefinition[];
     // Curated battery-cell suggestions for the type picker (free string).
     batteryTypes?: string[];
+    // Tag ids the user may not detach (e.g. the auto-managed Battery tag).
+    lockedTagIds?: number[];
     submitLabel?: string;
     // Paperless-ngx documents linked to this item (#7). Edit-page only —
     // Show.vue renders the same chips read-only. Empty array on create.
@@ -265,7 +267,10 @@ const eligibleParents = computed(() => props.items.filter((i) => !props.item || 
 // Reactive to the type selector, and the server blanks them too on save.
 const showDetails = computed(() => props.types.find((t) => t.value === form.type)?.details ?? true);
 
+const isTagLocked = (id: number): boolean => (props.lockedTagIds ?? []).includes(id);
+
 function toggleTag(id: number) {
+    if (isTagLocked(id)) return; // system-assigned, can't be removed here
     if (form.tags.includes(id)) {
         form.tags = form.tags.filter((t) => t !== id);
     } else {
@@ -541,7 +546,10 @@ function submit() {
                     v-for="tag in tags"
                     :key="tag.id"
                     type="button"
+                    :disabled="isTagLocked(tag.id)"
+                    :title="isTagLocked(tag.id) ? $t('items.form.tag_locked') : undefined"
                     class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11.5px] transition"
+                    :class="{ 'cursor-not-allowed': isTagLocked(tag.id) }"
                     :style="
                         form.tags.includes(tag.id)
                             ? { background: 'var(--accent)', color: 'var(--accent-fg)', border: '1px solid var(--accent)' }
@@ -549,7 +557,8 @@ function submit() {
                     "
                     @click="toggleTag(tag.id)"
                 >
-                    <Check v-if="form.tags.includes(tag.id)" :size="12" />
+                    <Lock v-if="isTagLocked(tag.id)" :size="11" />
+                    <Check v-else-if="form.tags.includes(tag.id)" :size="12" />
                     <span v-if="tag.color" class="size-2 rounded-full" :style="{ backgroundColor: tag.color }" />
                     {{ tag.name }}
                 </button>

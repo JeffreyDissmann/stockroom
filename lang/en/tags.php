@@ -16,6 +16,7 @@ return [
     'cannot_delete_box_tag' => 'This tag is currently configured as the Box tag in household preferences.',
     'cannot_delete_box_tag_cta' => 'Change the preference first.',
     'cannot_delete_home_assistant_tag' => 'This tag is auto-assigned to items linked to Home Assistant and cannot be deleted.',
+    'cannot_delete_battery_tag' => 'This tag is auto-assigned to battery-tracked items and cannot be deleted.',
 
     'filter' => [
         'all' => 'All tags',

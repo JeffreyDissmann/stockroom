@@ -62,6 +62,14 @@ class TagController extends Controller
             ]);
         }
 
+        // The auto-managed Battery tag is protected once it's been selected
+        // (recorded the first time an item became battery-tracked).
+        if (Setting::int('battery_tag_id') === $tag->id) {
+            throw ValidationException::withMessages([
+                'tag' => __('tags.cannot_delete_battery_tag'),
+            ]);
+        }
+
         $tag->delete();
 
         return to_route('tags.index');
