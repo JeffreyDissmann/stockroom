@@ -48,6 +48,20 @@ return [
         ],
     ],
 
+    'battery' => [
+        'title' => 'Battery',
+        'change' => 'Change battery',
+        'updated' => 'Updated :date',
+        'replace_by' => 'Replace by',
+        'confidence' => ':pct% confidence',
+        'no_prediction' => 'Not enough data to predict a replacement date yet.',
+        'chart' => [
+            'current' => 'Current battery',
+            'previous' => 'Battery #:n',
+            'forecast' => 'Forecast',
+        ],
+    ],
+
     'form' => [
         'type' => 'Type',
         'name_placeholder' => 'e.g. Toolbox',
@@ -64,6 +78,11 @@ return [
         'manufacturer_placeholder' => 'e.g. DeWalt',
         'model_number' => 'Model number',
         'serial_number' => 'Serial number',
+        'tag_locked' => 'Auto-assigned — managed by the system',
+        'battery_type' => 'Battery type',
+        'battery_type_none' => 'No battery',
+        'battery_type_custom' => 'Custom…',
+        'battery_type_placeholder' => 'e.g. AA, CR2032',
         'purchased_from' => 'Purchased from',
         'purchased_from_placeholder' => 'Vendor / store',
         'purchase_date' => 'Purchase date',

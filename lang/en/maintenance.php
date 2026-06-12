@@ -8,6 +8,11 @@ return [
         'subtitle' => 'Every schedule across the household, soonest due first.',
         'empty' => 'No maintenance tasks match this filter.',
     ],
+    // Title of the system-managed task created when an item becomes
+    // battery-tracked; its due date is driven by the depletion forecast.
+    'battery' => [
+        'replace_title' => 'Replace battery',
+    ],
     'filters' => [
         'all' => 'All',
         'overdue' => 'Overdue',
@@ -109,6 +114,7 @@ return [
         'nth_weekday_monthly' => 'Every :ordinal :weekday of the month',
         'nth_weekday_yearly' => 'Every :ordinal :weekday in :month',
         'one_off' => 'Once',
+        'forecast' => 'Predicted from battery level',
         'custom' => 'Custom schedule',
         'ordinals' => [
             '1' => 'first',

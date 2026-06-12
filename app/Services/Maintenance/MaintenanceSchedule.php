@@ -39,7 +39,7 @@ class MaintenanceSchedule
         return match ($task->schedule_type) {
             MaintenanceScheduleType::Interval => $this->intervalUnit($task)->addTo($from, $this->intervalValue($task)),
             MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, $from),
-            MaintenanceScheduleType::OneOff => null,
+            MaintenanceScheduleType::OneOff, MaintenanceScheduleType::Forecast => null,
         };
     }
 
@@ -62,7 +62,11 @@ class MaintenanceSchedule
             // or the stored due date (an early completion consumes the
             // upcoming occurrence instead of leaving it to nag).
             MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, $this->calendarCompletionAnchor($task)),
-            MaintenanceScheduleType::OneOff => null,
+            // A completed battery (a swap) has no prediction yet — the
+            // forecast repopulates next_due_at once the fresh battery's
+            // discharge slope is known. The task stays active; batteries
+            // always need replacing again.
+            MaintenanceScheduleType::OneOff, MaintenanceScheduleType::Forecast => null,
         };
 
         if ($task->schedule_type === MaintenanceScheduleType::OneOff) {
@@ -105,8 +109,25 @@ class MaintenanceSchedule
             // due today — unlike after a completion or a skip, where the
             // current occurrence is spent and only the future counts.
             MaintenanceScheduleType::Calendar => $this->nextCalendarOccurrenceAfter($task, today()->toImmutable(), inclusive: true),
-            MaintenanceScheduleType::OneOff => $task->next_due_at,
+            // Nothing to derive: a one-off keeps its user-chosen date, and a
+            // forecast task's date is owned by applyForecast().
+            MaintenanceScheduleType::OneOff, MaintenanceScheduleType::Forecast => $task->next_due_at,
         };
+    }
+
+    /**
+     * Write a battery forecast's predicted due date onto a forecast task —
+     * the one path by which an external projection reaches next_due_at, so
+     * this service stays its sole writer. A null date (not enough readings
+     * to predict yet) clears the projection. Date-only, app timezone.
+     */
+    public function applyForecast(MaintenanceTask $task, ?CarbonImmutable $predictedDueAt): void
+    {
+        if ($task->schedule_type !== MaintenanceScheduleType::Forecast) {
+            throw new InvalidArgumentException("applyForecast() expects a forecast task; #{$task->id} is {$task->schedule_type->value}.");
+        }
+
+        $task->next_due_at = $predictedDueAt?->startOfDay();
     }
 
     private function calendarCompletionAnchor(MaintenanceTask $task): CarbonImmutable

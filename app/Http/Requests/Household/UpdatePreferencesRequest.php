@@ -34,6 +34,11 @@ class UpdatePreferencesRequest extends FormRequest
             // "none" choice, so it can only switch to another existing tag.
             'home_assistant_tag_id' => ['nullable', 'integer', 'exists:tags,id'],
 
+            // Which tag is auto-assigned to battery-tracked items. Like the
+            // Home Assistant tag: no opt-out, unset until the first reading
+            // creates it, so the picker only switches between existing tags.
+            'battery_tag_id' => ['nullable', 'integer', 'exists:tags,id'],
+
             // Paperless intake parent: nullable (opt out → items land at top
             // level), and when set must be a room or container — anything
             // else would mean dropping items inside another item, which the

@@ -133,10 +133,11 @@ it('defaults new users to digest opt-in', function () {
 it('seeds demo maintenance data on a fresh install', function () {
     $this->seed();
 
-    // One interval task (descale), one calendar task (spring service), one
-    // task-bound entry and one ad-hoc entry — see DatabaseSeeder.
-    expect(MaintenanceTask::count())->toBe(2)
-        ->and(MaintenanceEntry::count())->toBe(2)
-        ->and(MaintenanceEntry::whereNull('maintenance_task_id')->count())->toBe(1)
-        ->and(MaintenanceTask::query()->active()->whereNotNull('next_due_at')->count())->toBe(2);
+    // One interval task (descale) and one calendar task (spring service),
+    // each with a derived due date, plus one ad-hoc entry — see
+    // DatabaseSeeder. The battery "Replace battery" forecast tasks are demo
+    // battery data (asserted in the battery suite), so they're excluded here.
+    expect(MaintenanceTask::query()->where('schedule_type', '!=', MaintenanceScheduleType::Forecast)->count())->toBe(2)
+        ->and(MaintenanceTask::query()->active()->where('schedule_type', '!=', MaintenanceScheduleType::Forecast)->whereNotNull('next_due_at')->count())->toBe(2)
+        ->and(MaintenanceEntry::whereNull('maintenance_task_id')->count())->toBe(1);
 });

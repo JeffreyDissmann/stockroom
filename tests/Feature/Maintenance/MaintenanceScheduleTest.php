@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\MaintenanceIntervalUnit;
 use App\Models\MaintenanceTask;
 use App\Services\Maintenance\MaintenanceSchedule;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -233,6 +234,50 @@ describe('calendar (RRULE) schedules', function () {
         $task->rrule = null;
 
         expect(fn () => $this->schedule->applyCompletion($task, today()))->toThrow(LogicException::class);
+    });
+});
+
+describe('forecast tasks', function () {
+    it('writes a predicted due date through applyForecast', function () {
+        $task = MaintenanceTask::factory()->forecast()->create(['next_due_at' => null]);
+
+        $this->schedule->applyForecast($task, CarbonImmutable::parse('2026-08-01 13:30'));
+
+        // Date-only, app timezone.
+        expect($task->next_due_at->toDateString())->toBe('2026-08-01');
+    });
+
+    it('clears the projection when there is nothing to predict yet', function () {
+        $task = MaintenanceTask::factory()->forecast()->create(['next_due_at' => today()]);
+
+        $this->schedule->applyForecast($task, null);
+
+        expect($task->next_due_at)->toBeNull();
+    });
+
+    it('refuses to apply a forecast to a non-forecast task', function () {
+        $task = MaintenanceTask::factory()->interval()->create();
+
+        expect(fn () => $this->schedule->applyForecast($task, CarbonImmutable::now()))
+            ->toThrow(InvalidArgumentException::class);
+    });
+
+    it('clears the due date and stays active on completion (a battery swap)', function () {
+        $task = MaintenanceTask::factory()->forecast()->create(['next_due_at' => today()->addDays(3)]);
+
+        $this->schedule->applyCompletion($task, today());
+
+        expect($task->next_due_at)->toBeNull()
+            ->and($task->last_completed_at->toDateString())->toBe(today()->toDateString())
+            ->and($task->is_active)->toBeTrue();
+    });
+
+    it('keeps its forecast date untouched on recompute', function () {
+        $task = MaintenanceTask::factory()->forecast()->create(['next_due_at' => today()->addDays(5)]);
+
+        $this->schedule->recompute($task);
+
+        expect($task->next_due_at->toDateString())->toBe(today()->addDays(5)->toDateString());
     });
 });
 

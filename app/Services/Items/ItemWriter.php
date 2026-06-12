@@ -106,7 +106,7 @@ class ItemWriter
 
         if ($type !== null && ! $type->hasDetailFields()) {
             $data['quantity'] = 1;
-            foreach (['purchased_from', 'purchase_date', 'purchase_price', 'manufacturer', 'model_number', 'serial_number', 'warranty_expires', 'warranty_details', 'sold_to', 'sold_price', 'sold_date', 'sold_notes'] as $field) {
+            foreach (['purchased_from', 'purchase_date', 'purchase_price', 'manufacturer', 'model_number', 'serial_number', 'battery_type', 'warranty_expires', 'warranty_details', 'sold_to', 'sold_price', 'sold_date', 'sold_notes'] as $field) {
                 $data[$field] = null;
             }
             $data['lifetime_warranty'] = false;

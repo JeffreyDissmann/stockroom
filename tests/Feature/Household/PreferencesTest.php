@@ -81,6 +81,22 @@ it('rejects an invalid home assistant tag id', function () {
         ->assertSessionHasErrors('home_assistant_tag_id');
 });
 
+it('updates the battery tag setting', function () {
+    $tag = Tag::factory()->create(['name' => 'Powered']);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['battery_tag_id' => $tag->id])
+        ->assertRedirect();
+
+    expect(Setting::get('battery_tag_id'))->toBe($tag->id);
+});
+
+it('rejects an invalid battery tag id', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['battery_tag_id' => 99999])
+        ->assertSessionHasErrors('battery_tag_id');
+});
+
 it('hydrates the picker with the currently selected parent', function () {
     $garage = Item::factory()->room()->create(['name' => 'Garage']);
     Setting::set('paperless_parent_id', $garage->id);

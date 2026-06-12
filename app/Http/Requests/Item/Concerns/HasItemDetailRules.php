@@ -25,6 +25,10 @@ trait HasItemDetailRules
             'model_number' => ['nullable', 'string', 'max:255'],
             'serial_number' => ['nullable', 'string', 'max:255'],
 
+            // Free string: App\Enums\BatteryType is the curated picker, but an
+            // unusual cell can still be recorded (and HA can sync any value).
+            'battery_type' => ['nullable', 'string', 'max:255'],
+
             'lifetime_warranty' => ['boolean'],
             'warranty_expires' => ['nullable', 'date'],
             'warranty_details' => ['nullable', 'string', 'max:2000'],

@@ -40,6 +40,7 @@ class ItemResource extends JsonResource
             'manufacturer' => $this->manufacturer,
             'model_number' => $this->model_number,
             'serial_number' => $this->serial_number,
+            'battery_type' => $this->battery_type,
             'lifetime_warranty' => $this->lifetime_warranty,
             'warranty_expires' => $this->warranty_expires?->toDateString(),
             'warranty_details' => $this->warranty_details,

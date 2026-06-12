@@ -68,6 +68,20 @@ class MaintenanceTaskFactory extends Factory
         ]);
     }
 
+    /**
+     * A battery "Replace battery" task whose due date is owned by the
+     * depletion forecast (no stored rule columns).
+     */
+    public function forecast(): static
+    {
+        return $this->state(fn () => [
+            'schedule_type' => MaintenanceScheduleType::Forecast,
+            'interval_value' => null,
+            'interval_unit' => null,
+            'rrule' => null,
+        ]);
+    }
+
     public function overdue(int $days = 10): static
     {
         return $this->state(fn () => ['next_due_at' => today()->subDays($days)]);

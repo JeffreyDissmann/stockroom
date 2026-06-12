@@ -41,6 +41,7 @@ class PreferencesController extends Controller
             'preferences' => [
                 'box_tag_id' => Setting::get('box_tag_id'),
                 'home_assistant_tag_id' => Setting::get('home_assistant_tag_id'),
+                'battery_tag_id' => Setting::get('battery_tag_id'),
                 'paperless_parent_id' => $parentId,
             ],
             'tags' => Tag::query()
@@ -164,6 +165,9 @@ class PreferencesController extends Controller
 
         $haTagId = $request->input('home_assistant_tag_id');
         Setting::set('home_assistant_tag_id', $haTagId === null ? null : (int) $haTagId);
+
+        $batteryTagId = $request->input('battery_tag_id');
+        Setting::set('battery_tag_id', $batteryTagId === null ? null : (int) $batteryTagId);
 
         $parentId = $request->input('paperless_parent_id');
         Setting::set('paperless_parent_id', $parentId === null ? null : (int) $parentId);

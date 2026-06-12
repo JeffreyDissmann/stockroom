@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ActivityFeed from '@/components/ActivityFeed.vue';
+import BatterySection from '@/components/BatterySection.vue';
 import BulkActionBar from '@/components/BulkActionBar.vue';
 import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
 import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
@@ -19,7 +20,17 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { itemIconMap } from '@/lib/itemIcons';
 import itemRoutes from '@/routes/items';
 import relatedItemsRoutes from '@/routes/items/related-items';
-import type { ActivityRow, BreadcrumbItemType, ItemImageSummary, ItemSummary, ItemViewMode, MaintenanceData, SharedData, TagSummary } from '@/types';
+import type {
+    ActivityRow,
+    BatteryData,
+    BreadcrumbItemType,
+    ItemImageSummary,
+    ItemSummary,
+    ItemViewMode,
+    MaintenanceData,
+    SharedData,
+    TagSummary,
+} from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -48,6 +59,7 @@ const props = defineProps<{
     paperlessLinks: PaperlessLinkSummary[];
     homeAssistantLink: HomeAssistantLinkSummary | null;
     maintenance: MaintenanceData;
+    battery: BatteryData;
     activities: ActivityRow[];
     // For the bulk-tag dialog launched from the Contents section.
     tags?: TagSummary[];
@@ -423,6 +435,10 @@ function destroyItem() {
                     </div>
                 </div>
             </div>
+
+            <!-- Battery tracking panel (level, forecast, reminder, chart).
+                 Self-hides until the item has battery history. -->
+            <BatterySection :item="item" :battery="battery" class="mt-8" />
 
             <!-- Contents | Related side by side on wide screens — they're
                  sibling collections of the same shape, and pairing them

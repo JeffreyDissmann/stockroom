@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Items;
 
+use App\Enums\MaintenanceScheduleType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Maintenance\CompleteMaintenanceTaskRequest;
 use App\Http\Requests\Maintenance\StoreMaintenanceTaskRequest;
 use App\Http\Requests\Maintenance\UpdateMaintenanceTaskRequest;
 use App\Models\Item;
 use App\Models\MaintenanceTask;
+use App\Services\Battery\BatteryService;
 use App\Services\Maintenance\MaintenanceSchedule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +26,10 @@ use Illuminate\Validation\ValidationException;
  */
 class MaintenanceTaskController extends Controller
 {
-    public function __construct(private readonly MaintenanceSchedule $schedule) {}
+    public function __construct(
+        private readonly MaintenanceSchedule $schedule,
+        private readonly BatteryService $battery,
+    ) {}
 
     public function store(StoreMaintenanceTaskRequest $request, Item $item): RedirectResponse
     {
@@ -82,6 +87,15 @@ class MaintenanceTaskController extends Controller
             throw ValidationException::withMessages([
                 'task' => __('validation.custom.maintenance_task.archived'),
             ]);
+        }
+
+        // Completing a battery reminder IS a battery change: swap the cycle
+        // and record the completion through the one owner of that loop.
+        if ($maintenanceTask->schedule_type === MaintenanceScheduleType::Forecast) {
+            $entry = $request->entryAttributes();
+            $this->battery->changeBattery($item, $entry['completed_at'], $entry['notes'], $entry['performed_by']);
+
+            return back();
         }
 
         DB::transaction(function () use ($request, $item, $maintenanceTask): void {

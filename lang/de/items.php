@@ -48,6 +48,20 @@ return [
         ],
     ],
 
+    'battery' => [
+        'title' => 'Batterie',
+        'change' => 'Batterie wechseln',
+        'updated' => 'Aktualisiert :date',
+        'replace_by' => 'Wechseln bis',
+        'confidence' => ':pct % Konfidenz',
+        'no_prediction' => 'Noch nicht genügend Daten, um ein Wechseldatum vorherzusagen.',
+        'chart' => [
+            'current' => 'Aktuelle Batterie',
+            'previous' => 'Batterie #:n',
+            'forecast' => 'Prognose',
+        ],
+    ],
+
     'form' => [
         'type' => 'Typ',
         'name_placeholder' => 'z. B. Werkzeugkasten',
@@ -64,6 +78,11 @@ return [
         'manufacturer_placeholder' => 'z. B. DeWalt',
         'model_number' => 'Modellnummer',
         'serial_number' => 'Seriennummer',
+        'tag_locked' => 'Automatisch zugewiesen – vom System verwaltet',
+        'battery_type' => 'Batterietyp',
+        'battery_type_none' => 'Keine Batterie',
+        'battery_type_custom' => 'Benutzerdefiniert…',
+        'battery_type_placeholder' => 'z. B. AA, CR2032',
         'purchased_from' => 'Gekauft bei',
         'purchased_from_placeholder' => 'Händler / Geschäft',
         'purchase_date' => 'Kaufdatum',

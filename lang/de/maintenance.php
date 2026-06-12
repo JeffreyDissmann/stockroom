@@ -8,6 +8,11 @@ return [
         'subtitle' => 'Alle Wartungspläne des Haushalts, nächste Fälligkeit zuerst.',
         'empty' => 'Keine Wartungsaufgaben für diesen Filter.',
     ],
+    // Title of the system-managed task created when an item becomes
+    // battery-tracked; its due date is driven by the depletion forecast.
+    'battery' => [
+        'replace_title' => 'Batterie wechseln',
+    ],
     'filters' => [
         'all' => 'Alle',
         'overdue' => 'Überfällig',
@@ -107,6 +112,7 @@ return [
         'nth_weekday_monthly' => 'Jeden :ordinal :weekday im Monat',
         'nth_weekday_yearly' => 'Jeden :ordinal :weekday im :month',
         'one_off' => 'Einmalig',
+        'forecast' => 'Aus dem Batteriestand prognostiziert',
         'custom' => 'Eigene Regel',
         'ordinals' => [
             '1' => 'ersten',

@@ -9,6 +9,7 @@ use App\Http\Controllers\ImageSearchController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemImageController;
 use App\Http\Controllers\ItemPhotoAnalysisController;
+use App\Http\Controllers\Items\BatteryController;
 use App\Http\Controllers\Items\BoxController;
 use App\Http\Controllers\Items\BulkController;
 use App\Http\Controllers\Items\HomeAssistantLinkController;
@@ -110,6 +111,10 @@ Route::middleware('auth')->group(function () {
     // integration via the v1 API; the user can remove it from the item page.
     Route::delete('items/{item}/home-assistant-link', [HomeAssistantLinkController::class, 'destroy'])
         ->name('items.home-assistant-link.destroy');
+
+    // Manual battery swap from the item page (level readings come from HA).
+    Route::post('items/{item}/battery-changes', [BatteryController::class, 'change'])
+        ->name('items.battery-changes.store');
 
     Route::scopeBindings()->group(function () {
         Route::post('items/{item}/images', [ItemImageController::class, 'store'])->name('items.images.store');

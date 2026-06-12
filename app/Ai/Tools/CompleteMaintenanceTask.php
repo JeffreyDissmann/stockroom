@@ -8,6 +8,7 @@ use App\Ai\Concerns\FormatsItemLinks;
 use App\Ai\Concerns\ParsesCompletionDates;
 use App\Enums\MaintenanceScheduleType;
 use App\Models\MaintenanceTask;
+use App\Services\Battery\BatteryService;
 use App\Services\Maintenance\MaintenancePresenter;
 use App\Services\Maintenance\MaintenanceSchedule;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -29,6 +30,7 @@ class CompleteMaintenanceTask implements Tool
     public function __construct(
         private readonly MaintenanceSchedule $schedule,
         private readonly MaintenancePresenter $presenter,
+        private readonly BatteryService $battery,
     ) {}
 
     public function description(): string
@@ -73,6 +75,17 @@ class CompleteMaintenanceTask implements Tool
 
         if ($cost !== null && (! is_numeric($cost) || (float) $cost < 0)) {
             return 'The cost must be a non-negative number.';
+        }
+
+        // Completing a battery reminder IS a battery change: swap the cycle
+        // and record the completion through the one owner of that loop.
+        if ($task->schedule_type === MaintenanceScheduleType::Forecast) {
+            $this->battery->changeBattery($task->item, $completedAt, $request['notes'] ?? null, auth()->id());
+            $task->refresh();
+
+            return "Recorded a battery change for task #{$task->id} \"{$task->title}\" on {$this->itemLink($task->item)} "
+                ."for {$completedAt->toDateString()}. A fresh battery cycle has started; the next due date will be "
+                .'predicted as new level readings arrive.';
         }
 
         DB::transaction(function () use ($request, $task, $completedAt, $cost): void {

@@ -19,6 +19,7 @@ return [
         'interval' => 'Nach Erledigung',
         'calendar' => 'Fester Rhythmus',
         'one_off' => 'Einmalig',
+        'forecast' => 'Batterie-Prognose',
     ],
     'maintenance_interval_unit' => [
         'days' => 'Tage',

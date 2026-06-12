@@ -13,6 +13,7 @@ const props = defineProps<{
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];
+    batteryTypes: string[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
@@ -47,7 +48,15 @@ const cancelHref = computed(() => (props.parent ? `/items/${props.parent.id}` : 
                     </p>
                 </div>
 
-                <ItemForm mode="create" :parent="parent" :items="items" :tags="tags" :types="types" :custom-fields="customFields" />
+                <ItemForm
+                    mode="create"
+                    :parent="parent"
+                    :items="items"
+                    :tags="tags"
+                    :types="types"
+                    :custom-fields="customFields"
+                    :battery-types="batteryTypes"
+                />
             </div>
         </div>
     </AppLayout>

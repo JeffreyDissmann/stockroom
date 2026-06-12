@@ -24,6 +24,14 @@ class TagController extends Controller
 
         return Inertia::render('tags/Index', [
             'tags' => $tags,
+            // Auto-managed tags (box / Home Assistant / battery) can't be
+            // deleted — the UI hides their delete control rather than letting
+            // the user hit the validation error.
+            'protectedTagIds' => array_values(array_filter([
+                Setting::int('box_tag_id'),
+                Setting::int('home_assistant_tag_id'),
+                Setting::int('battery_tag_id'),
+            ], fn (?int $id): bool => $id !== null)),
         ]);
     }
 
@@ -59,6 +67,14 @@ class TagController extends Controller
         if (Setting::int('home_assistant_tag_id') === $tag->id) {
             throw ValidationException::withMessages([
                 'tag' => __('tags.cannot_delete_home_assistant_tag'),
+            ]);
+        }
+
+        // The auto-managed Battery tag is protected once it's been selected
+        // (recorded the first time an item became battery-tracked).
+        if (Setting::int('battery_tag_id') === $tag->id) {
+            throw ValidationException::withMessages([
+                'tag' => __('tags.cannot_delete_battery_tag'),
             ]);
         }
 
