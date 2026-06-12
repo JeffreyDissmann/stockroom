@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useAppVersion } from '@/composables/useAppVersion';
 import { logout } from '@/routes';
 import profile from '@/routes/profile';
 import type { User } from '@/types';
@@ -12,6 +13,8 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const { show: showVersion, label: versionLabel } = useAppVersion();
 </script>
 
 <template>
@@ -36,4 +39,11 @@ defineProps<Props>();
             {{ $t('nav.log_out') }}
         </Link>
     </DropdownMenuItem>
+    <!-- Running build version — empty in dev (no APP_VERSION build arg). -->
+    <template v-if="showVersion">
+        <DropdownMenuSeparator />
+        <div class="px-2 py-1.5 text-xs" style="color: var(--fg-subtle)" data-test="user-menu-version">
+            {{ versionLabel }}
+        </div>
+    </template>
 </template>

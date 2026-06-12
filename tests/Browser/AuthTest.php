@@ -46,6 +46,18 @@ it('rejects invalid credentials', function () {
         ->assertVisible('@login-error');
 });
 
+it('shows the running version in the user menu when logged in', function () {
+    config(['stockroom.version.tag' => '2026.06.07', 'stockroom.version.commit' => 'abc1234def']);
+    $this->actingAs(User::factory()->create());
+
+    $page = visit('/dashboard');
+    $page->click('@user-menu')
+        ->assertPresent('@user-menu-version')
+        ->assertSee('2026.06.07')
+        ->assertSee('abc1234')
+        ->assertNoJavaScriptErrors();
+});
+
 it('logs out via the user menu back to the login screen', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
