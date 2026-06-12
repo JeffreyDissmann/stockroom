@@ -8,7 +8,7 @@ import householdPreferences from '@/routes/household/preferences';
 import tagRoutes from '@/routes/tags';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { AlertTriangle, Check, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { AlertTriangle, Check, Lock, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const isAdmin = useIsAdmin();
@@ -21,9 +21,13 @@ interface TagRow {
     items_count: number;
 }
 
-defineProps<{ tags: TagRow[] }>();
+const props = defineProps<{ tags: TagRow[]; protectedTagIds: number[] }>();
 
 const breadcrumbs: BreadcrumbItemType[] = [{ title: trans('tags.title'), href: '/tags' }];
+
+// Auto-managed tags (box / Home Assistant / battery) can't be deleted — hide
+// the delete control and show a lock hint instead of offering a doomed click.
+const isProtected = (tag: TagRow): boolean => props.protectedTagIds.includes(tag.id);
 
 // A native color input always shows a colour (black for an empty value), so the
 // form must start with a real default — otherwise an untouched picker submits
@@ -190,13 +194,16 @@ function destroyTag(tag: TagRow) {
                                 {{ transChoice('tags.items_count', tag.items_count) }}
                             </div>
                         </Link>
-                        <div v-if="isAdmin" class="flex gap-1">
+                        <div v-if="isAdmin" class="flex items-center gap-1">
                             <button class="btn-ghost" type="button" @click="startEdit(tag)">
                                 <Pencil :size="14" />
                             </button>
-                            <button class="btn-ghost btn-danger" type="button" @click="destroyTag(tag)">
+                            <button v-if="!isProtected(tag)" class="btn-ghost btn-danger" type="button" @click="destroyTag(tag)">
                                 <Trash2 :size="14" />
                             </button>
+                            <span v-else class="px-1" style="color: var(--fg-subtle)" :title="$t('tags.protected_hint')">
+                                <Lock :size="13" />
+                            </span>
                         </div>
                     </div>
                 </div>

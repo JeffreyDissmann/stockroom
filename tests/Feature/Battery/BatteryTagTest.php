@@ -9,6 +9,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Services\Battery\BatteryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -79,6 +80,16 @@ it('does not detach other tags when assigning the Battery tag', function () {
 
     expect($item->tags()->whereKey($other->id)->exists())->toBeTrue()
         ->and($item->tags()->whereKey(batteryTag()->id)->exists())->toBeTrue();
+});
+
+it('flags the Battery tag as protected on the tags page so its delete control is hidden', function () {
+    $item = Item::factory()->create();
+    $this->service->recordReading($item, 80, now());
+    $tagId = batteryTag()->id;
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('tags.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('protectedTagIds', fn (Collection $ids): bool => $ids->contains($tagId)));
 });
 
 it('protects the Battery tag from deletion in the Tags UI', function () {
