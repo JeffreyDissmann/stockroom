@@ -6,6 +6,7 @@ namespace App\Services\Battery;
 
 use App\Enums\MaintenanceScheduleType;
 use App\Jobs\RefreshBatteryForecast;
+use App\Jobs\ReindexItemsJob;
 use App\Models\BatteryCycle;
 use App\Models\BatteryReading;
 use App\Models\Item;
@@ -45,6 +46,13 @@ class BatteryService
     {
         $percent = max(0, min(100, $percent));
         $at = $at ? CarbonImmutable::parse($at) : CarbonImmutable::now();
+
+        // A future timestamp (clock skew, or a bad client) would skew the
+        // regression's time axis — clamp it to now.
+        $now = CarbonImmutable::now();
+        if ($at->greaterThan($now)) {
+            $at = $now;
+        }
 
         $this->ensureForecastTask($item);
 
@@ -105,16 +113,19 @@ class BatteryService
     /**
      * Keep the auto-managed "Battery" tag on a battery-tracked item. Additive
      * (never disturbs other tags) and self-healing — if the tag was removed it
-     * is re-added on the next reading. The item is only re-indexed when the tag
-     * was actually attached, so steady-state readings stay cheap. The tag is
-     * never removed here: a device stays "battery-powered" between batteries.
+     * is re-added on the next reading. The tag is never removed here: a device
+     * stays "battery-powered" between batteries.
+     *
+     * Re-indexing only happens when the tag was actually attached, and it's
+     * pushed to a job — the search document embeds tag names via an Ollama
+     * embedding, which has no place on the reading hot path.
      */
     private function ensureBatteryTag(Item $item): void
     {
         $attached = $item->tags()->syncWithoutDetaching([$this->batteryTag()->id]);
 
         if (! empty($attached['attached'])) {
-            $item->searchable();
+            ReindexItemsJob::dispatch([$item->id]);
         }
     }
 

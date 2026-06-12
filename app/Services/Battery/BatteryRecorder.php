@@ -76,6 +76,11 @@ class BatteryRecorder
     {
         $at = $at ? CarbonImmutable::parse($at) : CarbonImmutable::now();
 
+        // The one-open-cycle invariant isn't guarded against concurrency: two
+        // simultaneous changes could each see no open cycle and open two. In
+        // practice changes for one device arrive serially (HA pushes in order),
+        // and there's no portable partial-unique index across pgsql/sqlite, so
+        // this is accepted rather than locked.
         return DB::transaction(function () use ($item, $at, $notes): BatteryCycle {
             $item->currentBatteryCycle()->first()?->update(['removed_at' => $at]);
 

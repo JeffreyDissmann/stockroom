@@ -96,6 +96,26 @@ class ApiBatteryTest extends TestCase
         $this->assertSame('new pair', $item->refresh()->currentBatteryCycle->notes);
     }
 
+    public function test_show_returns_an_untracked_shape_for_an_item_with_no_battery(): void
+    {
+        $this->writer();
+        $item = Item::factory()->create();
+
+        $this->getJson("/api/v1/items/{$item->id}/battery")
+            ->assertOk()
+            ->assertJsonPath('data.tracked', false)
+            ->assertJsonPath('data.current_percent', null)
+            ->assertJsonPath('data.projection', null);
+    }
+
+    public function test_show_requires_the_read_ability(): void
+    {
+        Sanctum::actingAs(User::factory()->create(), ['write']);
+        $item = Item::factory()->create();
+
+        $this->getJson("/api/v1/items/{$item->id}/battery")->assertForbidden();
+    }
+
     public function test_percent_is_validated(): void
     {
         $this->writer();

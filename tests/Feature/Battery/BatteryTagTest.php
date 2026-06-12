@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Jobs\ReindexItemsJob;
 use App\Models\Item;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\Battery\BatteryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -32,6 +34,19 @@ it('auto-assigns and records a Battery tag on the first reading', function () {
     expect($tag)->not->toBeNull()
         ->and($tag->name)->toBe('Battery')
         ->and($item->tags()->whereKey($tag->id)->exists())->toBeTrue();
+});
+
+it('reindexes via a job only when the tag is first attached', function () {
+    Bus::fake([ReindexItemsJob::class]);
+    $item = Item::factory()->create();
+
+    $this->service->recordReading($item, 80, now()->subDay());
+    Bus::assertDispatched(ReindexItemsJob::class, fn (ReindexItemsJob $job): bool => $job->itemIds === [$item->id]);
+
+    // A second reading doesn't re-attach the tag, so no further reindex.
+    Bus::assertDispatchedTimes(ReindexItemsJob::class, 1);
+    $this->service->recordReading($item, 70, now());
+    Bus::assertDispatchedTimes(ReindexItemsJob::class, 1);
 });
 
 it('re-adds the tag on the next reading if it was removed (self-heal)', function () {

@@ -140,6 +140,22 @@ it('projects the predicted-low date onto the reminder as readings come in', func
         ->and($task->next_due_at->toDateString())->toBe(today()->addDays(20)->toDateString());
 });
 
+it('clamps a future reading timestamp to now', function () {
+    $item = Item::factory()->create();
+
+    $reading = $this->service->recordReading($item, 80, now()->addDays(5));
+
+    expect($reading->recorded_at->isFuture())->toBeFalse()
+        ->and($reading->recorded_at->lessThanOrEqualTo(now()->addSecond()))->toBeTrue();
+});
+
+it('does nothing when the forecast job runs for a deleted item', function () {
+    $item = Item::factory()->create();
+
+    expect(fn () => (new RefreshBatteryForecast($item->id + 999))->handle($this->service))
+        ->not->toThrow(Exception::class);
+});
+
 it('clears the reminder date when the battery is not draining', function () {
     $item = Item::factory()->create();
 
