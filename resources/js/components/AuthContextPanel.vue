@@ -11,29 +11,13 @@
  * come from shared props (see App\Support\AppVersion); the chip hides
  * itself when both fields are null (e.g. fresh clone without a git tag).
  */
+import { useAppVersion } from '@/composables/useAppVersion';
 import { trans } from '@/composables/useTranslations';
-import type { SharedData } from '@/types';
-import { usePage } from '@inertiajs/vue3';
 import { Github, Heart, Scale } from 'lucide-vue-next';
-import { computed } from 'vue';
 
-const page = usePage<SharedData>();
-const version = computed(() => page.props.version);
-
-// Show the chip only when at least one of tag / sha is known. Truthy
-// check rather than `!== null` because the version prop itself can be
-// missing during the brief moment before SharedData is hydrated, in
-// which case `undefined !== null` would render an empty chip.
-const showVersion = computed(() => Boolean(version.value?.tag || version.value?.sha));
-
-// Composed version string. Prefers "<tag> · <sha>", falls back to whichever
-// field is present.
-const versionLabel = computed(() => {
-    const t = version.value?.tag;
-    const s = version.value?.sha;
-    if (t && s) return `${t} · ${s}`;
-    return t || s || '';
-});
+// Version chip — shared with the authenticated user menu (see useAppVersion).
+// Hidden when both tag and sha are null (e.g. fresh clone without a git tag).
+const { show: showVersion, label: versionLabel } = useAppVersion();
 </script>
 
 <template>
