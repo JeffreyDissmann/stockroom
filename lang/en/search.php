@@ -7,12 +7,15 @@ return [
     'results' => ':count result|:count results',
     'empty_prompt' => 'Type above to search every item.',
     'no_match' => 'No items match.',
+    'clear_filters' => 'Clear filters',
     'paperless_filter' => 'From Paperless doc #:id',
     'paperless_filter_clear' => 'Clear Paperless document filter',
 
     'sort' => [
         'relevance' => 'Relevance',
         'name' => 'Name',
+        'location' => 'Location',
+        'count' => 'Contents',
         'added' => 'Recently added',
         'edited' => 'Recently edited',
     ],

@@ -6,7 +6,7 @@ import { useBulkSelection } from '@/composables/useBulkSelection';
 import itemRoutes from '@/routes/items';
 import type { ItemSummary, ItemViewMode } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { Check, X } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, Check, MapPin, X } from 'lucide-vue-next';
 
 const props = defineProps<{
     items: ItemSummary[];
@@ -19,10 +19,19 @@ const props = defineProps<{
     // of navigating to the item. Set on the items index + search results;
     // omitted on read-only embedded lists (e.g. Related items on Show).
     selectable?: boolean;
+    // When set, the list-view column headers for name/contents/location
+    // become clickable sort controls (search results). `sort` is the active
+    // key and `sortDir` its direction; clicking a header emits `sort`.
+    sort?: string;
+    sortDir?: 'asc' | 'desc';
+    // Render a Location column (list) / location line (grid) — search results
+    // span the whole tree, so each row shows where the item lives.
+    showLocation?: boolean;
 }>();
 
 const emit = defineEmits<{
     remove: [item: ItemSummary];
+    sort: [key: string];
 }>();
 
 // Singleton store. ItemCollection is the only component that reads it for
@@ -47,6 +56,14 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
         bulk.toggleId(item.id);
     }
 }
+
+// Each sortable column's natural default direction; used to show the right
+// arrow even when no explicit direction is set yet (e.g. sorted via the
+// dropdown), and to compose aria-sort.
+const naturalDir = (key: string): 'asc' | 'desc' => (key === 'name' || key === 'location' ? 'asc' : 'desc');
+const effectiveDir = (key: string): 'asc' | 'desc' => props.sortDir ?? naturalDir(key);
+const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
+    props.sort === key ? (effectiveDir(key) === 'asc' ? 'ascending' : 'descending') : 'none';
 </script>
 
 <template>
@@ -54,10 +71,32 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
         <thead>
             <tr>
                 <th v-if="selectable && bulk.isSelectMode.value" class="num" style="width: 32px" />
-                <th>Item</th>
-                <th class="hide-on-mobile">Type</th>
-                <th class="hide-on-mobile">Tags</th>
-                <th class="num hide-on-mobile">Inside</th>
+                <th :aria-sort="sort === undefined ? undefined : ariaSort('name')">
+                    <button v-if="sort !== undefined" type="button" class="th-sort" @click="emit('sort', 'name')">
+                        {{ $t('items.collection.item') }}
+                        <ArrowUp v-if="sort === 'name' && effectiveDir('name') === 'asc'" :size="12" />
+                        <ArrowDown v-else-if="sort === 'name'" :size="12" />
+                    </button>
+                    <template v-else>{{ $t('items.collection.item') }}</template>
+                </th>
+                <th v-if="showLocation" class="hide-on-mobile" :aria-sort="sort === undefined ? undefined : ariaSort('location')">
+                    <button v-if="sort !== undefined" type="button" class="th-sort" @click="emit('sort', 'location')">
+                        {{ $t('items.collection.location') }}
+                        <ArrowUp v-if="sort === 'location' && effectiveDir('location') === 'asc'" :size="12" />
+                        <ArrowDown v-else-if="sort === 'location'" :size="12" />
+                    </button>
+                    <template v-else>{{ $t('items.collection.location') }}</template>
+                </th>
+                <th class="hide-on-mobile">{{ $t('items.collection.type') }}</th>
+                <th class="hide-on-mobile">{{ $t('items.collection.tags') }}</th>
+                <th class="num hide-on-mobile" :aria-sort="sort === undefined ? undefined : ariaSort('count')">
+                    <button v-if="sort !== undefined" type="button" class="th-sort th-sort--num" @click="emit('sort', 'count')">
+                        <ArrowUp v-if="sort === 'count' && effectiveDir('count') === 'asc'" :size="12" />
+                        <ArrowDown v-else-if="sort === 'count'" :size="12" />
+                        {{ $t('items.collection.inside') }}
+                    </button>
+                    <template v-else>{{ $t('items.collection.inside') }}</template>
+                </th>
                 <th v-if="removable" class="num" />
             </tr>
         </thead>
@@ -87,11 +126,24 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
                             <div v-if="item.tags?.length" class="row-name-tags">
                                 <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                             </div>
+                            <!-- Inline location, mobile-only — mirrors the
+                                 tag row; the dedicated Location column carries
+                                 it on desktop. -->
+                            <div v-if="showLocation && item.location_path" class="sub row-name-location">
+                                <MapPin :size="11" />
+                                {{ item.location_path }}
+                            </div>
                             <div v-if="item.description" class="sub row-name-sub">
                                 {{ item.description }}
                             </div>
                         </div>
                     </div>
+                </td>
+                <td v-if="showLocation" class="hide-on-mobile">
+                    <span v-if="item.location_path" class="row-location">
+                        <MapPin :size="11" />
+                        {{ item.location_path }}
+                    </span>
                 </td>
                 <td class="hide-on-mobile">
                     <span class="tag">{{ item.type.label }}</span>
@@ -154,6 +206,10 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
                 </div>
                 <div class="info">
                     <div class="nm">{{ item.name }}</div>
+                    <div v-if="item.location_path" class="meta row-location">
+                        <MapPin :size="11" />
+                        <span class="truncate">{{ item.location_path }}</span>
+                    </div>
                     <div class="meta">
                         <span>{{ item.type.label }}</span>
                         <span v-if="(item.children_count ?? 0) > 0" class="mono">{{ item.children_count }} inside</span>
@@ -186,6 +242,28 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
    up shorter than its neighbours. .item-card already has
    display: flex; flex-direction: column; we just need it to grow inside
    the wrap. */
+.th-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+.th-sort:hover {
+    color: var(--fg);
+}
+.th-sort--num {
+    flex-direction: row;
+}
+.row-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 .item-card-wrap {
     position: relative;
     display: flex;
@@ -285,6 +363,15 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
     margin-top: 4px;
 }
 
+/* Inline location — hidden on desktop (the Location column carries it),
+   surfaced on mobile alongside the inline tags. */
+.row-name-location {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+
 /* Mobile: collapse the table to the Item column alone — Type, Tags, and
    Inside go offscreen otherwise. Tags re-appear inline under the name
    via `.row-name-tags`. The description switches from ellipsis-on-one-
@@ -296,6 +383,9 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
     }
     .row-name-tags {
         display: flex;
+    }
+    .row-name-location {
+        display: inline-flex;
     }
     .row-name-sub {
         white-space: normal;

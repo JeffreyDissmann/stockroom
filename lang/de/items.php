@@ -48,6 +48,14 @@ return [
         ],
     ],
 
+    'collection' => [
+        'item' => 'Objekt',
+        'location' => 'Ort',
+        'type' => 'Typ',
+        'tags' => 'Schlagwörter',
+        'inside' => 'Enthält',
+    ],
+
     'battery' => [
         'title' => 'Batterie',
         'change' => 'Batterie wechseln',

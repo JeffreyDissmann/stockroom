@@ -66,9 +66,12 @@ class SearchController extends Controller
             ->unique()
             ->values()
             ->all();
-        $sort = in_array($request->query('sort'), ['name', 'added', 'edited'], true)
+        $sort = in_array($request->query('sort'), ['name', 'location', 'added', 'edited', 'count'], true)
             ? $request->query('sort')
             : 'relevance';
+        // Direction is only meaningful for the column sorts (relevance keeps
+        // Meilisearch's order). Null falls back to each sort's natural default.
+        $dir = in_array($request->query('dir'), ['asc', 'desc'], true) ? $request->query('dir') : null;
 
         // Paperless backlink filter (#7): scopes the result to items linked
         // to a given Paperless document. Set as a URL custom field on the
@@ -95,14 +98,28 @@ class SearchController extends Controller
                 $ids !== null && $ids !== [] && $sort === 'relevance',
                 fn ($q) => $q->orderByRaw('array_position(?::int[], id)', ['{'.implode(',', $ids).'}']),
                 fn ($q) => match ($sort) {
-                    'added' => $q->orderByDesc('created_at'),
-                    'edited' => $q->orderByDesc('updated_at'),
-                    default => $q->orderBy('name'),
+                    'added' => $q->orderBy('created_at', $dir ?? 'desc'),
+                    'edited' => $q->orderBy('updated_at', $dir ?? 'desc'),
+                    'count' => $q->orderBy('children_count', $dir ?? 'desc'),
+                    // Sorts by the immediate parent (room/container) name — the
+                    // displayed breadcrumb is the full path, but the path isn't
+                    // a stored column to order by. Correlated subquery aliased
+                    // so the self-reference to `items` is unambiguous.
+                    'location' => $q->orderBy(
+                        Item::query()->from('items as parents')->select('parents.name')->whereColumn('parents.id', 'items.parent_id'),
+                        $dir ?? 'asc',
+                    ),
+                    default => $q->orderBy('name', $dir ?? 'asc'),
                 },
             )
             ->paginate(24)
-            ->withQueryString()
-            ->through(fn (Item $item): array => $this->present($item));
+            ->withQueryString();
+
+        // Resolve every result's location path in one batched ancestor walk
+        // (not a per-row locationPath() N+1) — search spans the whole tree, so
+        // each card shows where the item lives.
+        $paths = Item::locationPathsFor($items->getCollection());
+        $items->through(fn (Item $item): array => $this->present($item, $paths[$item->id] ?? ''));
 
         return Inertia::render('Search', [
             'query' => $query,
@@ -110,6 +127,7 @@ class SearchController extends Controller
                 'type' => $type,
                 'tags' => $tagIds,
                 'sort' => $sort,
+                'dir' => $dir,
                 'paperless_document' => $paperlessDocumentId,
             ],
             'items' => $items,
@@ -123,12 +141,13 @@ class SearchController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function present(Item $item): array
+    private function present(Item $item, string $locationPath = ''): array
     {
         return [
             'id' => $item->id,
             'name' => $item->name,
             'description' => $item->description,
+            'location_path' => $locationPath,
             'type' => [
                 'value' => $item->type->value,
                 'label' => $item->type->label(),

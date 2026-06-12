@@ -214,4 +214,57 @@ class SearchTest extends TestCase
                 ->where('items.data.1.name', 'Middle')
                 ->where('items.data.2.name', 'Oldest'));
     }
+
+    public function test_search_page_can_sort_by_contents_count(): void
+    {
+        $empty = Item::factory()->create(['type' => ItemType::Item, 'name' => 'Empty']);
+        $full = Item::factory()->create(['type' => ItemType::Container, 'name' => 'Full']);
+        Item::factory()->count(3)->create(['parent_id' => $full->id]);
+        Item::factory()->create(['parent_id' => $empty->id]); // 1 child
+
+        // Default direction is fullest-first.
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sort=count')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filters.sort', 'count')
+                ->where('items.data.0.name', 'Full'));
+
+        // Ascending flips it.
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sort=count&dir=asc')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filters.dir', 'asc')
+                ->where('items.data.0.children_count', 0));
+    }
+
+    public function test_search_page_can_sort_by_location(): void
+    {
+        $aRoom = Item::factory()->create(['type' => ItemType::Room, 'name' => 'Attic']);
+        $zRoom = Item::factory()->create(['type' => ItemType::Room, 'name' => 'Zellar']);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'In Zellar', 'parent_id' => $zRoom->id]);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'In Attic', 'parent_id' => $aRoom->id]);
+
+        // Ascending by parent (room) name: Attic's item before Zellar's. The
+        // rooms themselves have no parent and sort first.
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sort=location&dir=asc&type=item')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filters.sort', 'location')
+                ->where('items.data.0.name', 'In Attic')
+                ->where('items.data.1.name', 'In Zellar'));
+    }
+
+    public function test_search_results_include_the_location_path(): void
+    {
+        $room = Item::factory()->create(['type' => ItemType::Room, 'name' => 'Garage']);
+        $box = Item::factory()->create(['type' => ItemType::Container, 'name' => 'Toolbox', 'parent_id' => $room->id]);
+        Item::factory()->create(['type' => ItemType::Item, 'name' => 'Wrench', 'parent_id' => $box->id]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sort=name')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data', fn ($items) => collect($items)->firstWhere('name', 'Wrench')['location_path'] === 'Garage / Toolbox'));
+    }
 }
