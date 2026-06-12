@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\TagController::store
-* @see app/Http/Controllers/TagController.php:30
+* @see app/Http/Controllers/TagController.php:38
 * @route '/tags'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -60,7 +60,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\TagController::store
-* @see app/Http/Controllers/TagController.php:30
+* @see app/Http/Controllers/TagController.php:38
 * @route '/tags'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\TagController::store
-* @see app/Http/Controllers/TagController.php:30
+* @see app/Http/Controllers/TagController.php:38
 * @route '/tags'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -79,7 +79,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\TagController::update
-* @see app/Http/Controllers/TagController.php:37
+* @see app/Http/Controllers/TagController.php:45
 * @route '/tags/{tag}'
 */
 export const update = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -94,7 +94,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\TagController::update
-* @see app/Http/Controllers/TagController.php:37
+* @see app/Http/Controllers/TagController.php:45
 * @route '/tags/{tag}'
 */
 update.url = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -127,7 +127,7 @@ update.url = (args: { tag: number | { id: number } } | [tag: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\TagController::update
-* @see app/Http/Controllers/TagController.php:37
+* @see app/Http/Controllers/TagController.php:45
 * @route '/tags/{tag}'
 */
 update.put = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -137,7 +137,7 @@ update.put = (args: { tag: number | { id: number } } | [tag: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\TagController::update
-* @see app/Http/Controllers/TagController.php:37
+* @see app/Http/Controllers/TagController.php:45
 * @route '/tags/{tag}'
 */
 update.patch = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -147,7 +147,7 @@ update.patch = (args: { tag: number | { id: number } } | [tag: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\TagController::destroy
-* @see app/Http/Controllers/TagController.php:44
+* @see app/Http/Controllers/TagController.php:52
 * @route '/tags/{tag}'
 */
 export const destroy = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -162,7 +162,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\TagController::destroy
-* @see app/Http/Controllers/TagController.php:44
+* @see app/Http/Controllers/TagController.php:52
 * @route '/tags/{tag}'
 */
 destroy.url = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -195,7 +195,7 @@ destroy.url = (args: { tag: number | { id: number } } | [tag: number | { id: num
 
 /**
 * @see \App\Http\Controllers\TagController::destroy
-* @see app/Http/Controllers/TagController.php:44
+* @see app/Http/Controllers/TagController.php:52
 * @route '/tags/{tag}'
 */
 destroy.delete = (args: { tag: number | { id: number } } | [tag: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

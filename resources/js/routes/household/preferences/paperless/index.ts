@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::relinkAll
-* @see app/Http/Controllers/Household/PreferencesController.php:84
+* @see app/Http/Controllers/Household/PreferencesController.php:85
 * @route '/household/preferences/paperless/relink-all'
 */
 export const relinkAll = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ relinkAll.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::relinkAll
-* @see app/Http/Controllers/Household/PreferencesController.php:84
+* @see app/Http/Controllers/Household/PreferencesController.php:85
 * @route '/household/preferences/paperless/relink-all'
 */
 relinkAll.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ relinkAll.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::relinkAll
-* @see app/Http/Controllers/Household/PreferencesController.php:84
+* @see app/Http/Controllers/Household/PreferencesController.php:85
 * @route '/household/preferences/paperless/relink-all'
 */
 relinkAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ relinkAll.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::refreshMetadata
-* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless/refresh-metadata'
 */
 export const refreshMetadata = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -50,7 +50,7 @@ refreshMetadata.definition = {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::refreshMetadata
-* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless/refresh-metadata'
 */
 refreshMetadata.url = (options?: RouteQueryOptions) => {
@@ -59,7 +59,7 @@ refreshMetadata.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Household\PreferencesController::refreshMetadata
-* @see app/Http/Controllers/Household/PreferencesController.php:96
+* @see app/Http/Controllers/Household/PreferencesController.php:97
 * @route '/household/preferences/paperless/refresh-metadata'
 */
 refreshMetadata.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
