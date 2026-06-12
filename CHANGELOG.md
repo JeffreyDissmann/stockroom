@@ -7,6 +7,30 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.08] — 2026-06-12
+
+### Added
+
+- **Search shows where things live, and sorts more ways.** Each search result
+  now carries its location (e.g. "Garage / Toolbox") as its own column in the
+  list view, and the column headers (Name, Location, Contents) are clickable
+  to sort — toggling ascending/descending with an arrow, and exposing
+  `aria-sort` for screen readers. New sorts by contents count and by location
+  join the existing name/added/edited, and a "Clear filters" control resets
+  type/tag/sort in one click. The same sortable headers now work on the item
+  browse list too.
+- **More room & container icons.** The icon picker grew from 19 to 40 choices —
+  added Lounge, TV room, Pantry, Toilet, Study, Playroom, Music/Craft room,
+  Mudroom, Pet area, Wine cellar, Bike storage, Greenhouse, Shed, Outdoor, and
+  more containers (Stack, Open box, Bin, Basket, Bag, Suitcase, Freezer).
+- **Version visible while logged in.** The running build version (tag · commit)
+  now shows in the account menu, not just on the login screen.
+
+### Internal
+
+- The location path on search results is resolved in one batched ancestor walk
+  rather than a per-row query.
+
 ## [2026.06.07] — 2026-06-12
 
 ### Added
