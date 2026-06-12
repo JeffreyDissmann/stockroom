@@ -7,6 +7,39 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.06.07] — 2026-06-12
+
+### Added
+
+- **Battery tracking.** Items can now track a battery. Set a **battery type**
+  (`AA`, `CR2032`, `AA ×4`, …) on the item, and Stockroom keeps a per-battery
+  history of level readings. It keeps one *cycle* per physical battery,
+  auto-detects a swap from a low→full jump in the readings, and fits a
+  depletion line — pooled across the last few batteries so a fresh one is
+  forecast from how its predecessors drained — to predict when the level will
+  hit the low threshold. That prediction drives a system-managed **"Replace
+  battery"** maintenance reminder, so the dashboard card, the daily digest and
+  the maintenance API all light up automatically. The item page gains a
+  **battery panel** with the current level, predicted replacement date, fit
+  confidence and a **depletion chart** of this and previous batteries, plus a
+  **"Change battery"** button for manual swaps.
+- **Battery tag.** Battery-tracked items are auto-assigned a system-managed
+  **"Battery"** tag (re-added on the next reading if removed, protected from
+  deletion). A household **Battery tag** preference lets you switch which tag
+  is used, alongside the Box and Home Assistant tag pickers.
+- **Battery API for Home Assistant.** The `/api/v1` API exposes battery
+  tracking so HA can push levels: `GET /items/{item}/battery` (level, type,
+  forecast, reminder), `POST /items/{item}/battery-readings` (push a level),
+  `POST /items/{item}/battery-changes` (record a swap), and `battery_type` via
+  `PATCH /items/{item}`. See [the API reference](./docs/api.md).
+
+### Internal
+
+- The depletion regression runs in a queued job (`RefreshBatteryForecast`) off
+  the request path; recording a level stays a cheap insert and the forecast
+  snapshot is cached on the open cycle. Adds `markrogoyski/math-php` (least
+  squares) and `chart.js` + `vue-chartjs` (the depletion chart).
+
 ## [2026.06.06] — 2026-06-09
 
 ### Internal
