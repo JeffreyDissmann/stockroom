@@ -182,6 +182,21 @@ it('lists items and filters with search across grid and list views', function ()
         ->assertNoJavaScriptErrors();
 });
 
+it('sorts the browse list by contents via the column header', function () {
+    Item::factory()->room()->create(['name' => 'Empty Room']);
+    $full = Item::factory()->room()->create(['name' => 'Full Room']);
+    Item::factory()->count(2)->create(['parent_id' => $full->id]);
+
+    $page = visit('/items');
+
+    // List view exposes the sortable headers; "Inside" sorts by child count,
+    // default descending → the fuller room first.
+    $page->click('List')
+        ->click('Inside')
+        ->assertSeeIn('table tbody tr:first-child', 'Full Room')
+        ->assertNoJavaScriptErrors();
+});
+
 it('drills into a room to see its contents', function () {
     $garage = Item::factory()->room()->create(['name' => 'Garage']);
     Item::factory()->container()->create(['name' => 'Toolbox', 'parent_id' => $garage->id]);

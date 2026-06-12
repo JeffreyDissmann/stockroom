@@ -11,7 +11,7 @@ import { search } from '@/routes';
 import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, SharedData, TagSummary } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { FileText, Search as SearchIcon, X } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface Paginated<T> {
     data: T[];
@@ -83,6 +83,14 @@ function onSort(key: string) {
     const naturalDir = key === 'name' || key === 'location' ? 'asc' : 'desc';
     const dir = props.filters.sort === key ? (props.filters.dir === 'asc' ? 'desc' : 'asc') : naturalDir;
     apply({ sort: key, dir });
+}
+
+// Whether any refinement beyond the query is active (the Paperless chip has
+// its own × control, so it's excluded here).
+const hasActiveFilters = computed(() => props.filters.type !== null || props.filters.tags.length > 0 || props.filters.sort !== 'relevance');
+
+function clearFilters() {
+    apply({ type: null, tags: [], sort: 'relevance', dir: null });
 }
 </script>
 
@@ -162,6 +170,18 @@ function onSort(key: string) {
                     <option value="added">{{ $t('search.sort.added') }}</option>
                     <option value="edited">{{ $t('search.sort.edited') }}</option>
                 </select>
+
+                <button
+                    v-if="hasActiveFilters"
+                    type="button"
+                    class="chip"
+                    style="display: inline-flex; align-items: center; gap: 6px"
+                    data-test="clear-filters"
+                    @click="clearFilters"
+                >
+                    <X :size="12" />
+                    {{ $t('search.clear_filters') }}
+                </button>
 
                 <div class="flex items-center gap-2" style="margin-left: auto">
                     <span class="section-label">{{ $tChoice('search.results', items.total) }}</span>

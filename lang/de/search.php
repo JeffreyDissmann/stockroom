@@ -7,6 +7,7 @@ return [
     'results' => ':count Ergebnis|:count Ergebnisse',
     'empty_prompt' => 'Tippe oben, um alle Gegenstände zu durchsuchen.',
     'no_match' => 'Keine Gegenstände gefunden.',
+    'clear_filters' => 'Filter zurücksetzen',
     'paperless_filter' => 'Aus Paperless-Dokument #:id',
     'paperless_filter_clear' => 'Filter „Paperless-Dokument" entfernen',
 

@@ -25,6 +25,21 @@ const bulk = useBulkSelection(() => props.items.map((i) => i.id));
 const view = ref<ItemViewMode>('grid');
 const search = ref('');
 
+// Client-side sort for the list-view column headers (the page already holds
+// the full child set, so no round-trip). Defaults to name ascending — the
+// order the controller sends.
+const sortKey = ref<string>('name');
+const sortDir = ref<'asc' | 'desc'>('asc');
+
+function onSort(key: string) {
+    if (sortKey.value === key) {
+        sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortKey.value = key;
+        sortDir.value = key === 'name' ? 'asc' : 'desc';
+    }
+}
+
 const filtered = computed(() => {
     const q = search.value.trim().toLowerCase();
     if (!q) return props.items;
@@ -33,6 +48,13 @@ const filtered = computed(() => {
             i.name.toLowerCase().includes(q) ||
             (i.description ?? '').toLowerCase().includes(q) ||
             (i.tags ?? []).some((t) => t.name.toLowerCase().includes(q)),
+    );
+});
+
+const sorted = computed(() => {
+    const dir = sortDir.value === 'asc' ? 1 : -1;
+    return [...filtered.value].sort((a, b) =>
+        sortKey.value === 'count' ? ((a.children_count ?? 0) - (b.children_count ?? 0)) * dir : a.name.localeCompare(b.name) * dir,
     );
 });
 
@@ -94,7 +116,7 @@ watch(
                 <p v-else style="margin: 0">{{ $t('items.index.no_match') }}</p>
             </div>
 
-            <ItemCollection v-else :items="filtered" :view="view" selectable />
+            <ItemCollection v-else :items="sorted" :view="view" selectable :sort="sortKey" :sort-dir="sortDir" @sort="onSort" />
 
             <div v-if="parent" class="mt-6 flex justify-end">
                 <Link :href="`/items/${parent.id}/edit`" class="btn-ghost">

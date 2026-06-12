@@ -56,6 +56,14 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
         bulk.toggleId(item.id);
     }
 }
+
+// Each sortable column's natural default direction; used to show the right
+// arrow even when no explicit direction is set yet (e.g. sorted via the
+// dropdown), and to compose aria-sort.
+const naturalDir = (key: string): 'asc' | 'desc' => (key === 'name' || key === 'location' ? 'asc' : 'desc');
+const effectiveDir = (key: string): 'asc' | 'desc' => props.sortDir ?? naturalDir(key);
+const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
+    props.sort === key ? (effectiveDir(key) === 'asc' ? 'ascending' : 'descending') : 'none';
 </script>
 
 <template>
@@ -63,27 +71,27 @@ function onRowClick(item: ItemSummary, event: MouseEvent) {
         <thead>
             <tr>
                 <th v-if="selectable && bulk.isSelectMode.value" class="num" style="width: 32px" />
-                <th>
+                <th :aria-sort="sort === undefined ? undefined : ariaSort('name')">
                     <button v-if="sort !== undefined" type="button" class="th-sort" @click="emit('sort', 'name')">
                         {{ $t('items.collection.item') }}
-                        <ArrowUp v-if="sort === 'name' && sortDir === 'asc'" :size="12" />
+                        <ArrowUp v-if="sort === 'name' && effectiveDir('name') === 'asc'" :size="12" />
                         <ArrowDown v-else-if="sort === 'name'" :size="12" />
                     </button>
                     <template v-else>{{ $t('items.collection.item') }}</template>
                 </th>
-                <th v-if="showLocation" class="hide-on-mobile">
+                <th v-if="showLocation" class="hide-on-mobile" :aria-sort="sort === undefined ? undefined : ariaSort('location')">
                     <button v-if="sort !== undefined" type="button" class="th-sort" @click="emit('sort', 'location')">
                         {{ $t('items.collection.location') }}
-                        <ArrowUp v-if="sort === 'location' && sortDir === 'asc'" :size="12" />
+                        <ArrowUp v-if="sort === 'location' && effectiveDir('location') === 'asc'" :size="12" />
                         <ArrowDown v-else-if="sort === 'location'" :size="12" />
                     </button>
                     <template v-else>{{ $t('items.collection.location') }}</template>
                 </th>
                 <th class="hide-on-mobile">{{ $t('items.collection.type') }}</th>
                 <th class="hide-on-mobile">{{ $t('items.collection.tags') }}</th>
-                <th class="num hide-on-mobile">
+                <th class="num hide-on-mobile" :aria-sort="sort === undefined ? undefined : ariaSort('count')">
                     <button v-if="sort !== undefined" type="button" class="th-sort th-sort--num" @click="emit('sort', 'count')">
-                        <ArrowUp v-if="sort === 'count' && sortDir === 'asc'" :size="12" />
+                        <ArrowUp v-if="sort === 'count' && effectiveDir('count') === 'asc'" :size="12" />
                         <ArrowDown v-else-if="sort === 'count'" :size="12" />
                         {{ $t('items.collection.inside') }}
                     </button>
