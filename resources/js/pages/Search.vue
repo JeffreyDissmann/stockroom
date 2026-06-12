@@ -26,7 +26,8 @@ const props = defineProps<{
     filters: {
         type: ItemTypeValue | null;
         tags: number[];
-        sort: 'relevance' | 'name' | 'added' | 'edited';
+        sort: 'relevance' | 'name' | 'location' | 'added' | 'edited' | 'count';
+        dir: 'asc' | 'desc' | null;
         paperless_document: number | null;
     };
     items: Paginated<ItemSummary>;
@@ -48,6 +49,7 @@ function apply(overrides: Record<string, string | number | number[] | null>) {
         type: props.filters.type,
         tags: props.filters.tags,
         sort: props.filters.sort,
+        dir: props.filters.dir,
         paperless_document: props.filters.paperless_document,
         ...overrides,
     };
@@ -72,6 +74,15 @@ watch(term, () => {
 function searchNow() {
     clearTimeout(debounce);
     apply({ q: term.value });
+}
+
+// Clicking a sortable column header: toggle direction when it's already the
+// active column, otherwise switch to it with its natural default (name asc,
+// contents count desc).
+function onSort(key: string) {
+    const naturalDir = key === 'name' || key === 'location' ? 'asc' : 'desc';
+    const dir = props.filters.sort === key ? (props.filters.dir === 'asc' ? 'desc' : 'asc') : naturalDir;
+    apply({ sort: key, dir });
 }
 </script>
 
@@ -142,10 +153,12 @@ function searchNow() {
                     class="field"
                     style="max-width: 150px"
                     :value="filters.sort"
-                    @change="apply({ sort: ($event.target as HTMLSelectElement).value })"
+                    @change="apply({ sort: ($event.target as HTMLSelectElement).value, dir: null })"
                 >
                     <option value="relevance">{{ $t('search.sort.relevance') }}</option>
                     <option value="name">{{ $t('search.sort.name') }}</option>
+                    <option value="location">{{ $t('search.sort.location') }}</option>
+                    <option value="count">{{ $t('search.sort.count') }}</option>
                     <option value="added">{{ $t('search.sort.added') }}</option>
                     <option value="edited">{{ $t('search.sort.edited') }}</option>
                 </select>
@@ -163,7 +176,15 @@ function searchNow() {
             </div>
 
             <template v-else>
-                <ItemCollection :items="items.data" :view="view" selectable />
+                <ItemCollection
+                    :items="items.data"
+                    :view="view"
+                    selectable
+                    show-location
+                    :sort="filters.sort"
+                    :sort-dir="filters.dir ?? undefined"
+                    @sort="onSort"
+                />
 
                 <nav v-if="items.links.length > 3" class="mt-6 flex flex-wrap justify-center gap-1">
                     <component

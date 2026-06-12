@@ -119,6 +119,8 @@ export interface ItemSummary {
     children_count?: number;
     tags?: TagSummary[];
     images?: ItemImageSummary[];
+    // Location/room breadcrumb ("Garage / Toolbox"), set on search results.
+    location_path?: string | null;
     // Detail fields (present on show/edit payloads via withDetails).
     quantity?: number;
     purchased_from?: string | null;

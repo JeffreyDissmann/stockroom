@@ -13,6 +13,8 @@ return [
     'sort' => [
         'relevance' => 'Relevance',
         'name' => 'Name',
+        'location' => 'Location',
+        'count' => 'Contents',
         'added' => 'Recently added',
         'edited' => 'Recently edited',
     ],

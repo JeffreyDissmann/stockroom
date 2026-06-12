@@ -48,6 +48,14 @@ return [
         ],
     ],
 
+    'collection' => [
+        'item' => 'Item',
+        'location' => 'Location',
+        'type' => 'Type',
+        'tags' => 'Tags',
+        'inside' => 'Inside',
+    ],
+
     'battery' => [
         'title' => 'Battery',
         'change' => 'Change battery',
