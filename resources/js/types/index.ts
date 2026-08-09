@@ -1,3 +1,4 @@
+import type { PageProps } from '@inertiajs/core';
 import type { LucideIcon } from '@lucide/vue';
 
 export interface Auth {
@@ -27,7 +28,11 @@ export interface BackupResult {
     images: number;
 }
 
-export interface SharedData {
+// Extends Inertia's PageProps (an `[key: string]: unknown` index signature) so
+// `usePage<SharedData>()` type-checks. Inertia v3 constrains that generic to
+// PageProps; without this every one of the ~23 call sites reports "Type
+// 'SharedData' does not satisfy the constraint 'PageProps'".
+export interface SharedData extends PageProps {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;

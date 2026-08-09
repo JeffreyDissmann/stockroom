@@ -6,6 +6,7 @@ namespace App\Http\Resources\Api\V1;
 
 use App\Enums\MaintenanceScheduleType;
 use App\Models\Item;
+use App\Services\Battery\BatteryThreshold;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -53,6 +54,6 @@ class BatteryResource extends JsonResource
 
     private function lowThreshold(): int
     {
-        return (int) config('stockroom.battery.low_threshold');
+        return BatteryThreshold::lowPercent();
     }
 }

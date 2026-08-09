@@ -114,7 +114,7 @@ class BatteryForecast
 
     private function lowThreshold(): int
     {
-        return (int) config('stockroom.battery.low_threshold');
+        return BatteryThreshold::lowPercent();
     }
 
     private function historyCycles(): int

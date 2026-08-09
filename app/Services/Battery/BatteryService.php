@@ -207,6 +207,32 @@ class BatteryService
     }
 
     /**
+     * Queue a forecast refresh for every item currently tracking a battery,
+     * and report how many were queued.
+     *
+     * A stored forecast — and the "Replace battery" reminder date derived from
+     * it — is only true for the threshold it was computed against. Change that
+     * threshold and every existing prediction is silently stale until the item
+     * happens to receive its next reading, which for a rarely-read battery
+     * could be weeks. So the preference screen calls this on save.
+     *
+     * Items without an open cycle are skipped: there is no current battery to
+     * project, so there is nothing for a refresh to recompute.
+     */
+    public function refreshAllForecasts(): int
+    {
+        $itemIds = Item::query()
+            ->whereHas('currentBatteryCycle')
+            ->pluck('id');
+
+        foreach ($itemIds as $itemId) {
+            RefreshBatteryForecast::dispatch((int) $itemId);
+        }
+
+        return $itemIds->count();
+    }
+
+    /**
      * A new sample reads as a fresh battery when it jumps up to at least
      * min_percent and rises by at least min_jump over the last level.
      */

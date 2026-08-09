@@ -29,6 +29,10 @@ interface Preferences {
     home_assistant_tag_id: number | null;
     battery_tag_id: number | null;
     paperless_parent_id: number | null;
+    // Already resolved server-side: the stored preference, or the configured
+    // default when none is stored. Never null, so the field always shows the
+    // value actually in force.
+    battery_low_threshold: number;
 }
 
 interface RelinkStatus {
@@ -48,6 +52,7 @@ const props = defineProps<{
     tags: TagOption[];
     selectedParent: ParentOption | null;
     relinkStatus: RelinkStatus | null;
+    batteryThresholdRange: { min: number; max: number };
 }>();
 
 const isAdmin = useIsAdmin();
@@ -63,11 +68,13 @@ const form = useForm<{
     home_assistant_tag_id: number | null;
     battery_tag_id: number | null;
     paperless_parent_id: number | null;
+    battery_low_threshold: number;
 }>({
     box_tag_id: props.preferences.box_tag_id,
     home_assistant_tag_id: props.preferences.home_assistant_tag_id,
     battery_tag_id: props.preferences.battery_tag_id,
     paperless_parent_id: props.preferences.paperless_parent_id,
+    battery_low_threshold: props.preferences.battery_low_threshold,
 });
 
 // The Home Assistant tag is created the first time a device is linked, so the
@@ -215,6 +222,33 @@ function runRelink(url: string) {
                         </select>
                         <InputError :message="form.errors.battery_tag_id" />
                         <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.battery_tag_help') }}</p>
+                    </div>
+
+                    <!-- Unlike the Battery tag above, this is always shown: the
+                         threshold is meaningful before anything reports a level. -->
+                    <div class="form-row">
+                        <label for="battery-low-threshold">{{ $t('household.preferences.battery_low_threshold') }}</label>
+                        <input
+                            id="battery-low-threshold"
+                            v-model.number="form.battery_low_threshold"
+                            type="number"
+                            inputmode="numeric"
+                            :min="batteryThresholdRange.min"
+                            :max="batteryThresholdRange.max"
+                            step="1"
+                            class="field"
+                            style="max-width: 8rem"
+                            data-test="battery-low-threshold-input"
+                        />
+                        <InputError :message="form.errors.battery_low_threshold" />
+                        <p style="font-size: 12px; color: var(--fg-muted)">
+                            {{
+                                $t('household.preferences.battery_low_threshold_help', {
+                                    min: batteryThresholdRange.min,
+                                    max: batteryThresholdRange.max,
+                                })
+                            }}
+                        </p>
                     </div>
 
                     <div v-if="paperlessEnabled" class="form-row">

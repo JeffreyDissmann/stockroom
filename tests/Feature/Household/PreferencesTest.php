@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 use App\Enums\ItemType;
+use App\Jobs\RefreshBatteryForecast;
 use App\Jobs\RelinkAllPaperlessDocumentsJob;
+use App\Models\BatteryCycle;
 use App\Models\Item;
 use App\Models\Setting;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\Battery\BatteryThreshold;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
@@ -265,4 +268,77 @@ it('allows clearing the Paperless parent (admin opted out)', function () {
         ->assertRedirect();
 
     expect(Setting::get('paperless_parent_id'))->toBeNull();
+});
+
+it('stores the battery low threshold', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['battery_low_threshold' => 5])
+        ->assertRedirect();
+
+    expect(Setting::get('battery_low_threshold'))->toBe(5);
+});
+
+it('rejects a battery low threshold outside the supported range', function (mixed $value) {
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['battery_low_threshold' => $value])
+        ->assertSessionHasErrors('battery_low_threshold');
+})->with([
+    'zero' => 0,
+    'negative' => -1,
+    'above max' => BatteryThreshold::MAX + 1,
+    'not a number' => 'five',
+]);
+
+it('refreshes every battery forecast when the threshold changes', function () {
+    Bus::fake();
+
+    // Two items with an open cycle, one without — only the tracked pair have a
+    // current battery whose prediction the new threshold invalidates.
+    $tracked = Item::factory()->count(2)->create();
+    foreach ($tracked as $item) {
+        BatteryCycle::factory()->for($item)->create(['removed_at' => null]);
+    }
+    Item::factory()->create();
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['battery_low_threshold' => 5])
+        ->assertRedirect();
+
+    Bus::assertDispatchedTimes(RefreshBatteryForecast::class, 2);
+});
+
+it('does not refresh forecasts when the threshold is unchanged', function () {
+    Bus::fake();
+    Setting::set('battery_low_threshold', 5);
+    BatteryCycle::factory()->for(Item::factory()->create())->create(['removed_at' => null]);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['battery_low_threshold' => 5])
+        ->assertRedirect();
+
+    Bus::assertNotDispatched(RefreshBatteryForecast::class);
+});
+
+it('does not refresh forecasts when an unrelated preference is saved', function () {
+    Bus::fake();
+    BatteryCycle::factory()->for(Item::factory()->create())->create(['removed_at' => null]);
+    $tag = Tag::factory()->create();
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->put('/household/preferences', ['box_tag_id' => $tag->id])
+        ->assertRedirect();
+
+    Bus::assertNotDispatched(RefreshBatteryForecast::class);
+});
+
+it('exposes the resolved threshold and its range to the page', function () {
+    config(['stockroom.battery.low_threshold' => 20]);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get('/household/preferences')
+        ->assertInertia(fn ($page) => $page
+            ->where('preferences.battery_low_threshold', 20) // config default, nothing stored
+            ->where('batteryThresholdRange.min', BatteryThreshold::MIN)
+            ->where('batteryThresholdRange.max', BatteryThreshold::MAX)
+        );
 });

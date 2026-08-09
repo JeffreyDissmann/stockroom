@@ -77,6 +77,6 @@ class BatteryPresenter
 
     private function lowThreshold(): int
     {
-        return (int) config('stockroom.battery.low_threshold');
+        return BatteryThreshold::lowPercent();
     }
 }

@@ -23,6 +23,8 @@ return [
         'home_assistant_tag_help' => 'The tag attached automatically when an item is linked to a Home Assistant device. Switch which tag is used here. Lets you filter everything tied to Home Assistant in one place.',
         'battery_tag' => 'Battery tag',
         'battery_tag_help' => 'The tag attached automatically when an item starts tracking a battery. Switch which tag is used here. Lets you filter every battery-powered item in one place.',
+        'battery_low_threshold' => 'Low battery at (%)',
+        'battery_low_threshold_help' => 'The level a battery counts as low, between :min and :max. Replacement reminders are predicted against this, so changing it recalculates the due date of every battery reminder.',
         'paperless_parent' => 'Paperless intake destination',
         'paperless_parent_none' => '(none — drop at top level)',
         'paperless_parent_help' => 'When Paperless-ngx hands a document to Stockroom, the items it extracts land inside this room or container. Move them elsewhere any time — this only decides where they appear first.',
