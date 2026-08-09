@@ -4,7 +4,7 @@ import { useAssistant } from '@/composables/useAssistant';
 import { useAssistantChat } from '@/composables/useAssistantChat';
 import { useAssistantImageAttach } from '@/composables/useAssistantImageAttach';
 import { router } from '@inertiajs/vue3';
-import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from 'lucide-vue-next';
+import { ImagePlus, Loader2, RefreshCw, SendHorizonal, X } from '@lucide/vue';
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const { isOpen, close, toggle } = useAssistant();

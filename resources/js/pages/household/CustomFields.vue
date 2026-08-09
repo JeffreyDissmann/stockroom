@@ -8,7 +8,7 @@ import HouseholdLayout from '@/layouts/household/Layout.vue';
 import customFields from '@/routes/custom-fields';
 import type { BreadcrumbItem, CustomFieldDefinition, CustomFieldTypeValue } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Check, Lock, Pencil, Plus, Search, SearchX, Trash2, X } from 'lucide-vue-next';
+import { Check, Lock, Pencil, Plus, Search, SearchX, Trash2, X } from '@lucide/vue';
 import { ref } from 'vue';
 
 const isAdmin = useIsAdmin();

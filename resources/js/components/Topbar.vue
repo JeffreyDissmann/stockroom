@@ -16,7 +16,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { BreadcrumbItemType } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { ChevronRight, MoreHorizontal } from 'lucide-vue-next';
+import { ChevronRight, MoreHorizontal } from '@lucide/vue';
 import { computed } from 'vue';
 
 const props = defineProps<{

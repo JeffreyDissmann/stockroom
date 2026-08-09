@@ -15,7 +15,7 @@ import paperlessDocumentsRoutes from '@/routes/paperless/documents';
 import type { ItemSummary, SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Check, FileText } from 'lucide-vue-next';
+import { Check, FileText } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 interface DocumentResult {

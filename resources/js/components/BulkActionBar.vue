@@ -19,7 +19,7 @@ import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
 import type { SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { ArrowLeftRight, Tag, Trash2, X } from 'lucide-vue-next';
+import { ArrowLeftRight, Tag, Trash2, X } from '@lucide/vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 defineProps<{ tags: TagSummary[] }>();

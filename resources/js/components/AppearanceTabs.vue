@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAppearance } from '@/composables/useAppearance';
 import { trans } from '@/composables/useTranslations';
-import { Monitor, Moon, Sun } from 'lucide-vue-next';
+import { Monitor, Moon, Sun } from '@lucide/vue';
 
 interface Props {
     class?: string;

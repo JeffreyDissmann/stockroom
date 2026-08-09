@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
 import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, SharedData, TagSummary } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { FileText, Search as SearchIcon, X } from 'lucide-vue-next';
+import { FileText, Search as SearchIcon, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 interface Paginated<T> {

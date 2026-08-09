@@ -22,11 +22,19 @@ class ForgetOldConversationsTest extends TestCase
     private function seedConversation(User $user, \DateTimeInterface $idleSince): string
     {
         $id = (string) Str::uuid();
-        Conversation::create(['id' => $id, 'user_id' => $user->id, 'title' => 'Test', 'created_at' => $idleSince, 'updated_at' => $idleSince]);
+        Conversation::create([
+            'id' => $id,
+            'participant_type' => $user->getMorphClass(),
+            'participant_id' => $user->id,
+            'title' => 'Test',
+            'created_at' => $idleSince,
+            'updated_at' => $idleSince,
+        ]);
         ConversationMessage::create([
             'id' => (string) Str::uuid(),
             'conversation_id' => $id,
-            'user_id' => $user->id,
+            'participant_type' => $user->getMorphClass(),
+            'participant_id' => $user->id,
             'agent' => InventoryAssistant::class,
             'role' => 'user',
             'content' => 'hi',

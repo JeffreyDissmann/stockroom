@@ -40,7 +40,7 @@ import {
     WashingMachine,
     Wine,
     Wrench,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 export interface ItemIcon {
     value: string;

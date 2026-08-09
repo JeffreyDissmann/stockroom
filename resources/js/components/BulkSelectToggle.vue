@@ -8,7 +8,7 @@
  * affordances and stays close to the data it acts on.
  */
 import { useBulkSelection } from '@/composables/useBulkSelection';
-import { CheckSquare } from 'lucide-vue-next';
+import { CheckSquare } from '@lucide/vue';
 
 const bulk = useBulkSelection();
 </script>

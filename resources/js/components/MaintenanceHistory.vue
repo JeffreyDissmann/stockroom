@@ -6,7 +6,7 @@ import { trans } from '@/composables/useTranslations';
 import maintenanceEntryRoutes from '@/routes/items/maintenance-entries';
 import type { ItemSummary, MaintenanceEntryRow } from '@/types';
 import { router } from '@inertiajs/vue3';
-import { Trash2 } from 'lucide-vue-next';
+import { Trash2 } from '@lucide/vue';
 
 /**
  * The maintenance/repair history of an item: task completions and ad-hoc

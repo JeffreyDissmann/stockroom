@@ -6,7 +6,7 @@ import { localToday } from '@/lib/date';
 import maintenanceTasks from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { Check } from 'lucide-vue-next';
+import { Check } from '@lucide/vue';
 
 /**
  * "Mark done" dialog: records a completion entry and rolls the schedule.

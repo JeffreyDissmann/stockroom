@@ -8,7 +8,7 @@ import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, ItemSummary, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { Pencil, Plus, Search } from 'lucide-vue-next';
+import { Pencil, Plus, Search } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{

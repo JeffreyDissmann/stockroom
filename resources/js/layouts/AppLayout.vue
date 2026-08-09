@@ -8,7 +8,7 @@ import { useAssistant } from '@/composables/useAssistant';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import type { BreadcrumbItemType, SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { Sparkles } from 'lucide-vue-next';
+import { Sparkles } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const page = usePage<SharedData>();

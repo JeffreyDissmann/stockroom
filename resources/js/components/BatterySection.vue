@@ -4,7 +4,7 @@ import { useDateFormat } from '@/composables/useDateFormat';
 import batteryChanges from '@/routes/items/battery-changes';
 import type { BatteryData, ItemSummary } from '@/types';
 import { router } from '@inertiajs/vue3';
-import { BatteryLow, BatteryMedium, Plus } from 'lucide-vue-next';
+import { BatteryLow, BatteryMedium, Plus } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 /**

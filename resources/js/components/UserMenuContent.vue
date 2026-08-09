@@ -6,7 +6,7 @@ import { logout } from '@/routes';
 import profile from '@/routes/profile';
 import type { User } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LogOut, Settings } from 'lucide-vue-next';
+import { LogOut, Settings } from '@lucide/vue';
 
 interface Props {
     user: User;

@@ -97,7 +97,26 @@ services:
             retries: 10
 
     meilisearch:
-        image: getmeili/meilisearch:v1.13
+        # Pinned to a minor tag on purpose — `latest` rolls the engine while the
+        # data volume stays on the old database version, and Meilisearch then
+        # refuses to open it and exits on every boot.
+        #
+        # UPGRADING THIS TAG IS NOT A PLAIN IMAGE SWAP. A database written by an
+        # older engine is rejected outright, so bumping across a version boundary
+        # means discarding the volume and rebuilding:
+        #
+        #   docker compose stop meilisearch && docker compose rm -f meilisearch
+        #   docker volume rm stockroom_meili-data
+        #   docker compose up -d meilisearch
+        #
+        # then hit "Rebuild search index" under Household -> Search index (it
+        # dispatches RebuildSearchIndexJob: flush, re-push index settings, then
+        # reimport — the order hybrid search requires). There is no artisan
+        # command for it; the queue worker must be running.
+        #
+        # The index is derived data — every document is rebuilt from Postgres —
+        # so nothing is lost, but search returns empty until the rebuild finishes.
+        image: getmeili/meilisearch:v1.46
         restart: unless-stopped
         environment:
             MEILI_ENV: production

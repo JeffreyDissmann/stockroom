@@ -139,11 +139,17 @@ it('opens the assistant with the keyboard shortcut', function () {
 it('keeps a reset thread empty after a page reload', function () {
     // Seed an existing conversation so the panel has something to rehydrate.
     $conversationId = (string) Str::uuid();
-    Conversation::create(['id' => $conversationId, 'user_id' => auth()->id(), 'title' => 'Old thread']);
+    Conversation::create([
+        'id' => $conversationId,
+        'participant_type' => auth()->user()->getMorphClass(),
+        'participant_id' => auth()->id(),
+        'title' => 'Old thread',
+    ]);
     ConversationMessage::create([
         'id' => (string) Str::uuid(),
         'conversation_id' => $conversationId,
-        'user_id' => auth()->id(),
+        'participant_type' => auth()->user()->getMorphClass(),
+        'participant_id' => auth()->id(),
         'agent' => InventoryAssistant::class,
         'role' => 'user',
         'content' => 'where is the cordless drill',

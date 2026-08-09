@@ -11,7 +11,7 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { exportMethod, importMethod } from '@/routes/household/backup';
 import { type SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
-import { Download, Upload } from 'lucide-vue-next';
+import { Download, Upload } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 const isAdmin = useIsAdmin();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useSwipe } from '@vueuse/core';
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from '@lucide/vue';
 import { ref } from 'vue';
 
 const props = defineProps<{ thumbs: string[]; alt: string }>();

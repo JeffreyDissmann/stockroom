@@ -8,10 +8,9 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Ai\Models\Conversation;
+use Laravel\Ai\Concerns\HasConversations;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -19,7 +18,7 @@ use Spatie\Activitylog\Support\LogOptions;
 class User extends Authenticatable implements HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, LogsActivity, Notifiable;
+    use HasApiTokens, HasConversations, HasFactory, LogsActivity, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -70,16 +69,6 @@ class User extends Authenticatable implements HasLocalePreference
             'is_admin' => 'boolean',
             'maintenance_digest_opt_in' => 'boolean',
         ];
-    }
-
-    /**
-     * The AI assistant conversation threads belonging to this user.
-     *
-     * @return HasMany<Conversation, $this>
-     */
-    public function conversations(): HasMany
-    {
-        return $this->hasMany(Conversation::class);
     }
 
     public function getActivitylogOptions(): LogOptions

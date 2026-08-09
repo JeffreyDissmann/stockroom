@@ -15,7 +15,7 @@
              pinch gestures, so accessibility zooming keeps working. --}}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 
-        <title inertia>{{ config('app.name', 'Stockroom') }}</title>
+        <title data-inertia>{{ config('app.name', 'Stockroom') }}</title>
 
         {{-- Apply the saved appearance before first paint to avoid a flash of the wrong theme. --}}
         <script>

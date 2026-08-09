@@ -13,7 +13,7 @@ import {
 import itemBox from '@/routes/items/box';
 import type { ItemSummary } from '@/types';
 import { useForm } from '@inertiajs/vue3';
-import { PackageOpen } from 'lucide-vue-next';
+import { PackageOpen } from '@lucide/vue';
 import { ref, watch } from 'vue';
 
 const props = defineProps<{

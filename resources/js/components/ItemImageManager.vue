@@ -5,7 +5,7 @@ import itemImages from '@/routes/items/images';
 import type { ItemImageSummary, SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { useSortable } from '@vueuse/integrations/useSortable';
-import { GripVertical, ImagePlus, Star, Trash2, Upload } from 'lucide-vue-next';
+import { GripVertical, ImagePlus, Star, Trash2, Upload } from '@lucide/vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 type Mode = 'create' | 'edit';

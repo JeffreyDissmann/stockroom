@@ -9,7 +9,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { trans } from '@/composables/useTranslations';
 import { router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Check, CornerUpRight } from 'lucide-vue-next';
+import { Check, CornerUpRight } from '@lucide/vue';
 import { ref, watch } from 'vue';
 
 const props = defineProps<{

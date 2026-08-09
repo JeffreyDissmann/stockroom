@@ -15,7 +15,7 @@ import relatedItems from '@/routes/items/related-items';
 import type { ItemSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Check, Link2 } from 'lucide-vue-next';
+import { Check, Link2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 interface RelatedTarget {

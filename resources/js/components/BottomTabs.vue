@@ -37,7 +37,7 @@ import {
     Tag as TagIcon,
     Users,
     Wrench,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { computed } from 'vue';
 
 const { open: openAssistant } = useAssistant();

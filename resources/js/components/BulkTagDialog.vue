@@ -9,7 +9,7 @@
 import TagBadge from '@/components/TagBadge.vue';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { TagSummary } from '@/types';
-import { Check, Tag } from 'lucide-vue-next';
+import { Check, Tag } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{

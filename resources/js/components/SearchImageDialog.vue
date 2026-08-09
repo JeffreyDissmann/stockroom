@@ -14,7 +14,7 @@ import itemImages from '@/routes/items/images';
 import type { ImageSearchResult } from '@/types';
 import { router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Check, ImagePlus } from 'lucide-vue-next';
+import { Check, ImagePlus } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{

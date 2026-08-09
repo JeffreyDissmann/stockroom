@@ -6,7 +6,7 @@ import { useBulkSelection } from '@/composables/useBulkSelection';
 import itemRoutes from '@/routes/items';
 import type { ItemSummary, ItemViewMode } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { ArrowDown, ArrowUp, Check, MapPin, X } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, Check, MapPin, X } from '@lucide/vue';
 
 const props = defineProps<{
     items: ItemSummary[];

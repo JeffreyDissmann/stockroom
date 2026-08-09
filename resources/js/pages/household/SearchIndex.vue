@@ -7,7 +7,7 @@ import HouseholdLayout from '@/layouts/household/Layout.vue';
 import searchIndex from '@/routes/household/search-index';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePoll } from '@inertiajs/vue3';
-import { RefreshCw } from 'lucide-vue-next';
+import { RefreshCw } from '@lucide/vue';
 import { computed, watch } from 'vue';
 
 interface ReindexStatus {
