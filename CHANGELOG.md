@@ -7,6 +7,34 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+### Upgrade notes
+
+- **This release runs a database migration.** The AI SDK changed how it records
+  who a conversation belongs to, so `migrate` has to run before the assistant
+  will answer. Existing chat threads are reshaped in place, not dropped.
+- **Meilisearch moves from 1.13 to 1.46.** A search database written by the
+  older engine is rejected outright, so the container will not start until its
+  volume is discarded and the index rebuilt — the steps are in
+  `docker-compose.prod.yml` next to the pinned tag. Nothing is lost (every
+  document is rebuilt from Postgres), but search comes back empty until the
+  rebuild finishes.
+
+### Internal
+
+- **Everything is up to date.** Laravel 13.24, and majors across the board:
+  the AI SDK to 0.10, Inertia to 3, Pest to 5 (PHPUnit 13), Vite to 8, ESLint
+  to 10, lucide to 1.x, Playwright to 1.62. Dropping Inertia's bundled axios
+  took ~73 kB off the main bundle.
+- **Both Meilisearch services are pinned to a minor tag.** They tracked
+  `latest`, which is what broke the dev stack when the engine rolled past the
+  data volume's version.
+- **`npm install` no longer breaks the iCloud workaround.** npm replaces the
+  `node_modules` symlink with a real directory on every install, quietly
+  handing the dependency tree back to iCloud to evict; a `postinstall` step
+  now puts it back.
+- Tailwind stays on 3 and TypeScript on 5 for now — Tailwind 4 is a migration
+  of its own, and `typescript-eslint` does not support TypeScript 7 yet.
+
 ## [2026.06.08] — 2026-06-12
 
 ### Added
