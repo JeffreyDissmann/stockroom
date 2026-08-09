@@ -34,7 +34,6 @@ export interface BackupResult {
 // 'SharedData' does not satisfy the constraint 'PageProps'".
 export interface SharedData extends PageProps {
     name: string;
-    quote: { message: string; author: string };
     auth: Auth;
     currency: CurrencyConfig;
     features: { imageSearch: boolean; ai: boolean; paperless: boolean };
