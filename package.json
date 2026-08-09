@@ -10,7 +10,7 @@
         "lint": "eslint . --fix",
         "wayfinder:generate": "php artisan wayfinder:generate --no-interaction && node scripts/scrub-nosync.mjs",
         "wayfinder:check": "npm run wayfinder:generate && git diff --exit-code -- resources/js/actions resources/js/routes resources/js/wayfinder",
-        "postinstall": "git config core.hooksPath .githooks 2>/dev/null || true; node scripts/nosync-relink.mjs"
+        "postinstall": "git config core.hooksPath .githooks 2>/dev/null || true; test -f scripts/nosync-relink.mjs && node scripts/nosync-relink.mjs || true"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",

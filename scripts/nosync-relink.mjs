@@ -14,6 +14,12 @@
 //
 // No-ops unless the workaround is already in use on this machine, so CI (which
 // has a plain `node_modules/` and no `.nosync` dirs) is left alone.
+//
+// This is a local convenience and must NEVER fail an install: a non-zero exit
+// here fails `npm ci`, and that takes the Docker build with it. Everything below
+// is wrapped so the worst case is a warning. The Dockerfile copies only the
+// manifests before `npm ci`, so this file often isn't there at all — the
+// `postinstall` entry tests for it before invoking node.
 
 import { existsSync, lstatSync, renameSync, rmSync, symlinkSync } from 'node:fs';
 
@@ -25,27 +31,22 @@ function workaroundInUse() {
     return existsSync(TARGET) || existsSync('vendor.nosync');
 }
 
-if (!workaroundInUse()) {
-    process.exit(0);
+try {
+    if (!workaroundInUse() || !existsSync(LINK) || lstatSync(LINK).isSymbolicLink()) {
+        process.exit(0);
+    }
+
+    // npm replaced the symlink with a real directory. Whatever is in `TARGET` is
+    // now the stale tree that npm just superseded, so it goes; the fresh one takes
+    // its place. Both are gitignored and reproducible from package-lock.json.
+    if (existsSync(TARGET)) {
+        rmSync(TARGET, { recursive: true, force: true });
+    }
+
+    renameSync(LINK, TARGET);
+    symlinkSync(TARGET, LINK);
+
+    console.log(`nosync-relink: restored ${LINK} -> ${TARGET}`);
+} catch (e) {
+    console.warn(`nosync-relink: skipped (${e.message})`);
 }
-
-if (!existsSync(LINK)) {
-    console.log(`nosync-relink: no ${LINK}/ to relink, skipping`);
-    process.exit(0);
-}
-
-if (lstatSync(LINK).isSymbolicLink()) {
-    process.exit(0);
-}
-
-// npm replaced the symlink with a real directory. Whatever is in `TARGET` is
-// now the stale tree that npm just superseded, so it goes; the fresh one takes
-// its place. Both are gitignored and reproducible from package-lock.json.
-if (existsSync(TARGET)) {
-    rmSync(TARGET, { recursive: true, force: true });
-}
-
-renameSync(LINK, TARGET);
-symlinkSync(TARGET, LINK);
-
-console.log(`nosync-relink: restored ${LINK} -> ${TARGET}`);
