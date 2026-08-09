@@ -7,6 +7,22 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.08.02] — 2026-08-09
+
+### Added
+
+- **Set when a battery counts as low.** The level was fixed at 20% unless you
+  edited an environment variable; it's now a field on **Household →
+  Preferences**, anywhere from 1% to 50%. Replacement reminders are predicted
+  against this level, so changing it immediately recalculates the due date of
+  every battery reminder rather than waiting for each item's next reading.
+
+### Fixed
+
+- Shared page props are typed correctly again for Inertia 3, and the
+  TypeScript config no longer points at two type entries that never resolved
+  or at Ziggy, which was removed months ago.
+
 ## [2026.08.01] — 2026-08-09
 
 ### Upgrade notes
@@ -617,7 +633,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.01...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.02...HEAD
+[2026.08.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.01...2026.08.02
 [2026.08.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.08...2026.08.01
 [2026.06.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.07...2026.06.08
 [2026.06.07]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.06...2026.06.07
