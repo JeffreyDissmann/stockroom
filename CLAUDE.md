@@ -212,7 +212,7 @@ The Boost "Pest" rules above cover unit/feature tests. This section adds the pro
 
 - Some legacy tests under `tests/Feature` are still written as class-based PHPUnit `TestCase` classes. Pest runs them natively — do NOT convert them. Match the neighbouring file's style when adding tests.
 - **Browser tests** live in `tests/Browser/`, use the Pest browser plugin (`pestphp/pest-plugin-browser`, Playwright-backed), and drive a real headless Chromium **inside the Sail container**. Write them as Pest functions using the global `visit()` helper.
-  - Playwright is pinned to the exact version the plugin requires (currently `1.59.1` in `package.json`); a mismatch makes the plugin abort with "Playwright is outdated".
+  - Playwright is pinned to the exact version the plugin requires (currently `1.62.1` in `package.json` — no caret, `npm install` will re-add one); a mismatch makes the plugin abort with "Playwright is outdated". Bumping it means reinstalling the container-local browser too (see below).
   - The chromium binary is installed to a **container-local path** (`/home/sail/pw-browsers`), NOT `node_modules`, because `node_modules` is bind-mounted from an iCloud-synced folder that evicts large files. Always run browser tests with that path exported:
     ```
     vendor/bin/sail bash -c "PLAYWRIGHT_BROWSERS_PATH=/home/sail/pw-browsers ./vendor/bin/pest tests/Browser"
