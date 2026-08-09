@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import language from '@/routes/language';
 import { router } from '@inertiajs/vue3';
-import { Languages } from 'lucide-vue-next';
+import { Languages } from '@lucide/vue';
 
 const props = defineProps<{ locale: string; locales: Record<string, string> }>();
 

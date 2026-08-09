@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import type { BreadcrumbItemType, CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { X } from 'lucide-vue-next';
+import { X } from '@lucide/vue';
 import { computed } from 'vue';
 
 interface PaperlessLinkSummary {

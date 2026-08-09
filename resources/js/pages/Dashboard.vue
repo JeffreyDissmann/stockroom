@@ -11,7 +11,7 @@ import itemRoutes from '@/routes/items';
 import tagRoutes from '@/routes/tags';
 import type { ActivityRow, BreadcrumbItemType, ItemSummary, MaintenanceTaskRow, SharedData, TagSummary } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ChevronRight, Plus, Wrench } from 'lucide-vue-next';
+import { ChevronRight, Plus, Wrench } from '@lucide/vue';
 import { computed } from 'vue';
 
 interface RecentItem {

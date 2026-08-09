@@ -8,7 +8,7 @@ import { trans } from '@/composables/useTranslations';
 import { maintenance } from '@/routes';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Sparkles, Tag as TagIcon, Warehouse, Wrench } from 'lucide-vue-next';
+import { Activity as ActivityIcon, Boxes, LayoutGrid, Search, Sparkles, Tag as TagIcon, Warehouse, Wrench } from '@lucide/vue';
 import { computed } from 'vue';
 
 const { open } = useCommandPalette();

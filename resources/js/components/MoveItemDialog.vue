@@ -14,7 +14,7 @@ import itemRoutes from '@/routes/items';
 import type { ItemSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Check, CornerUpRight } from 'lucide-vue-next';
+import { Check, CornerUpRight } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 interface MoveTarget {

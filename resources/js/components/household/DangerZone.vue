@@ -4,7 +4,7 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { trans } from '@/composables/useTranslations';
 import household from '@/routes/household';
 import { useForm } from '@inertiajs/vue3';
-import { Trash2 } from 'lucide-vue-next';
+import { Trash2 } from '@lucide/vue';
 
 const isAdmin = useIsAdmin();
 

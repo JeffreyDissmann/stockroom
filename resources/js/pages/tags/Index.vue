@@ -8,7 +8,7 @@ import householdPreferences from '@/routes/household/preferences';
 import tagRoutes from '@/routes/tags';
 import type { BreadcrumbItemType } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { AlertTriangle, Check, Lock, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { AlertTriangle, Check, Lock, Pencil, Plus, Trash2, X } from '@lucide/vue';
 import { ref } from 'vue';
 
 const isAdmin = useIsAdmin();

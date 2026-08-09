@@ -7,7 +7,7 @@ import { trans } from '@/composables/useTranslations';
 import maintenanceTaskRoutes from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { Check, FastForward, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Check, FastForward, MoreVertical, Pencil, Plus, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 /**

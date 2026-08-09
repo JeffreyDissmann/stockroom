@@ -3,7 +3,7 @@ import { useCommandPalette } from '@/composables/useCommandPalette';
 import { search } from '@/routes';
 import items from '@/routes/items';
 import { router } from '@inertiajs/vue3';
-import { Search } from 'lucide-vue-next';
+import { Search } from '@lucide/vue';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Result {

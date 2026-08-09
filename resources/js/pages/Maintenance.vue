@@ -7,7 +7,7 @@ import { maintenance } from '@/routes';
 import itemRoutes from '@/routes/items';
 import type { BreadcrumbItemType, MaintenanceTaskRow } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { Check, ChevronRight } from 'lucide-vue-next';
+import { Check, ChevronRight } from '@lucide/vue';
 import { ref } from 'vue';
 
 interface GlobalTaskRow extends MaintenanceTaskRow {

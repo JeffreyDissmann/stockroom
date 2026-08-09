@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileText, X } from 'lucide-vue-next';
+import { FileText, X } from '@lucide/vue';
 
 // Inline "Document says: X — apply?" chip under a form field whose current
 // value CONFLICTS with what a linked Paperless document proposes. Empty

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Loader2, Sparkles } from 'lucide-vue-next';
+import { Loader2, Sparkles } from '@lucide/vue';
 
 // 'pending'   — the model is still analysing; a value may be filled in shortly.
 // 'suggested' — the model filled this field; the user should review it.

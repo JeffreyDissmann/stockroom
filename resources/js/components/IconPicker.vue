@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { itemIcons } from '@/lib/itemIcons';
 import { onClickOutside } from '@vueuse/core';
-import { Check, ChevronDown } from 'lucide-vue-next';
+import { Check, ChevronDown } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{ modelValue: string }>();

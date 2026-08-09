@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ItemViewMode } from '@/types';
-import { Grid, List } from 'lucide-vue-next';
+import { Grid, List } from '@lucide/vue';
 
 const view = defineModel<ItemViewMode>({ required: true });
 </script>

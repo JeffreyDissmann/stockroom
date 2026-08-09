@@ -15,7 +15,7 @@ import { localToday } from '@/lib/date';
 import maintenanceEntries from '@/routes/items/maintenance-entries';
 import type { ItemSummary, SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { NotebookPen } from 'lucide-vue-next';
+import { NotebookPen } from '@lucide/vue';
 import { ref } from 'vue';
 
 /**

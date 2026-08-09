@@ -4,7 +4,7 @@ import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
 import householdImport from '@/routes/household/import';
 import { useForm, usePoll } from '@inertiajs/vue3';
-import { AlertTriangle, CheckCircle2, Download, Loader2 } from 'lucide-vue-next';
+import { AlertTriangle, CheckCircle2, Download, Loader2 } from '@lucide/vue';
 import { computed, watch } from 'vue';
 
 interface ImportStatus {

@@ -9,7 +9,7 @@ import householdPreferences from '@/routes/household/preferences';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { Head, router, useForm, usePage, usePoll } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { RefreshCw, Save, Search, X } from 'lucide-vue-next';
+import { RefreshCw, Save, Search, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 interface TagOption {

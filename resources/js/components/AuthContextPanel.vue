@@ -13,7 +13,9 @@
  */
 import { useAppVersion } from '@/composables/useAppVersion';
 import { trans } from '@/composables/useTranslations';
-import { Github, Heart, Scale } from 'lucide-vue-next';
+// lucide dropped its brand icons in v1, so the GitHub mark is gone; the link
+// text already names GitHub, so a neutral source-code glyph carries it.
+import { Code, Heart, Scale } from '@lucide/vue';
 
 // Version chip — shared with the authenticated user menu (see useAppVersion).
 // Hidden when both tag and sha are null (e.g. fresh clone without a git tag).
@@ -31,7 +33,7 @@ const { show: showVersion, label: versionLabel } = useAppVersion();
                 <span>{{ trans('auth_context.built_by') }}</span>
             </li>
             <li>
-                <Github :size="14" />
+                <Code :size="14" />
                 <a href="https://github.com/JeffreyDissmann/stockroom" target="_blank" rel="noopener">
                     {{ trans('auth_context.github') }}
                 </a>

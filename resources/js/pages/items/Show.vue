@@ -32,7 +32,7 @@ import type {
     TagSummary,
 } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from 'lucide-vue-next';
+import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 interface PaperlessLinkSummary {

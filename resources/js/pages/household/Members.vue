@@ -9,7 +9,7 @@ import invitationRoutes from '@/routes/household/invitations';
 import memberRoutes from '@/routes/household/members';
 import type { BreadcrumbItem, SharedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Check, Copy, Mail, Plus, Send, Trash2 } from 'lucide-vue-next';
+import { Check, Copy, Mail, Plus, Send, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 const isAdmin = useIsAdmin();

@@ -15,7 +15,7 @@ import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
 import paperlessLinksRoutes from '@/routes/items/paperless-links';
 import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
-import { Check, FileText, House, Loader2, Lock, Sparkles, X } from 'lucide-vue-next';
+import { Check, FileText, House, Loader2, Lock, Sparkles, X } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 const currency = usePage<SharedData>().props.currency;

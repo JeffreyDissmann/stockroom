@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ItemTypeValue } from '@/types';
-import { Box, Home, Package } from 'lucide-vue-next';
+import { Box, Home, Package } from '@lucide/vue';
 import { computed } from 'vue';
 
 const props = defineProps<{

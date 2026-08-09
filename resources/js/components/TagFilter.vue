@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { trans, transChoice } from '@/composables/useTranslations';
 import type { TagSummary } from '@/types';
-import { Check, ChevronsUpDown, Tag as TagIcon } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, Tag as TagIcon } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{ tags: TagSummary[] }>();
