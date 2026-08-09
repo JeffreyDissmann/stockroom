@@ -23,6 +23,8 @@ return [
         'home_assistant_tag_help' => 'Das Schlagwort, das automatisch zugewiesen wird, wenn ein Objekt mit einem Home-Assistant-Gerät verknüpft wird. Hier kannst du wählen, welches Schlagwort verwendet wird. So findest du alles mit Home Assistant Verknüpfte an einer Stelle.',
         'battery_tag' => 'Batterie-Schlagwort',
         'battery_tag_help' => 'Das Schlagwort, das automatisch zugewiesen wird, sobald ein Objekt einen Batteriestand erfasst. Hier kannst du wählen, welches Schlagwort verwendet wird. So findest du alle batteriebetriebenen Objekte an einer Stelle.',
+        'battery_low_threshold' => 'Batterie schwach ab (%)',
+        'battery_low_threshold_help' => 'Ab welchem Stand eine Batterie als schwach gilt, zwischen :min und :max. Die Wechsel-Erinnerungen werden darauf hin vorhergesagt – eine Änderung berechnet daher das Fälligkeitsdatum aller Batterie-Erinnerungen neu.',
         'paperless_parent' => 'Ziel für Paperless-Importe',
         'paperless_parent_none' => '(keines – auf oberster Ebene anlegen)',
         'paperless_parent_help' => 'Wenn Paperless-ngx ein Dokument an Stockroom übergibt, landen die daraus extrahierten Gegenstände in diesem Raum oder Behälter. Du kannst sie jederzeit verschieben – das hier legt nur fest, wo sie zuerst erscheinen.',

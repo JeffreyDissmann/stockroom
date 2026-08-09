@@ -117,6 +117,20 @@ it('renders the preferences page with the Box tag picker pre-selected', function
         ->assertNoJavaScriptErrors();
 });
 
+it('renders the battery low threshold field with the value in force', function () {
+    // Always rendered, unlike the Battery tag picker — the threshold matters
+    // before anything has reported a level. Nothing is stored on a fresh
+    // install, so the field shows the configured default rather than a blank.
+    //
+    // Persistence is covered by PreferencesTest: asserting the DB straight
+    // after click() races the Inertia PUT and is genuinely flaky.
+    $page = visit('/household/preferences');
+
+    $page->assertPresent('@battery-low-threshold-input')
+        ->assertValue('#battery-low-threshold', (string) config('stockroom.battery.low_threshold'))
+        ->assertNoJavaScriptErrors();
+});
+
 it('shows the Home Assistant tag picker once a tag has been configured', function () {
     $tag = Tag::factory()->create(['name' => 'HomeAssistant']);
     Setting::set('home_assistant_tag_id', $tag->id);
