@@ -7,6 +7,8 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.08.01] — 2026-08-09
+
 ### Upgrade notes
 
 - **One manual step: Meilisearch moves from 1.13 to 1.46.** A search database
@@ -613,7 +615,10 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.06...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.01...HEAD
+[2026.08.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.08...2026.08.01
+[2026.06.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.07...2026.06.08
+[2026.06.07]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.06...2026.06.07
 [2026.06.06]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.05...2026.06.06
 [2026.06.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.04...2026.06.05
 [2026.06.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.03...2026.06.04
