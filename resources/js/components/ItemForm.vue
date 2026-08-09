@@ -13,7 +13,16 @@ import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
 import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
 import paperlessLinksRoutes from '@/routes/items/paperless-links';
-import type { CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, ItemTypeValue, SharedData, TagSummary } from '@/types';
+import type {
+    CustomFieldDefinition,
+    HomeAssistantLinkSummary,
+    ItemSummary,
+    ItemTypeDescriptor,
+    ItemTypeValue,
+    PaperlessLinkSummary,
+    SharedData,
+    TagSummary,
+} from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { Check, FileText, House, Loader2, Lock, Sparkles, X } from '@lucide/vue';
 import { computed, ref } from 'vue';
@@ -21,22 +30,6 @@ import { computed, ref } from 'vue';
 const currency = usePage<SharedData>().props.currency;
 
 type Mode = 'create' | 'edit';
-
-interface PaperlessLinkSummary {
-    document_id: number;
-    url: string;
-    // Cached snapshot from Paperless — null until the repair job has seen
-    // the link; the chip falls back to the bare #id.
-    title: string | null;
-    type: string | null;
-}
-
-interface HomeAssistantLinkSummary {
-    entity_id: string | null;
-    device_id: string | null;
-    friendly_name: string | null;
-    url: string | null;
-}
 
 const props = defineProps<{
     mode: Mode;

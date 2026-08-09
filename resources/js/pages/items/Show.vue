@@ -24,32 +24,18 @@ import type {
     ActivityRow,
     BatteryData,
     BreadcrumbItemType,
+    HomeAssistantLinkSummary,
     ItemImageSummary,
     ItemSummary,
     ItemViewMode,
     MaintenanceData,
+    PaperlessLinkSummary,
     SharedData,
     TagSummary,
 } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
-
-interface PaperlessLinkSummary {
-    document_id: number;
-    url: string;
-    // Cached snapshot from Paperless — null until the repair job has seen
-    // the link; the chip falls back to the bare #id.
-    title: string | null;
-    type: string | null;
-}
-
-interface HomeAssistantLinkSummary {
-    entity_id: string | null;
-    device_id: string | null;
-    friendly_name: string | null;
-    url: string | null;
-}
 
 const props = defineProps<{
     item: ItemSummary;

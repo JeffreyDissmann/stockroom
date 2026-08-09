@@ -3,22 +3,18 @@ import ItemForm from '@/components/ItemForm.vue';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
-import type { BreadcrumbItemType, CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
+import type {
+    BreadcrumbItemType,
+    CustomFieldDefinition,
+    HomeAssistantLinkSummary,
+    ItemSummary,
+    ItemTypeDescriptor,
+    PaperlessLinkSummary,
+    TagSummary,
+} from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { X } from '@lucide/vue';
 import { computed } from 'vue';
-
-interface PaperlessLinkSummary {
-    document_id: number;
-    url: string;
-}
-
-interface HomeAssistantLinkSummary {
-    entity_id: string | null;
-    device_id: string | null;
-    friendly_name: string | null;
-    url: string | null;
-}
 
 const props = defineProps<{
     item: ItemSummary;
