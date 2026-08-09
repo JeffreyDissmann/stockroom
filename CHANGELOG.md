@@ -11,12 +11,14 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ### Upgrade notes
 
-- **One manual step: Meilisearch moves from 1.13 to 1.46.** A search database
-  written by the older engine is rejected outright, so the container will not
-  start until its volume is discarded and the index rebuilt — the steps are in
-  `docker-compose.prod.yml` next to the pinned tag. Nothing is lost (every
-  document is rebuilt from Postgres), but search comes back empty until the
-  rebuild finishes.
+- **Meilisearch moves from 1.13 to 1.46.** The engine rejects a database written
+  by an older version, so set `MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE: "true"` on
+  the service and it migrates in place on first boot — no reindex. Verified
+  1.13.3 → 1.46.1 with every document and embedding intact. Back the data up
+  first: the upgrade is one-way, and the old engine cannot read the new
+  database. If a jump is ever refused, discard the volume and rebuild from
+  Household → Search index (queue worker required); the index is derived data,
+  but rebuilding it means one Ollama embedding call per item.
 - **Everything else is a normal image swap.** This release carries a database
   migration — the AI SDK changed how it records who a conversation belongs to —
   but the entrypoint already runs `migrate` on every boot, so it applies itself.

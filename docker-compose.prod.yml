@@ -99,34 +99,47 @@ services:
     meilisearch:
         # Pinned to a minor tag on purpose — `latest` rolls the engine while the
         # data volume stays on the old database version, and Meilisearch then
-        # refuses to open it and exits on every boot.
+        # refuses to open it and exits on every boot. That is how the dev stack
+        # broke in 2026.08.01.
         #
-        # UPGRADING THIS TAG IS NOT A PLAIN IMAGE SWAP. A database written by an
-        # older engine is rejected outright, so bumping across a version boundary
-        # means discarding the volume and rebuilding:
+        # Bumping this tag IS a plain image swap, thanks to the dumpless-upgrade
+        # flag below: Meilisearch migrates the database in place on first boot.
+        # Verified in production on 2026-08-09 going 1.13.3 -> 1.46.1 — all 295
+        # documents AND their 295 embeddings survived, nothing was reindexed.
         #
-        #   docker compose stop meilisearch && docker compose rm -f meilisearch
-        #   docker volume rm stockroom_meili-data
-        #   docker compose up -d meilisearch
+        # That last part is why this matters: hybrid search stores a vector per
+        # document, so a rebuild is not a cheap bulk copy — it is one Ollama
+        # embedding call per item.
         #
-        # then hit "Rebuild search index" under Household -> Search index (it
-        # dispatches RebuildSearchIndexJob: flush, re-push index settings, then
-        # reimport — the order hybrid search requires). There is no artisan
-        # command for it; the queue worker must be running.
-        #
-        # The index is derived data — every document is rebuilt from Postgres —
-        # so nothing is lost, but search returns empty until the rebuild finishes.
+        # If a future jump is ever refused, the fallback is to discard the volume
+        # (`docker volume rm stockroom_meili-data`, or `rm -rf ./meili/*` for a
+        # bind mount) and rebuild from Household -> Search index, which dispatches
+        # RebuildSearchIndexJob — flush, re-push settings, reimport, in the order
+        # hybrid search needs. There is no artisan command for it and the queue
+        # worker must be running. Back the data up first: an in-place upgrade is
+        # one-way, and the old engine cannot read the new database.
         image: getmeili/meilisearch:v1.46
         restart: unless-stopped
         environment:
             MEILI_ENV: production
             MEILI_MASTER_KEY: ${MEILISEARCH_KEY:?MEILISEARCH_KEY must be set in .env}
             MEILI_NO_ANALYTICS: "true"
+            # Migrate the database in place across engine versions. Experimental
+            # upstream, but it is what makes a version bump a plain image swap.
+            MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE: "true"
         volumes:
             - meili-data:/meili_data
-        # The Meilisearch image is FROM scratch (no shell, no curl, no wget),
-        # so we rely on the upstream HEALTHCHECK baked into the image rather
-        # than overriding it with a command that would error.
+        # The image used to be FROM scratch, with no shell or curl to probe
+        # with. It is Alpine-based as of v1.46 and ships both, so an explicit
+        # healthcheck works — verified against the running container.
+        # `app` still waits on service_started rather than service_healthy:
+        # search is accessed lazily at request time, so a slow Meili start
+        # shouldn't hold up the web boot.
+        healthcheck:
+            test: ["CMD", "curl", "-fsS", "http://localhost:7700/health"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
 
 volumes:
     db-data:
