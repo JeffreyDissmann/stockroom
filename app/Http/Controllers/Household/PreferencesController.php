@@ -13,6 +13,8 @@ use App\Models\Item;
 use App\Models\PaperlessLink;
 use App\Models\Setting;
 use App\Models\Tag;
+use App\Services\Battery\BatteryService;
+use App\Services\Battery\BatteryThreshold;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,8 @@ use Inertia\Response;
  */
 class PreferencesController extends Controller
 {
+    public function __construct(private readonly BatteryService $battery) {}
+
     public function edit(): Response
     {
         $parentId = Setting::int('paperless_parent_id');
@@ -43,6 +47,14 @@ class PreferencesController extends Controller
                 'home_assistant_tag_id' => Setting::get('home_assistant_tag_id'),
                 'battery_tag_id' => Setting::get('battery_tag_id'),
                 'paperless_parent_id' => $parentId,
+                // Resolved rather than raw, so the field shows the value
+                // actually in force — the config default until an admin
+                // overrides it, not an empty box.
+                'battery_low_threshold' => BatteryThreshold::lowPercent(),
+            ],
+            'batteryThresholdRange' => [
+                'min' => BatteryThreshold::MIN,
+                'max' => BatteryThreshold::MAX,
             ],
             'tags' => Tag::query()
                 ->orderBy('name')
@@ -171,6 +183,21 @@ class PreferencesController extends Controller
 
         $parentId = $request->input('paperless_parent_id');
         Setting::set('paperless_parent_id', $parentId === null ? null : (int) $parentId);
+
+        // Every stored forecast — and the reminder date derived from it — was
+        // computed against the old threshold, so a change invalidates them all.
+        // Guarded twice over: the key may be absent (partial update), and even
+        // when present it is usually unchanged. Refreshing queues one job per
+        // battery-tracked item, which has no business firing because an admin
+        // edited an unrelated tag.
+        if ($request->has('battery_low_threshold')) {
+            $threshold = (int) $request->input('battery_low_threshold');
+
+            if ($threshold !== BatteryThreshold::lowPercent()) {
+                Setting::set(BatteryThreshold::SETTING_KEY, $threshold);
+                $this->battery->refreshAllForecasts();
+            }
+        }
 
         return back();
     }

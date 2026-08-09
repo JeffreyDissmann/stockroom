@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Household;
 
 use App\Enums\ItemType;
+use App\Services\Battery\BatteryThreshold;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,6 +39,18 @@ class UpdatePreferencesRequest extends FormRequest
             // Home Assistant tag: no opt-out, unset until the first reading
             // creates it, so the picker only switches between existing tags.
             'battery_tag_id' => ['nullable', 'integer', 'exists:tags,id'],
+
+            // The percent at or below which a battery counts as low. `sometimes`
+            // rather than `required`: this endpoint accepts partial updates (a
+            // caller may be changing only a tag), and there is no "off" state to
+            // express with null. Bounds come from BatteryThreshold so validation
+            // can't drift from the range the accessor will actually honour.
+            'battery_low_threshold' => [
+                'sometimes',
+                'integer',
+                'min:'.BatteryThreshold::MIN,
+                'max:'.BatteryThreshold::MAX,
+            ],
 
             // Paperless intake parent: nullable (opt out → items land at top
             // level), and when set must be a room or container — anything
