@@ -9,15 +9,18 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ### Upgrade notes
 
-- **This release runs a database migration.** The AI SDK changed how it records
-  who a conversation belongs to, so `migrate` has to run before the assistant
-  will answer. Existing chat threads are reshaped in place, not dropped.
-- **Meilisearch moves from 1.13 to 1.46.** A search database written by the
-  older engine is rejected outright, so the container will not start until its
-  volume is discarded and the index rebuilt — the steps are in
+- **One manual step: Meilisearch moves from 1.13 to 1.46.** A search database
+  written by the older engine is rejected outright, so the container will not
+  start until its volume is discarded and the index rebuilt — the steps are in
   `docker-compose.prod.yml` next to the pinned tag. Nothing is lost (every
   document is rebuilt from Postgres), but search comes back empty until the
   rebuild finishes.
+- **Everything else is a normal image swap.** This release carries a database
+  migration — the AI SDK changed how it records who a conversation belongs to —
+  but the entrypoint already runs `migrate` on every boot, so it applies itself.
+  Existing chat threads are reshaped in place, not dropped. Worth knowing only
+  if you roll *back*: the old image cannot read the new schema, so a rollback
+  means reversing the migration too.
 
 ### Internal
 
