@@ -106,7 +106,7 @@ const submit = () => {
 
             <div class="text-center text-sm text-muted-foreground">
                 {{ $t('auth_form.register.have_account') }}
-                <TextLink :href="login().url" class="underline underline-offset-4" tabindex="6">{{ $t('auth_form.register.log_in') }}</TextLink>
+                <TextLink :href="login().url" class="underline underline-offset-4" :tabindex="6">{{ $t('auth_form.register.log_in') }}</TextLink>
             </div>
         </form>
     </AuthBase>

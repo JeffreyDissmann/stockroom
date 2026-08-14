@@ -20,7 +20,9 @@ interface InvitationRow {
     email: string | null;
     url: string;
     created_human: string | null;
-    expires_human: string | null;
+    // Never null: `expires_at` is a non-nullable column that the model
+    // dereferences directly, so diffForHumans() always yields a string.
+    expires_human: string;
     created_by: string | null;
 }
 

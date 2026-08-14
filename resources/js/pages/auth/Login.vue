@@ -58,7 +58,7 @@ const submit = () => {
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
                         <Label for="password">{{ $t('auth_form.fields.password') }}</Label>
-                        <TextLink v-if="canResetPassword" :href="password.request().url" class="text-sm" tabindex="5">
+                        <TextLink v-if="canResetPassword" :href="password.request().url" class="text-sm" :tabindex="5">
                             {{ $t('auth_form.login.forgot') }}
                         </TextLink>
                     </div>

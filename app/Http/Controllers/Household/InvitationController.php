@@ -122,7 +122,7 @@ class InvitationController extends Controller
     }
 
     /**
-     * @return array{id: int, label: string|null, email: string|null, url: string, created_human: string|null, expires_human: string|null, created_by: string|null}
+     * @return array{id: int, label: string|null, email: string|null, url: string, created_human: string|null, expires_human: string, created_by: string|null}
      */
     private function presentInvitation(Invitation $invitation): array
     {

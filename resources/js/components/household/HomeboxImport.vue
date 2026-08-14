@@ -25,6 +25,13 @@ const isAdmin = useIsAdmin();
 
 const form = useForm({ url: '', username: '', password: '' });
 
+// ImportController answers an unreachable/rejecting HomeBox with
+// ValidationException::withMessages(['connection' => …]) — an error key that
+// is deliberately not a form field. Inertia delivers it in `form.errors` all
+// the same, but the type is derived from the form's data shape, so it has to
+// be read through a widened view rather than form.errors.connection.
+const connectionError = computed<string | undefined>(() => (form.errors as Record<string, string | undefined>).connection);
+
 // `busy` covers both pre-progress and active progress phases. 'discovering'
 // is the silent bootstrap inside the importer (tree fetch + allEntities
 // pagination) before any onProgress fires — we want the form locked and
@@ -72,7 +79,7 @@ function submit() {
                 <InputError :message="form.errors.password" />
             </div>
 
-            <InputError :message="form.errors.connection" />
+            <InputError :message="connectionError" />
             <p style="font-size: 12px; color: var(--fg-muted)">
                 {{ $t('household.import.note') }}
             </p>
