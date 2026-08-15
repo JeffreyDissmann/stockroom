@@ -210,888 +210,903 @@
     }
 }
 
-.mono {
-    font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-}
-.tabular {
-    font-variant-numeric: tabular-nums;
-}
+/*
+ * Project component CSS lives in the `components` layer so the utilities layer
+ * — which Tailwind orders after it — can override it.
+ *
+ * Unlayered CSS outranks every layer, so while these rules sat outside one they
+ * beat every utility: `class="btn-ghost px-2 py-1"` silently kept .btn-ghost's
+ * padding, and only an inline style could win. That made mixing utilities with
+ * these classes unreliable, which is the whole point of registering the tokens.
+ *
+ * Verified before moving: exactly four elements carry both a component class
+ * and a utility touching the same property, and in all four the two already
+ * resolve to the same value.
+ */
+@layer components {
+    .mono {
+        font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
 
-/* ── App shell ─────────────────────────────────────────────────────── */
-.app {
-    display: grid;
-    height: 100vh; /* fallback for browsers without dvh */
-    height: 100dvh; /* track the visible viewport so the bottom tab bar stays pinned on mobile */
-    width: 100%;
-    overflow: hidden;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-}
-.app-main {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-    background: var(--bg);
-    overflow: hidden;
-}
-.main-scroll {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
+    /* ── App shell ─────────────────────────────────────────────────────── */
+    .app {
+        display: grid;
+        height: 100vh; /* fallback for browsers without dvh */
+        height: 100dvh; /* track the visible viewport so the bottom tab bar stays pinned on mobile */
+        width: 100%;
+        overflow: hidden;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+    .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        background: var(--bg);
+        overflow: hidden;
+    }
+    .main-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
 
-/* ── Top nav ───────────────────────────────────────────────────────── */
-.topnav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 14px;
-    height: 48px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-elev);
-    flex-shrink: 0;
-}
-.topnav-logo {
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
-    background: var(--accent);
-    color: var(--accent-fg);
-    display: grid;
-    place-items: center;
-    margin-right: 8px;
-}
-.topnav-house {
-    font-weight: 600;
-    font-size: 13px;
-    margin-right: 16px;
-    white-space: nowrap;
-}
-.topnav-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--fg-muted);
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    text-decoration: none;
-}
-.topnav-item:hover {
-    background: var(--bg-hover);
-    color: var(--fg);
-}
-.topnav-item.active {
-    background: var(--bg-active);
-    color: var(--fg);
-    font-weight: 500;
-}
-.topnav-item svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-}
-.topnav-spacer {
-    flex: 1;
-}
+    /* ── Top nav ───────────────────────────────────────────────────────── */
+    .topnav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 14px;
+        height: 48px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-elev);
+        flex-shrink: 0;
+    }
+    .topnav-logo {
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        background: var(--accent);
+        color: var(--accent-fg);
+        display: grid;
+        place-items: center;
+        margin-right: 8px;
+    }
+    .topnav-house {
+        font-weight: 600;
+        font-size: 13px;
+        margin-right: 16px;
+        white-space: nowrap;
+    }
+    .topnav-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--fg-muted);
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .topnav-item:hover {
+        background: var(--bg-hover);
+        color: var(--fg);
+    }
+    .topnav-item.active {
+        background: var(--bg-active);
+        color: var(--fg);
+        font-weight: 500;
+    }
+    .topnav-item svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+    .topnav-spacer {
+        flex: 1;
+    }
 
-/* ── In-page topbar (breadcrumb + actions) ────────────────────────── */
-.topbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    min-height: 56px;
-    flex-shrink: 0;
-}
-.topbar .crumb {
-    font-size: 13px;
-    color: var(--fg-muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    /* min-width: 0 lets the breadcrumb shrink-to-fit instead of forcing the
+    /* ── In-page topbar (breadcrumb + actions) ────────────────────────── */
+    .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+        min-height: 56px;
+        flex-shrink: 0;
+    }
+    .topbar .crumb {
+        font-size: 13px;
+        color: var(--fg-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        /* min-width: 0 lets the breadcrumb shrink-to-fit instead of forcing the
        actions row off-screen. flex-wrap is intentionally off — Topbar.vue
        handles overflow by collapsing the middle into an ellipsis dropdown,
        which keeps the topbar exactly one row tall on any width. */
-    min-width: 0;
-}
-.topbar .crumb a {
-    color: inherit;
-    text-decoration: none;
-}
-.topbar .crumb a:hover {
-    color: var(--fg);
-}
-.topbar .crumb .sep {
-    color: var(--fg-subtle);
-    display: inline-flex;
-}
-.topbar .crumb .current {
-    color: var(--fg);
-    font-weight: 600;
-}
-.topbar .grow {
-    flex: 1;
-}
-/* `.grow` is the spacer that pushes the actions to the right; the actions
+        min-width: 0;
+    }
+    .topbar .crumb a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .topbar .crumb a:hover {
+        color: var(--fg);
+    }
+    .topbar .crumb .sep {
+        color: var(--fg-subtle);
+        display: inline-flex;
+    }
+    .topbar .crumb .current {
+        color: var(--fg);
+        font-weight: 600;
+    }
+    .topbar .grow {
+        flex: 1;
+    }
+    /* `.grow` is the spacer that pushes the actions to the right; the actions
    themselves stay content-sized (`flex: 0 0 auto`) so they never claim
    space beyond what their buttons need. Previously `flex: 1` here gave
    the actions a third of the row to share with `.grow`, and when that
    slice was too narrow for the buttons they wrapped — even with empty
    space sitting in `.grow`. `flex-wrap: wrap` stays as a safety net for
    genuinely cramped viewports. */
-/* margin-left: auto matters for the mobile @media block below: when
+    /* margin-left: auto matters for the mobile @media block below: when
    .topbar gets `flex-wrap: wrap` on narrow viewports, .grow disappears
    (zero-content flex item) and the actions wrap onto a new row. Without
    the auto-margin they'd left-align there; the margin keeps them pinned
    to the right edge on mobile the same way `.grow` does on desktop. */
-.topbar-actions {
-    flex: 0 0 auto;
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    /* Cap at the row width so flex-wrap actually wraps the buttons onto a
+    .topbar-actions {
+        flex: 0 0 auto;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        /* Cap at the row width so flex-wrap actually wraps the buttons onto a
        second line on a narrow phone. Without it, `flex: 0 0 auto` sizes the
        group to max-content (one line) and a long action label — e.g. the
        German "Unterelement hinzufügen" — overflows the viewport and clips. */
-    max-width: 100%;
-}
-.btn-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--fg-muted);
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
-    cursor: pointer;
-    transition:
-        border-color 0.12s,
-        color 0.12s;
-}
-.btn-pill:hover {
-    color: var(--fg);
-    border-color: var(--border-strong);
-}
-.btn-primary {
-    background: var(--accent);
-    color: var(--accent-fg);
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border: 0;
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.12s;
-}
-.btn-primary:hover {
-    opacity: 0.9;
-}
-/* Disabled buttons must read as inert — dimmed, no pointer, no hover
+        max-width: 100%;
+    }
+    .btn-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--fg-muted);
+        border: 1px solid var(--border);
+        background: var(--bg-elev);
+        cursor: pointer;
+        transition:
+            border-color 0.12s,
+            color 0.12s;
+    }
+    .btn-pill:hover {
+        color: var(--fg);
+        border-color: var(--border-strong);
+    }
+    .btn-primary {
+        background: var(--accent);
+        color: var(--accent-fg);
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 0;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.12s;
+    }
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+    /* Disabled buttons must read as inert — dimmed, no pointer, no hover
    effect. Applies app-wide (dialog submits gate on form completeness). */
-.btn-primary:disabled,
-.btn-pill:disabled,
-.btn-ghost:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-.btn-primary:disabled:hover {
-    opacity: 0.45;
-}
-.btn-pill:disabled:hover {
-    color: var(--fg-muted);
-    border-color: var(--border);
-}
-.btn-ghost:disabled:hover {
-    color: var(--fg-muted);
-    background: transparent;
-}
+    .btn-primary:disabled,
+    .btn-pill:disabled,
+    .btn-ghost:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+    .btn-primary:disabled:hover {
+        opacity: 0.45;
+    }
+    .btn-pill:disabled:hover {
+        color: var(--fg-muted);
+        border-color: var(--border);
+    }
+    .btn-ghost:disabled:hover {
+        color: var(--fg-muted);
+        background: transparent;
+    }
 
-/* Maintenance task rows — shared by the item-page section and the global
+    /* Maintenance task rows — shared by the item-page section and the global
    /maintenance page so the two surfaces always look the same. Page-specific
    bits (item link line, action buttons) stay scoped in their components. */
-.mnt-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.mnt-row {
-    display: flex;
-    align-items: center;
-    /* Wrap by available width so narrow phones drop trailing pieces onto
-       their own line. */
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elev);
-}
-.mnt-main {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.mnt-title {
-    font-size: 14px;
-    font-weight: 500;
-}
-.mnt-summary {
-    font-size: 12.5px;
-    color: var(--fg-muted);
-}
-.mnt-due {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    flex-shrink: 0;
-}
-.mnt-date {
-    font-size: 11.5px;
-    color: var(--fg-subtle);
-}
-
-/* Maintenance due badge — also used by the dashboard card. Text and
-   colour states are computed server-side (MaintenancePresenter). */
-.mnt-badge {
-    font-size: 12px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--bg-sunken);
-    color: var(--fg-muted);
-    white-space: nowrap;
-}
-.mnt-badge.is-overdue {
-    color: var(--neg);
-    background: color-mix(in srgb, var(--neg) 12%, transparent);
-}
-.mnt-badge.is-due-soon {
-    color: var(--pos);
-    background: color-mix(in srgb, var(--pos) 12%, transparent);
-}
-.btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--fg-muted);
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-}
-.btn-ghost:hover {
-    color: var(--fg);
-    background: var(--bg-hover);
-}
-.btn-danger {
-    color: var(--neg);
-}
-.btn-danger:hover {
-    color: var(--neg);
-    background: rgba(255, 80, 80, 0.06);
-}
-
-/* ── Page layout ──────────────────────────────────────────────────── */
-.page {
-    padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-    width: 100%;
-}
-.page > h2 {
-    margin: 0 0 4px;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-}
-.page > .sub {
-    color: var(--fg-muted);
-    font-size: 13px;
-    margin-bottom: 20px;
-}
-
-/* ── Cards ────────────────────────────────────────────────────────── */
-.card {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-}
-.card-pad {
-    padding: 16px;
-}
-.card-head {
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-}
-.card-head h3 {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-}
-.card-head .meta {
-    font-size: 12px;
-    color: var(--fg-muted);
-}
-
-/* ── Stat tiles ───────────────────────────────────────────────────── */
-.stats-strip {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-}
-.stats-strip > .stat-cell {
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    border-right: 1px solid var(--border);
-    min-height: 88px;
-}
-.stats-strip > .stat-cell:last-child {
-    border-right: 0;
-}
-.stat-cell .lbl {
-    font-family: 'Geist Mono', ui-monospace, monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--fg-muted);
-}
-.stat-cell .val {
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-}
-.stat-cell .delta {
-    font-size: 12px;
-    color: var(--fg-subtle);
-}
-
-/* ── Tags / status badges ─────────────────────────────────────────── */
-.tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11.5px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    background: var(--tag-bg);
-    color: var(--fg-muted);
-    white-space: nowrap;
-}
-.tag.solid {
-    background: var(--accent);
-    color: var(--accent-fg);
-}
-.tag .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    display: inline-block;
-}
-.badge-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11.5px;
-    color: var(--fg-muted);
-}
-.badge-status::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--pos);
-    display: inline-block;
-}
-
-/* ── Section labels (mono uppercase) ──────────────────────────────── */
-.section-label {
-    font-family: 'Geist Mono', ui-monospace, monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--fg-subtle);
-}
-
-/* ── Table ────────────────────────────────────────────────────────── */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-}
-.table th {
-    text-align: left;
-    font-weight: 500;
-    color: var(--fg-muted);
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 12px;
-    background: var(--bg);
-}
-.table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-}
-.table tr:last-child td {
-    border-bottom: 0;
-}
-.table tr.row-clickable {
-    cursor: pointer;
-}
-.table tr.row-clickable:hover td {
-    background: var(--bg-hover);
-}
-.table .num {
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-}
-.row-thumb {
-    width: 28px;
-    height: 28px;
-    border-radius: 5px;
-    overflow: hidden;
-    background: var(--bg-sunken);
-    display: inline-grid;
-    place-items: center;
-    vertical-align: middle;
-    margin-right: 10px;
-    color: var(--fg-muted);
-}
-.row-name {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    min-width: 0;
-}
-.row-name .nm {
-    font-weight: 500;
-}
-.row-name .sub {
-    color: var(--fg-subtle);
-    font-size: 11.5px;
-}
-
-/* ── Filter bar ───────────────────────────────────────────────────── */
-.filterbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 24px 12px;
-    flex-wrap: wrap;
-}
-.filterbar .search {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0 10px;
-    height: 30px;
-    min-width: 240px;
-    flex: 1;
-    max-width: 340px;
-    color: var(--fg-muted);
-}
-.filterbar .search input {
-    border: 0;
-    outline: 0;
-    background: transparent;
-    flex: 1;
-    min-width: 0;
-    font-size: 13px;
-    color: var(--fg);
-}
-.filterbar .search input::placeholder {
-    color: var(--fg-subtle);
-}
-/* The dedicated search page gives the box its own row, so let it fill the width. */
-.filterbar.searchbar .search {
-    max-width: none;
-}
-.chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 28px;
-    padding: 0 10px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
-    font-size: 12.5px;
-    color: var(--fg-muted);
-    cursor: pointer;
-    transition:
-        border-color 0.12s,
-        color 0.12s,
-        background 0.12s;
-}
-.chip:hover {
-    color: var(--fg);
-    border-color: var(--border-strong);
-}
-.chip.active {
-    background: var(--fg);
-    color: var(--bg-elev);
-    border-color: var(--fg);
-}
-.chip svg {
-    width: 13px;
-    height: 13px;
-}
-
-/* ── Item card (grid mode) ───────────────────────────────────────── */
-.items-grid {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-}
-.item-card {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.12s;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    text-decoration: none;
-    color: inherit;
-}
-.item-card:hover {
-    border-color: var(--border-strong);
-}
-.item-card .thumb {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background: var(--bg-sunken);
-    color: var(--fg-muted);
-    display: grid;
-    place-items: center;
-}
-.item-card .thumb svg {
-    width: 38%;
-    height: 38%;
-    opacity: 0.75;
-}
-.item-card .info {
-    padding: 10px 12px;
-}
-.item-card .nm {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.item-card .meta {
-    font-size: 11.5px;
-    color: var(--fg-muted);
-    margin-top: 2px;
-    display: flex;
-    justify-content: space-between;
-}
-
-/* ── Item detail ──────────────────────────────────────────────────── */
-.detail-grid {
-    display: grid;
-    gap: 24px;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-}
-.gallery .main-img {
-    width: 100%;
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: var(--bg-sunken);
-    border: 1px solid var(--border);
-    display: grid;
-    place-items: center;
-    color: var(--fg-muted);
-}
-.gallery .main-img svg {
-    width: 25%;
-    height: 25%;
-    opacity: 0.6;
-}
-/* No photo: a small placeholder tile rather than a big empty box. */
-.gallery .main-img.is-empty {
-    height: 180px;
-}
-.gallery .main-img.is-empty svg {
-    width: 56px;
-    height: 56px;
-}
-.kv {
-    display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    gap: 8px 16px;
-    align-items: baseline;
-    font-size: 13px;
-}
-.kv dt {
-    color: var(--fg-muted);
-}
-/* Long values (e.g. URLs) must wrap so they can't force the layout wider than the screen. */
-.kv dd {
-    margin: 0;
-    overflow-wrap: anywhere;
-}
-
-/* ── Form ─────────────────────────────────────────────────────────── */
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    max-width: 720px;
-}
-.form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.form-row > label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--fg-muted);
-}
-.form-row .hint {
-    font-size: 11.5px;
-    color: var(--fg-subtle);
-}
-.field {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 7px 10px;
-    font-size: 13px;
-    height: 32px;
-    width: 100%;
-    outline: none;
-    color: var(--fg);
-    font-family: inherit;
-}
-.field:focus {
-    border-color: var(--border-strong);
-}
-textarea.field {
-    height: auto;
-    min-height: 80px;
-    resize: vertical;
-    padding: 8px 10px;
-}
-.form-grid {
-    display: grid;
-    gap: 14px;
-    grid-template-columns: 1fr 1fr;
-}
-
-/* ── Activity / list rows ────────────────────────────────────────── */
-.act-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    text-align: left;
-    color: inherit;
-    text-decoration: none;
-}
-.act-row:last-child {
-    border-bottom: 0;
-}
-.act-row .body {
-    flex: 1;
-    min-width: 0;
-}
-.act-row .body .t {
-    font-size: 13px;
-}
-.act-row .body .t b {
-    font-weight: 600;
-}
-.act-row .body .when {
-    font-size: 11.5px;
-    color: var(--fg-subtle);
-    margin-top: 1px;
-}
-
-/* ── Image grid (shared by the image manager + image search) ──────── */
-.img-grid {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-}
-.img-card {
-    position: relative;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    background: var(--bg-sunken);
-    aspect-ratio: 1 / 1;
-}
-.img-card img,
-.img-thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.img-card.is-selectable {
-    cursor: pointer;
-    padding: 0;
-}
-.img-card.is-selected {
-    border-color: var(--accent);
-    border-width: 2px;
-}
-.img-check {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    display: grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 999px;
-    background: var(--accent);
-    color: var(--accent-fg);
-}
-.img-results {
-    min-height: 18rem;
-    max-height: 26rem;
-    overflow-y: auto;
-}
-.img-results-note {
-    padding: 3rem 0;
-    margin: 0;
-    text-align: center;
-    color: var(--fg-muted);
-    font-size: 13px;
-}
-
-/* ── Bottom tabs (mobile) ─────────────────────────────────────────── */
-.bottom-tabs {
-    display: none;
-    background: var(--bg-elev);
-    border-top: 1px solid var(--border);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-    flex-shrink: 0;
-}
-.bottom-tabs > * {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 6px 4px;
-    font-size: 10.5px;
-    color: var(--fg-muted);
-    border-radius: 6px;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    text-decoration: none;
-}
-.bottom-tabs > .active {
-    color: var(--fg);
-}
-.bottom-tabs > * svg {
-    width: 19px;
-    height: 19px;
-}
-
-/* ── Responsive ──────────────────────────────────────────────────── */
-@media (max-width: 880px) {
-    .topnav,
-    .topnav-only {
-        display: none;
-    }
-    /* TopNav is hidden, so the only grid child (app-main) must fill the row to
-       keep the bottom tab bar pinned even when the page content is short. */
-    .app {
-        grid-template-rows: 1fr;
-    }
-    .bottom-tabs {
+    .mnt-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
         display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
+    .mnt-row {
+        display: flex;
+        align-items: center;
+        /* Wrap by available width so narrow phones drop trailing pieces onto
+       their own line. */
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--bg-elev);
+    }
+    .mnt-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .mnt-title {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .mnt-summary {
+        font-size: 12.5px;
+        color: var(--fg-muted);
+    }
+    .mnt-due {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+    .mnt-date {
+        font-size: 11.5px;
+        color: var(--fg-subtle);
+    }
+
+    /* Maintenance due badge — also used by the dashboard card. Text and
+   colour states are computed server-side (MaintenancePresenter). */
+    .mnt-badge {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--bg-sunken);
+        color: var(--fg-muted);
+        white-space: nowrap;
+    }
+    .mnt-badge.is-overdue {
+        color: var(--neg);
+        background: color-mix(in srgb, var(--neg) 12%, transparent);
+    }
+    .mnt-badge.is-due-soon {
+        color: var(--pos);
+        background: color-mix(in srgb, var(--pos) 12%, transparent);
+    }
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--fg-muted);
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+    }
+    .btn-ghost:hover {
+        color: var(--fg);
+        background: var(--bg-hover);
+    }
+    .btn-danger {
+        color: var(--neg);
+    }
+    .btn-danger:hover {
+        color: var(--neg);
+        background: rgba(255, 80, 80, 0.06);
+    }
+
+    /* ── Page layout ──────────────────────────────────────────────────── */
     .page {
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    .page > h2 {
+        margin: 0 0 4px;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+    }
+    .page > .sub {
+        color: var(--fg-muted);
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    /* ── Cards ────────────────────────────────────────────────────────── */
+    .card {
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+    .card-pad {
         padding: 16px;
     }
-    .topbar {
-        padding: 12px 16px;
-        flex-wrap: wrap;
-        row-gap: 10px;
-    }
-    .filterbar {
-        padding: 0 16px 12px;
-    }
-    .stats-strip {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .stats-strip > .stat-cell {
-        border-right: 0;
+    .card-head {
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         border-bottom: 1px solid var(--border);
     }
-    .stats-strip > .stat-cell:nth-child(odd) {
-        border-right: 1px solid var(--border);
+    .card-head h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.005em;
     }
-    .stats-strip > .stat-cell:nth-child(n + 3) {
+    .card-head .meta {
+        font-size: 12px;
+        color: var(--fg-muted);
+    }
+
+    /* ── Stat tiles ───────────────────────────────────────────────────── */
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+    .stats-strip > .stat-cell {
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        border-right: 1px solid var(--border);
+        min-height: 88px;
+    }
+    .stats-strip > .stat-cell:last-child {
+        border-right: 0;
+    }
+    .stat-cell .lbl {
+        font-family: 'Geist Mono', ui-monospace, monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--fg-muted);
+    }
+    .stat-cell .val {
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+    }
+    .stat-cell .delta {
+        font-size: 12px;
+        color: var(--fg-subtle);
+    }
+
+    /* ── Tags / status badges ─────────────────────────────────────────── */
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11.5px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: var(--tag-bg);
+        color: var(--fg-muted);
+        white-space: nowrap;
+    }
+    .tag.solid {
+        background: var(--accent);
+        color: var(--accent-fg);
+    }
+    .tag .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+    }
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        color: var(--fg-muted);
+    }
+    .badge-status::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--pos);
+        display: inline-block;
+    }
+
+    /* ── Section labels (mono uppercase) ──────────────────────────────── */
+    .section-label {
+        font-family: 'Geist Mono', ui-monospace, monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--fg-subtle);
+    }
+
+    /* ── Table ────────────────────────────────────────────────────────── */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .table th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--fg-muted);
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        background: var(--bg);
+    }
+    .table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+    .table tr:last-child td {
         border-bottom: 0;
     }
+    .table tr.row-clickable {
+        cursor: pointer;
+    }
+    .table tr.row-clickable:hover td {
+        background: var(--bg-hover);
+    }
+    .table .num {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+    }
+    .row-thumb {
+        width: 28px;
+        height: 28px;
+        border-radius: 5px;
+        overflow: hidden;
+        background: var(--bg-sunken);
+        display: inline-grid;
+        place-items: center;
+        vertical-align: middle;
+        margin-right: 10px;
+        color: var(--fg-muted);
+    }
+    .row-name {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        min-width: 0;
+    }
+    .row-name .nm {
+        font-weight: 500;
+    }
+    .row-name .sub {
+        color: var(--fg-subtle);
+        font-size: 11.5px;
+    }
+
+    /* ── Filter bar ───────────────────────────────────────────────────── */
+    .filterbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 24px 12px;
+        flex-wrap: wrap;
+    }
+    .filterbar .search {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0 10px;
+        height: 30px;
+        min-width: 240px;
+        flex: 1;
+        max-width: 340px;
+        color: var(--fg-muted);
+    }
+    .filterbar .search input {
+        border: 0;
+        outline: 0;
+        background: transparent;
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+        color: var(--fg);
+    }
+    .filterbar .search input::placeholder {
+        color: var(--fg-subtle);
+    }
+    /* The dedicated search page gives the box its own row, so let it fill the width. */
+    .filterbar.searchbar .search {
+        max-width: none;
+    }
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-elev);
+        font-size: 12.5px;
+        color: var(--fg-muted);
+        cursor: pointer;
+        transition:
+            border-color 0.12s,
+            color 0.12s,
+            background 0.12s;
+    }
+    .chip:hover {
+        color: var(--fg);
+        border-color: var(--border-strong);
+    }
+    .chip.active {
+        background: var(--fg);
+        color: var(--bg-elev);
+        border-color: var(--fg);
+    }
+    .chip svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    /* ── Item card (grid mode) ───────────────────────────────────────── */
+    .items-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+    .item-card {
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.12s;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: inherit;
+    }
+    .item-card:hover {
+        border-color: var(--border-strong);
+    }
+    .item-card .thumb {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: var(--bg-sunken);
+        color: var(--fg-muted);
+        display: grid;
+        place-items: center;
+    }
+    .item-card .thumb svg {
+        width: 38%;
+        height: 38%;
+        opacity: 0.75;
+    }
+    .item-card .info {
+        padding: 10px 12px;
+    }
+    .item-card .nm {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.005em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .item-card .meta {
+        font-size: 11.5px;
+        color: var(--fg-muted);
+        margin-top: 2px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* ── Item detail ──────────────────────────────────────────────────── */
     .detail-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    }
+    .gallery .main-img {
+        width: 100%;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--bg-sunken);
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        color: var(--fg-muted);
+    }
+    .gallery .main-img svg {
+        width: 25%;
+        height: 25%;
+        opacity: 0.6;
+    }
+    /* No photo: a small placeholder tile rather than a big empty box. */
+    .gallery .main-img.is-empty {
+        height: 180px;
+    }
+    .gallery .main-img.is-empty svg {
+        width: 56px;
+        height: 56px;
+    }
+    .kv {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 8px 16px;
+        align-items: baseline;
+        font-size: 13px;
+    }
+    .kv dt {
+        color: var(--fg-muted);
+    }
+    /* Long values (e.g. URLs) must wrap so they can't force the layout wider than the screen. */
+    .kv dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    /* ── Form ─────────────────────────────────────────────────────────── */
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        max-width: 720px;
+    }
+    .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .form-row > label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--fg-muted);
+    }
+    .form-row .hint {
+        font-size: 11.5px;
+        color: var(--fg-subtle);
+    }
+    .field {
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 7px 10px;
+        font-size: 13px;
+        height: 32px;
+        width: 100%;
+        outline: none;
+        color: var(--fg);
+        font-family: inherit;
+    }
+    .field:focus {
+        border-color: var(--border-strong);
+    }
+    textarea.field {
+        height: auto;
+        min-height: 80px;
+        resize: vertical;
+        padding: 8px 10px;
     }
     .form-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr 1fr;
     }
-}
-@media (min-width: 881px) {
-    .mobile-only {
-        display: none;
-    }
-}
 
-::selection {
-    background: var(--accent);
-    color: var(--accent-fg);
+    /* ── Activity / list rows ────────────────────────────────────────── */
+    .act-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        color: inherit;
+        text-decoration: none;
+    }
+    .act-row:last-child {
+        border-bottom: 0;
+    }
+    .act-row .body {
+        flex: 1;
+        min-width: 0;
+    }
+    .act-row .body .t {
+        font-size: 13px;
+    }
+    .act-row .body .t b {
+        font-weight: 600;
+    }
+    .act-row .body .when {
+        font-size: 11.5px;
+        color: var(--fg-subtle);
+        margin-top: 1px;
+    }
+
+    /* ── Image grid (shared by the image manager + image search) ──────── */
+    .img-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+    .img-card {
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        background: var(--bg-sunken);
+        aspect-ratio: 1 / 1;
+    }
+    .img-card img,
+    .img-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .img-card.is-selectable {
+        cursor: pointer;
+        padding: 0;
+    }
+    .img-card.is-selected {
+        border-color: var(--accent);
+        border-width: 2px;
+    }
+    .img-check {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        display: grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-fg);
+    }
+    .img-results {
+        min-height: 18rem;
+        max-height: 26rem;
+        overflow-y: auto;
+    }
+    .img-results-note {
+        padding: 3rem 0;
+        margin: 0;
+        text-align: center;
+        color: var(--fg-muted);
+        font-size: 13px;
+    }
+
+    /* ── Bottom tabs (mobile) ─────────────────────────────────────────── */
+    .bottom-tabs {
+        display: none;
+        background: var(--bg-elev);
+        border-top: 1px solid var(--border);
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+        flex-shrink: 0;
+    }
+    .bottom-tabs > * {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 6px 4px;
+        font-size: 10.5px;
+        color: var(--fg-muted);
+        border-radius: 6px;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .bottom-tabs > .active {
+        color: var(--fg);
+    }
+    .bottom-tabs > * svg {
+        width: 19px;
+        height: 19px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media (max-width: 880px) {
+        .topnav,
+        .topnav-only {
+            display: none;
+        }
+        /* TopNav is hidden, so the only grid child (app-main) must fill the row to
+       keep the bottom tab bar pinned even when the page content is short. */
+        .app {
+            grid-template-rows: 1fr;
+        }
+        .bottom-tabs {
+            display: flex;
+        }
+        .page {
+            padding: 16px;
+        }
+        .topbar {
+            padding: 12px 16px;
+            flex-wrap: wrap;
+            row-gap: 10px;
+        }
+        .filterbar {
+            padding: 0 16px 12px;
+        }
+        .stats-strip {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .stats-strip > .stat-cell {
+            border-right: 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .stats-strip > .stat-cell:nth-child(odd) {
+            border-right: 1px solid var(--border);
+        }
+        .stats-strip > .stat-cell:nth-child(n + 3) {
+            border-bottom: 0;
+        }
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (min-width: 881px) {
+        .mobile-only {
+            display: none;
+        }
+    }
+
+    ::selection {
+        background: var(--accent);
+        color: var(--accent-fg);
+    }
 }

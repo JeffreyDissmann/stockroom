@@ -62,7 +62,7 @@ function openMarkDone(task: GlobalTaskRow) {
                     :data-test="`maintenance-filter-${entry.key}`"
                 >
                     {{ entry.label }}
-                    <span style="opacity: 0.65">{{ entry.count }}</span>
+                    <span class="opacity-65">{{ entry.count }}</span>
                 </Link>
             </div>
 
@@ -78,7 +78,7 @@ function openMarkDone(task: GlobalTaskRow) {
                         <Link :href="itemRoutes.show(task.item.id).url" class="mnt-item-link">
                             <span>{{ task.item.name }}</span>
                             <template v-if="task.item.location">
-                                <ChevronRight :size="11" style="opacity: 0.6" />
+                                <ChevronRight class="opacity-60" :size="11" />
                                 <span class="mnt-item-location">{{ task.item.location }}</span>
                             </template>
                         </Link>

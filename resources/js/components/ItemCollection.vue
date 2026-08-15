@@ -70,7 +70,7 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
     <table v-if="view === 'list'" class="card table" style="border-radius: var(--radius)">
         <thead>
             <tr>
-                <th v-if="selectable && bulk.isSelectMode.value" class="num" style="width: 32px" />
+                <th v-if="selectable && bulk.isSelectMode.value" class="num w-8" />
                 <th :aria-sort="sort === undefined ? undefined : ariaSort('name')">
                     <button v-if="sort !== undefined" type="button" class="th-sort" @click="emit('sort', 'name')">
                         {{ $t('items.collection.item') }}

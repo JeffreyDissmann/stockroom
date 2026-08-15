@@ -84,8 +84,8 @@ function typeLabel(type: CustomFieldTypeValue) {
 
                 <div v-if="fields.length === 0" class="text-sm text-fg-muted">{{ $t('household.custom_fields.empty') }}</div>
 
-                <ul v-else class="divide-y" style="border-top: 1px solid var(--border)">
-                    <li v-for="field in fields" :key="field.id" class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border)">
+                <ul v-else class="divide-y border-t border-border">
+                    <li v-for="field in fields" :key="field.id" class="flex items-center gap-3 border-b border-border py-3">
                         <template v-if="editingId === field.id">
                             <input v-model="editForm.name" class="field flex-1" />
                             <select v-model="editForm.type" class="field" style="max-width: 150px">

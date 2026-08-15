@@ -106,14 +106,14 @@ watch(
             </div>
 
             <div v-if="filtered.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                <p v-if="items.length === 0" style="margin: 0">
+                <p class="m-0" v-if="items.length === 0">
                     {{ $t('items.index.empty') }}
                     <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">{{
                         $t('items.index.add_first')
                     }}</Link
                     >.
                 </p>
-                <p v-else style="margin: 0">{{ $t('items.index.no_match') }}</p>
+                <p class="m-0" v-else>{{ $t('items.index.no_match') }}</p>
             </div>
 
             <ItemCollection v-else :items="sorted" :view="view" selectable :sort="sortKey" :sort-dir="sortDir" @sort="onSort" />

@@ -308,7 +308,7 @@ function destroyItem() {
                             <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">
                                 {{ $t('items.show.top_level_none') }}
                             </div>
-                            <div v-else class="flex flex-wrap items-center gap-1.5" style="font-size: 13px">
+                            <div v-else class="flex flex-wrap items-center gap-1.5 text-13">
                                 <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
                                     <ChevronRight v-if="i > 0" class="text-fg-subtle" :size="12" />
                                     <Link :href="itemRoutes.show(crumb.id).url" class="flex items-center gap-1.5">

@@ -141,13 +141,8 @@ function removeMember(member: MemberRow) {
 
                     <div v-if="invitations.length === 0" class="text-sm text-fg-muted">{{ $t('members.none') }}</div>
 
-                    <ul v-else class="divide-y" style="border-top: 1px solid var(--border)">
-                        <li
-                            v-for="invitation in invitations"
-                            :key="invitation.id"
-                            class="space-y-2 py-3"
-                            style="border-bottom: 1px solid var(--border)"
-                        >
+                    <ul v-else class="divide-y border-t border-border">
+                        <li v-for="invitation in invitations" :key="invitation.id" class="space-y-2 border-b border-border py-3">
                             <div class="flex items-center gap-3">
                                 <div class="flex-1">
                                     <div style="font-weight: 500; font-size: 14px">
@@ -201,13 +196,8 @@ function removeMember(member: MemberRow) {
                 <div class="space-y-4">
                     <HeadingSmall :title="$t('members.people_title')" :description="$t('members.people_desc')" />
 
-                    <ul class="divide-y" style="border-top: 1px solid var(--border)">
-                        <li
-                            v-for="member in members"
-                            :key="member.id"
-                            class="flex items-center gap-3 py-3"
-                            style="border-bottom: 1px solid var(--border)"
-                        >
+                    <ul class="divide-y border-t border-border">
+                        <li v-for="member in members" :key="member.id" class="flex items-center gap-3 border-b border-border py-3">
                             <div class="flex-1">
                                 <div style="font-weight: 500; font-size: 14px">
                                     {{ member.name }}
