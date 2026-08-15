@@ -59,14 +59,3 @@ it('captures the authenticated screens', function () {
             ->screenshot(true, prefix()."-{$name}");
     }
 })->skip(! capturing(), 'Set VISUAL_BASELINE=1 to capture screenshots.');
-
-function capturing(): bool
-{
-    return getenv('VISUAL_BASELINE') === '1';
-}
-
-/** Screenshots are named by run, so a second pass can't overwrite the first. */
-function prefix(): string
-{
-    return getenv('SHOT_PREFIX') ?: 'before';
-}
