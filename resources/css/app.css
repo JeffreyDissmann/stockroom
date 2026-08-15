@@ -28,6 +28,26 @@
     --color-fg-muted: var(--fg-muted);
     --color-fg-subtle: var(--fg-subtle);
 
+    /*
+     * Type scale. The app uses 10-48px and Tailwind's defaults already cover
+     * six of those exactly (12=xs, 14=sm, 16=base, 18=lg, 30=3xl, 48=5xl), so
+     * only the gaps are named here. Deliberately NOT redefining the existing
+     * names to project values: text-sm is already used 65 times, 15 of them in
+     * shadcn primitives built around 14px, and moving it to 13px would shrink
+     * all of them silently.
+     *
+     * Names carry the pixel value because these are gap-fillers rather than a
+     * semantic scale — `text-13` says exactly what it does, where a made-up
+     * `text-body` would need a second lookup to trust.
+     */
+    --text-2xs: 10px;
+    --text-11: 11px;
+    --text-13: 13px;
+    --text-15: 15px;
+    --text-22: 22px;
+    --text-26: 26px;
+    --text-32: 32px;
+
     /* Lines, chips, and the semantic status trio. */
     --color-border: var(--border);
     --color-border-strong: var(--border-strong);
