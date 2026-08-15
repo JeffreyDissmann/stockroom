@@ -20,6 +20,15 @@ on:
       - 'docker-compose.prod.yml'
       - '.env.docker.example'
       - '.github/workflows/smoke.yml'
+      # The image's frontend stage runs `npm ci && npm run build` with no PHP
+      # available, so the asset pipeline can break here while every test stays
+      # green. The Tailwind 4 migration changed how CSS is compiled and would
+      # have gone through unsmoked; a postinstall hook added in 2026.08.02 did
+      # break this build, and only this job caught it.
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'resources/css/**'
 
 # Don't pile up parallel smoke runs on rapid-fire pushes.
 concurrency:

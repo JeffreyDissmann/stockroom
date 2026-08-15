@@ -100,7 +100,7 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
 
                 <div v-for="(m, i) in messages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
                     <div
-                        class="max-w-[85%] space-y-2 whitespace-pre-wrap rounded-lg px-3 py-2 text-sm"
+                        class="max-w-[85%] space-y-2 rounded-lg px-3 py-2 text-sm whitespace-pre-wrap"
                         :style="
                             m.role === 'user'
                                 ? { background: 'var(--accent)', color: 'var(--accent-fg)' }

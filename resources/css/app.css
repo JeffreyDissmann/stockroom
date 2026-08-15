@@ -1,6 +1,76 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin 'tailwindcss-animate';
+
+/* v4 resolves `dark:` against prefers-color-scheme by default. This app
+   toggles a `.dark` class on <html> (see useAppearance), so restore that. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens as Tailwind utilities.
+ *
+ * `inline` matters here: the values below are var() references, and inline
+ * substitutes them into the utility rather than adding a second layer of
+ * indirection — so the `.dark` overrides further down keep working.
+ *
+ * Everything the app styles with lives here now. Previously only the shadcn
+ * bridge was registered, which is why using a real token meant reaching for
+ * `style="color: var(--fg-muted)"`: there was no `text-fg-muted` to use.
+ */
+@theme inline {
+    /* Surfaces and text. */
+    --color-bg: var(--bg);
+    --color-bg-elev: var(--bg-elev);
+    --color-bg-sunken: var(--bg-sunken);
+    --color-bg-hover: var(--bg-hover);
+    --color-bg-active: var(--bg-active);
+    --color-fg: var(--fg);
+    --color-fg-muted: var(--fg-muted);
+    --color-fg-subtle: var(--fg-subtle);
+
+    /* Lines, chips, and the semantic status trio. */
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-tag-bg: var(--tag-bg);
+    --color-pos: var(--pos);
+    --color-warn: var(--warn);
+    --color-neg: var(--neg);
+
+    /*
+     * shadcn-vue bridge. These are HSL channel triplets, so they need the
+     * hsl() wrapper — except `border`, which is a raw rgba() and would be
+     * invalid inside hsl(). `accent` reads --accent-hsl rather than --accent:
+     * the latter is a hex, so the old `hsl(var(--accent))` mapping emitted
+     * invalid CSS and every bg-accent/hover:bg-accent silently did nothing.
+     */
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+    --color-card: hsl(var(--card));
+    --color-card-foreground: hsl(var(--card-foreground));
+    --color-popover: hsl(var(--popover));
+    --color-popover-foreground: hsl(var(--popover-foreground));
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+    --color-secondary: hsl(var(--secondary));
+    --color-secondary-foreground: hsl(var(--secondary-foreground));
+    --color-muted: hsl(var(--muted));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent: hsl(var(--accent-hsl));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
+    --color-input: hsl(var(--input));
+    --color-ring: hsl(var(--ring));
+}
+
+/*
+ * The `chart-1..5`, `sidebar-*` and `font-sans` entries the old JS config
+ * carried are gone: they pointed at variables this app never defined and
+ * were referenced nowhere. The radius and shadow scales are not redeclared
+ * either — :root below owns --radius-* and --shadow-*, which are exactly
+ * Tailwind's own namespaces, so the rounded and shadow utilities now resolve
+ * to the project's design tokens. One scale instead of two.
+ */
 
 /* ── Stockroom design tokens (Mono theme — see design handoff) ──────── */
 :root {

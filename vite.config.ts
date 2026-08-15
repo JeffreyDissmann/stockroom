@@ -1,9 +1,8 @@
 import { wayfinder } from '@laravel/vite-plugin-wayfinder';
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
-import autoprefixer from 'autoprefixer';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
-import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -20,6 +19,9 @@ export default defineConfig({
                 },
             },
         }),
+        // v4 runs as a Vite plugin rather than through PostCSS, and handles
+        // vendor prefixing itself — hence no autoprefixer here or in deps.
+        tailwindcss(),
         // Regenerates resources/js/{actions,routes,wayfinder} from the Laravel
         // route table during dev (file watch). The generated files are
         // committed (see CLAUDE.md) and verified in CI via wayfinder:check —
@@ -31,11 +33,6 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(import.meta.dirname, './resources/js'),
-        },
-    },
-    css: {
-        postcss: {
-            plugins: [tailwindcss, autoprefixer],
         },
     },
 });

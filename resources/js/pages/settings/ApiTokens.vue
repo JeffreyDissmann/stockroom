@@ -113,7 +113,7 @@ const copyToken = async (token: string) => {
                 <div v-if="plainTextToken" class="space-y-2 rounded-lg border border-green-500/40 bg-green-500/5 p-4" data-test="api-token-plaintext">
                     <p class="text-sm font-medium">{{ $t('settings.api_tokens.created_title') }}</p>
                     <div class="flex items-center gap-2">
-                        <code class="flex-1 break-all rounded bg-muted px-3 py-2 font-mono text-sm">{{ plainTextToken }}</code>
+                        <code class="flex-1 rounded bg-muted px-3 py-2 font-mono text-sm break-all">{{ plainTextToken }}</code>
                         <Button type="button" variant="secondary" data-test="api-token-copy" @click="copyToken(plainTextToken)">
                             {{ copied ? $t('settings.api_tokens.copied') : $t('settings.api_tokens.copy') }}
                         </Button>
