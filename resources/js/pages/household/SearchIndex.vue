@@ -62,7 +62,7 @@ function rebuild() {
                         {{ $t('household.search_index.rebuild') }}
                     </button>
                 </div>
-                <p v-else class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
+                <p v-else class="text-sm text-fg-muted">{{ $t('common.admin_only') }}</p>
 
                 <div v-if="status" data-test="reindex-status" style="border-top: 1px solid var(--border); padding-top: 20px">
                     <template v-if="status.state === 'running'">

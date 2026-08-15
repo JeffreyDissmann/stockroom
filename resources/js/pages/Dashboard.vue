@@ -142,7 +142,7 @@ const valueLabel = computed(() =>
             <section v-if="maintenance.count > 0" class="card mb-4" data-test="dashboard-maintenance-card">
                 <div class="card-head">
                     <h3 class="flex items-center gap-2">
-                        <Wrench :size="14" style="color: var(--fg-muted)" /> {{ $t('dashboard.maintenance_due', { count: maintenance.count }) }}
+                        <Wrench class="text-fg-muted" :size="14" /> {{ $t('dashboard.maintenance_due', { count: maintenance.count }) }}
                     </h3>
                     <Link :href="maintenanceRoute().url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                 </div>

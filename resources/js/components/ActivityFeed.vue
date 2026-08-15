@@ -79,7 +79,7 @@ function when(iso: string | null): string {
                     <template v-if="isImageAdd(row)">
                         <span class="mx-1 font-medium">{{ $tChoice('activity.images_count', row.count) }}</span>
                         <template v-if="showSubject">
-                            <span style="color: var(--fg-subtle)">{{ $t('activity.words.to') }}</span>
+                            <span class="text-fg-subtle">{{ $t('activity.words.to') }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
@@ -97,7 +97,7 @@ function when(iso: string | null): string {
                              the only horizontal gap is whatever margin we set
                              here. The same bump applies to the words.* spans
                              everywhere else in this feed; tested visually. -->
-                        <span class="mx-2" style="color: var(--fg-subtle)">{{
+                        <span class="mx-2 text-fg-subtle">{{
                             row.event === 'link_added' ? $t('activity.words.with') : $t('activity.words.from')
                         }}</span>
                         <component
@@ -108,7 +108,7 @@ function when(iso: string | null): string {
                             >{{ row.related_label ?? $t('activity.words.unknown') }}</component
                         >
                         <template v-if="showSubject">
-                            <span class="mx-2" style="color: var(--fg-subtle)">{{ $t('activity.words.on') }}</span>
+                            <span class="mx-2 text-fg-subtle">{{ $t('activity.words.on') }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
@@ -125,7 +125,7 @@ function when(iso: string | null): string {
                              when the feed isn't already item-scoped. -->
                         <span class="ml-1 font-medium">{{ row.task_title ?? $t('activity.words.unknown') }}</span>
                         <template v-if="showSubject">
-                            <span class="mx-2" style="color: var(--fg-subtle)">{{ $t('activity.words.on') }}</span>
+                            <span class="mx-2 text-fg-subtle">{{ $t('activity.words.on') }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
@@ -138,7 +138,7 @@ function when(iso: string | null): string {
 
                     <template v-else>
                         <template v-if="showSubject">
-                            <span v-if="!isMove(row)" class="mx-1" style="color: var(--fg-subtle)">{{ row.subject_type }}</span>
+                            <span v-if="!isMove(row)" class="mx-1 text-fg-subtle">{{ row.subject_type }}</span>
                             <component
                                 :is="row.subject_url ? Link : 'span'"
                                 :href="row.subject_url ?? undefined"
@@ -148,24 +148,24 @@ function when(iso: string | null): string {
                             >
                         </template>
                         <template v-if="isMove(row)">
-                            <span :class="showSubject ? '' : 'ml-1'" style="color: var(--fg-subtle)">{{ $t('activity.words.from') }}</span>
+                            <span class="text-fg-subtle" :class="showSubject ? '' : 'ml-1'">{{ $t('activity.words.from') }}</span>
                             <span class="mx-1 font-medium">{{ row.changes[0].from }}</span>
-                            <span style="color: var(--fg-subtle)">{{ $t('activity.words.to') }}</span>
+                            <span class="text-fg-subtle">{{ $t('activity.words.to') }}</span>
                             <span class="ml-1 font-medium">{{ row.changes[0].to }}</span>
                         </template>
                     </template>
                 </div>
                 <ul v-if="row.event === 'updated' && !isMove(row) && row.changes.length" class="mt-1 space-y-0.5">
-                    <li v-for="(change, i) in row.changes" :key="i" class="text-xs" style="color: var(--fg-subtle)">
+                    <li v-for="(change, i) in row.changes" :key="i" class="text-xs text-fg-subtle">
                         <span class="mono">{{ change.field }}</span
                         >:
                         <span class="line-through">{{ change.from ?? '—' }}</span>
                         →
-                        <span style="color: var(--fg-muted)">{{ change.to ?? '—' }}</span>
+                        <span class="text-fg-muted">{{ change.to ?? '—' }}</span>
                     </li>
                 </ul>
             </div>
-            <div class="shrink-0 text-xs" style="color: var(--fg-subtle)">
+            <div class="shrink-0 text-xs text-fg-subtle">
                 {{ when(row.at) }}<template v-if="row.causer"> · {{ row.causer }}</template>
             </div>
         </li>

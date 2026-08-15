@@ -96,7 +96,7 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
             </SheetHeader>
 
             <div ref="listEl" class="flex-1 space-y-3 overflow-y-auto p-4">
-                <p v-if="messages.length === 0" class="text-sm" style="color: var(--fg-muted)">{{ $t('assistant.empty') }}</p>
+                <p v-if="messages.length === 0" class="text-sm text-fg-muted">{{ $t('assistant.empty') }}</p>
 
                 <div v-for="(m, i) in messages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
                     <div
@@ -117,7 +117,7 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
                     </div>
                 </div>
 
-                <div v-if="sending" class="flex items-center gap-2 text-sm" style="color: var(--fg-muted)">
+                <div v-if="sending" class="flex items-center gap-2 text-sm text-fg-muted">
                     <Loader2 :size="14" class="animate-spin" />
                     {{ $t('assistant.thinking') }}
                 </div>

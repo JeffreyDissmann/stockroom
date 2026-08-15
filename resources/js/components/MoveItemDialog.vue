@@ -132,7 +132,7 @@ function move() {
                 </li>
             </ul>
 
-            <label class="flex items-center gap-2 text-sm" style="color: var(--fg-muted)">
+            <label class="flex items-center gap-2 text-sm text-fg-muted">
                 <input v-model="includeAll" type="checkbox" data-test="move-include-all" />
                 {{ $t('items.move.include_all') }}
             </label>

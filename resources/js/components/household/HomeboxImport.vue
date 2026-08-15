@@ -60,7 +60,7 @@ function submit() {
     <div class="space-y-6 border-t border-neutral-200 pt-6 dark:border-neutral-800">
         <HeadingSmall :title="$t('household.import.title')" :description="$t('household.import.description')" />
 
-        <p v-if="!isAdmin" class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
+        <p v-if="!isAdmin" class="text-sm text-fg-muted">{{ $t('common.admin_only') }}</p>
 
         <form v-if="isAdmin" class="form" @submit.prevent="submit">
             <div class="form-row">

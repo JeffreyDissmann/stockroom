@@ -42,7 +42,7 @@ const { show: showVersion, label: versionLabel } = useAppVersion();
     <!-- Running build version — empty in dev (no APP_VERSION build arg). -->
     <template v-if="showVersion">
         <DropdownMenuSeparator />
-        <div class="px-2 py-1.5 text-xs" style="color: var(--fg-subtle)" data-test="user-menu-version">
+        <div class="px-2 py-1.5 text-xs text-fg-subtle" data-test="user-menu-version">
             {{ versionLabel }}
         </div>
     </template>

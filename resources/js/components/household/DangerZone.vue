@@ -50,6 +50,6 @@ function wipe() {
             {{ $t('household.danger.wipe') }}
         </button>
 
-        <p v-if="form.recentlySuccessful" class="text-sm" style="color: var(--fg-muted)" data-test="wipe-done">{{ $t('household.danger.done') }}</p>
+        <p v-if="form.recentlySuccessful" class="text-sm text-fg-muted" data-test="wipe-done">{{ $t('household.danger.done') }}</p>
     </div>
 </template>

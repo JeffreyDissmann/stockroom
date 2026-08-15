@@ -310,7 +310,7 @@ function destroyItem() {
                             </div>
                             <div v-else class="flex flex-wrap items-center gap-1.5" style="font-size: 13px">
                                 <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
-                                    <ChevronRight v-if="i > 0" :size="12" style="color: var(--fg-subtle)" />
+                                    <ChevronRight v-if="i > 0" class="text-fg-subtle" :size="12" />
                                     <Link :href="itemRoutes.show(crumb.id).url" class="flex items-center gap-1.5">
                                         <ItemTypeIcon :type="crumb.type.value" class="size-3.5" />
                                         <span>{{ crumb.name }}</span>

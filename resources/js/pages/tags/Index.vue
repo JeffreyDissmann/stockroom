@@ -201,7 +201,7 @@ function destroyTag(tag: TagRow) {
                             <button v-if="!isProtected(tag)" class="btn-ghost btn-danger" type="button" @click="destroyTag(tag)">
                                 <Trash2 :size="14" />
                             </button>
-                            <span v-else class="px-1" style="color: var(--fg-subtle)" :title="$t('tags.protected_hint')">
+                            <span v-else class="px-1 text-fg-subtle" :title="$t('tags.protected_hint')">
                                 <Lock :size="13" />
                             </span>
                         </div>

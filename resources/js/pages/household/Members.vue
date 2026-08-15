@@ -131,15 +131,15 @@ function removeMember(member: MemberRow) {
 
                     <!-- One-shot send feedback (store/resend) + the stale-page
                          resend error. Gone on the next navigation. -->
-                    <p v-if="mailFlash === 'sent'" class="text-sm" style="color: var(--pos)" data-test="invite-mail-sent" role="status">
+                    <p v-if="mailFlash === 'sent'" class="text-sm text-pos" data-test="invite-mail-sent" role="status">
                         {{ $t('members.mail_sent') }}
                     </p>
-                    <p v-else-if="mailFlash === 'failed'" class="text-sm" style="color: var(--neg)" data-test="invite-mail-failed" role="alert">
+                    <p v-else-if="mailFlash === 'failed'" class="text-sm text-neg" data-test="invite-mail-failed" role="alert">
                         {{ $t('members.mail_failed') }}
                     </p>
-                    <p v-if="invitationError" class="text-sm" style="color: var(--neg)" role="alert">{{ invitationError }}</p>
+                    <p v-if="invitationError" class="text-sm text-neg" role="alert">{{ invitationError }}</p>
 
-                    <div v-if="invitations.length === 0" class="text-sm" style="color: var(--fg-muted)">{{ $t('members.none') }}</div>
+                    <div v-if="invitations.length === 0" class="text-sm text-fg-muted">{{ $t('members.none') }}</div>
 
                     <ul v-else class="divide-y" style="border-top: 1px solid var(--border)">
                         <li
@@ -153,7 +153,7 @@ function removeMember(member: MemberRow) {
                                     <div style="font-weight: 500; font-size: 14px">
                                         {{ invitation.label || invitation.email || $t('members.link') }}
                                     </div>
-                                    <div class="text-xs" style="color: var(--fg-muted)">
+                                    <div class="text-xs text-fg-muted">
                                         {{ $t('members.expires', { when: invitation.expires_human })
                                         }}<template v-if="invitation.created_by">
                                             · {{ $t('members.from', { name: invitation.created_by }) }}</template
@@ -211,13 +211,11 @@ function removeMember(member: MemberRow) {
                             <div class="flex-1">
                                 <div style="font-weight: 500; font-size: 14px">
                                     {{ member.name }}
-                                    <span v-if="member.is_self" class="text-xs" style="color: var(--fg-subtle)">{{ $t('members.you') }}</span>
+                                    <span v-if="member.is_self" class="text-xs text-fg-subtle">{{ $t('members.you') }}</span>
                                 </div>
-                                <div class="text-xs" style="color: var(--fg-muted)">{{ member.email }}</div>
+                                <div class="text-xs text-fg-muted">{{ member.email }}</div>
                             </div>
-                            <span class="text-xs" style="color: var(--fg-subtle)">{{
-                                member.is_admin ? $t('members.role_admin') : $t('members.role_member')
-                            }}</span>
+                            <span class="text-xs text-fg-subtle">{{ member.is_admin ? $t('members.role_admin') : $t('members.role_member') }}</span>
                             <template v-if="isAdmin && !member.is_self">
                                 <button type="button" class="btn-ghost" style="font-size: 12px" @click="toggleAdmin(member)">
                                     {{ member.is_admin ? $t('members.remove_admin') : $t('members.make_admin') }}
@@ -226,7 +224,7 @@ function removeMember(member: MemberRow) {
                                     <Trash2 :size="14" />
                                 </button>
                             </template>
-                            <div v-else-if="member.joined_human" class="text-xs" style="color: var(--fg-subtle)">
+                            <div v-else-if="member.joined_human" class="text-xs text-fg-subtle">
                                 {{ $t('members.joined', { when: member.joined_human }) }}
                             </div>
                         </li>

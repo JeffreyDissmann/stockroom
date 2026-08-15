@@ -89,7 +89,7 @@ watch(
             <div class="mb-5 flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                     <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ pageTitle }}</h2>
-                    <p v-if="parent?.description" class="mt-1 text-sm" style="color: var(--fg-muted)">{{ parent.description }}</p>
+                    <p v-if="parent?.description" class="mt-1 text-sm text-fg-muted">{{ parent.description }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <BulkSelectToggle />

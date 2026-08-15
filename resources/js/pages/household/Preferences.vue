@@ -190,7 +190,7 @@ function runRelink(url: string) {
             <div class="space-y-6">
                 <HeadingSmall :title="$t('household.nav.preferences')" :description="$t('household.preferences.description')" />
 
-                <p v-if="!isAdmin" class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
+                <p v-if="!isAdmin" class="text-sm text-fg-muted">{{ $t('common.admin_only') }}</p>
 
                 <form v-if="isAdmin" class="form" @submit.prevent="submit" data-test="preferences-form">
                     <div class="form-row">
@@ -395,7 +395,7 @@ function runRelink(url: string) {
                             <Save :size="14" />
                             {{ $t('common.save') }}
                         </button>
-                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm" style="color: var(--pos)">{{ $t('common.saved') }}</span>
+                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-pos">{{ $t('common.saved') }}</span>
                     </div>
                 </form>
             </div>
