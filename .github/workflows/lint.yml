@@ -38,6 +38,13 @@ jobs:
       - name: Lint Frontend
         run: npm run lint
 
+      # The tree type-checks clean as of 2026-08-09. It hadn't been checked
+      # before because two bad `types` entries in tsconfig made vue-tsc bail
+      # early, hiding 17 real errors — so this guard exists to stop that
+      # drifting again unnoticed.
+      - name: Typecheck Frontend
+        run: npm run typecheck
+
       # - name: Commit Changes
       #   uses: stefanzweifel/git-auto-commit-action@v5
       #   with:

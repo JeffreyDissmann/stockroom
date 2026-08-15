@@ -7,19 +7,6 @@ import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
 import { trans, transChoice } from './composables/useTranslations';
 
-// Extend ImportMeta interface for Vite...
-declare module 'vite/client' {
-    interface ImportMetaEnv {
-        readonly VITE_APP_NAME: string;
-        [key: string]: string | boolean | undefined;
-    }
-
-    interface ImportMeta {
-        readonly env: ImportMetaEnv;
-        readonly glob: <T>(pattern: string) => Record<string, () => Promise<T>>;
-    }
-}
-
 const appName = import.meta.env.VITE_APP_NAME || 'Stockroom';
 
 createInertiaApp({

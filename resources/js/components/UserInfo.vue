@@ -15,13 +15,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { getInitials } = useInitials();
 
-// Compute whether we should show the avatar image
-const showAvatar = computed(() => props.user.avatar && props.user.avatar !== '');
+// The avatar URL, or null when there is none to show. Returning the value
+// rather than a boolean lets the template narrow it on the same v-if, so
+// AvatarImage's non-nullable `src` is satisfied without a cast.
+const avatarUrl = computed<string | null>(() => props.user.avatar || null);
 </script>
 
 <template>
     <Avatar class="h-8 w-8 overflow-hidden rounded-lg">
-        <AvatarImage v-if="showAvatar" :src="user.avatar" :alt="user.name" />
+        <AvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="user.name" />
         <AvatarFallback class="rounded-lg text-black dark:text-white">
             {{ getInitials(user.name) }}
         </AvatarFallback>

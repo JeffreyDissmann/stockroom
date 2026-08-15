@@ -34,7 +34,6 @@ export interface BackupResult {
 // 'SharedData' does not satisfy the constraint 'PageProps'".
 export interface SharedData extends PageProps {
     name: string;
-    quote: { message: string; author: string };
     auth: Auth;
     currency: CurrencyConfig;
     features: { imageSearch: boolean; ai: boolean; paperless: boolean };
@@ -259,4 +258,30 @@ export interface BatteryCycleRow {
 export interface BatteryData {
     summary: BatterySummary;
     cycles: BatteryCycleRow[];
+}
+
+/**
+ * An item's linked Paperless document, as `ItemController::presentPaperlessLinks`
+ * serves it to both the Show and Edit pages.
+ *
+ * Shared rather than redeclared per page: three copies existed and had already
+ * drifted — the Edit one was missing `title`/`type`, which is what made
+ * TypeScript treat two identically-named types as unrelated.
+ */
+export interface PaperlessLinkSummary {
+    document_id: number;
+    url: string;
+    // Cached snapshot from Paperless — null until the repair job has seen
+    // the link; the chip falls back to the bare #id.
+    title: string | null;
+    type: string | null;
+}
+
+/** An item's Home Assistant link, or absent when unlinked. */
+export interface HomeAssistantLinkSummary {
+    entity_id: string | null;
+    device_id: string | null;
+    friendly_name: string | null;
+    // Deep link to the HA device page; the UI falls back to the entity id.
+    url: string | null;
 }

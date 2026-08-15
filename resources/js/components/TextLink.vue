@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import type { Method } from '@inertiajs/core';
 import { Link } from '@inertiajs/vue3';
 
 interface Props {
     href: string;
     tabindex?: number;
-    method?: string;
+    // Inertia's own union ('get' | 'post' | …) rather than string, so a typo
+    // is caught here instead of being passed through to <Link>.
+    method?: Method;
     as?: string;
 }
 
