@@ -14,7 +14,9 @@ RUN npm ci --no-audit --no-fund
 # Bring in the source needed by Vite + Wayfinder codegen + Tailwind content scan.
 COPY resources ./resources
 COPY public ./public
-COPY vite.config.ts tailwind.config.js tsconfig.json ./
+# No tailwind.config.js since v4 — the theme lives in resources/css/app.css,
+# already copied above.
+COPY vite.config.ts tsconfig.json ./
 
 # Wayfinder is regenerated from PHP routes at build time. We don't have PHP here,
 # so we rely on the committed generated tree under resources/js/{actions,routes,wayfinder}
