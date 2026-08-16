@@ -88,7 +88,7 @@ watch(
         <div class="page">
             <div class="mb-5 flex flex-wrap items-baseline justify-between gap-3">
                 <div>
-                    <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ pageTitle }}</h2>
+                    <h2 class="m-0 text-22 font-semibold tracking-display">{{ pageTitle }}</h2>
                     <p v-if="parent?.description" class="mt-1 text-sm text-fg-muted">{{ parent.description }}</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -102,15 +102,13 @@ watch(
                     <Search :size="14" />
                     <input v-model="search" type="search" :placeholder="$tChoice('items.index.search', items.length)" />
                 </div>
-                <span class="section-label" style="margin-left: auto">{{ $t('items.index.shown', { count: filtered.length }) }}</span>
+                <span class="section-label ml-auto">{{ $t('items.index.shown', { count: filtered.length }) }}</span>
             </div>
 
             <div v-if="filtered.length === 0" class="card card-pad text-center text-fg-muted">
                 <p class="m-0" v-if="items.length === 0">
                     {{ $t('items.index.empty') }}
-                    <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">{{
-                        $t('items.index.add_first')
-                    }}</Link
+                    <Link class="font-medium text-fg underline underline-offset-[3px]" :href="createHref">{{ $t('items.index.add_first') }}</Link
                     >.
                 </p>
                 <p class="m-0" v-else>{{ $t('items.index.no_match') }}</p>

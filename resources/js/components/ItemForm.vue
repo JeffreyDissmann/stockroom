@@ -734,8 +734,7 @@ function submit() {
                             :href="link.url"
                             target="_blank"
                             rel="noopener"
-                            class="paperless-link"
-                            style="flex: 0 1 auto; min-width: 0"
+                            class="paperless-link min-w-0 flex-initial"
                             :title="`#${link.document_id}`"
                         >
                             <FileText :size="14" :style="{ color: 'var(--fg-muted)', flexShrink: 0 }" />

@@ -156,7 +156,7 @@ function removeMember(member: MemberRow) {
                                         <template v-if="invitation.email">
                                             ·
                                             <span class="inline-flex items-center gap-1" data-test="invite-sent-to">
-                                                <Mail :size="11" style="display: inline" /> {{ $t('members.sent_to', { email: invitation.email }) }}
+                                                <Mail class="inline" :size="11" /> {{ $t('members.sent_to', { email: invitation.email }) }}
                                             </span>
                                         </template>
                                     </div>

@@ -71,7 +71,7 @@ const valueLabel = computed(() =>
 
         <div class="page">
             <div class="mb-5">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">
+                <h2 class="m-0 text-22 font-semibold tracking-display">
                     {{ $t('dashboard.welcome', { name: firstName }) }}
                 </h2>
                 <p class="mt-1 text-13 text-fg-muted">{{ $t('dashboard.subtitle') }}</p>
@@ -167,9 +167,7 @@ const valueLabel = computed(() =>
                     </div>
                     <div v-if="recent.length === 0" class="card-pad text-center text-fg-muted">
                         {{ $t('dashboard.nothing_yet') }}
-                        <Link :href="itemRoutes.create().url" style="color: var(--fg); font-weight: 500; text-decoration: underline">{{
-                            $t('dashboard.add_first')
-                        }}</Link
+                        <Link class="font-medium text-fg underline" :href="itemRoutes.create().url">{{ $t('dashboard.add_first') }}</Link
                         >.
                     </div>
                     <table v-else class="table">
@@ -205,7 +203,7 @@ const valueLabel = computed(() =>
                                     </Link>
                                     <span v-else style="color: var(--fg-subtle); font-size: 12.5px">{{ $t('common.top_level') }}</span>
                                 </td>
-                                <td class="num mono" style="color: var(--fg-subtle); font-size: 12px">{{ r.created_at_human }}</td>
+                                <td class="num mono text-xs text-fg-subtle">{{ r.created_at_human }}</td>
                             </tr>
                         </tbody>
                     </table>

@@ -48,7 +48,7 @@ function openMarkDone(task: GlobalTaskRow) {
         <Head :title="$t('maintenance.page.title')" />
 
         <div class="page">
-            <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('maintenance.page.title') }}</h2>
+            <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('maintenance.page.title') }}</h2>
             <p class="sub m-0 mb-5 text-13 text-fg-muted">
                 {{ $t('maintenance.page.subtitle') }}
             </p>

@@ -329,7 +329,7 @@ function runRelink(url: string) {
                          are Paperless-only and admin-only. -->
                     <div v-if="paperlessEnabled" class="form-row">
                         <label>{{ $t('household.preferences.paperless_relink') }}</label>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                        <div class="flex flex-wrap gap-2">
                             <button
                                 type="button"
                                 class="btn-pill"
@@ -357,9 +357,9 @@ function runRelink(url: string) {
                              layout: a progress bar while running, then a done
                              or failed line. Hidden when no run has happened
                              (or its cache key expired). -->
-                        <div v-if="relinkStatus" data-test="paperless-relink-status" style="margin-top: 12px">
+                        <div class="mt-3" v-if="relinkStatus" data-test="paperless-relink-status">
                             <template v-if="relinkStatus.state === 'running'">
-                                <p style="font-size: 13px; margin: 0 0 8px">
+                                <p class="m-0 mb-2 text-13">
                                     {{
                                         $t('household.preferences.paperless_relink_progress', {
                                             done: (relinkStatus.done ?? 0) + (relinkStatus.failed ?? 0),
@@ -374,8 +374,8 @@ function runRelink(url: string) {
                                 </div>
                             </template>
                             <p
+                                class="m-0 text-13"
                                 v-else-if="relinkStatus.state === 'done'"
-                                style="font-size: 13px; margin: 0"
                                 :style="{ color: (relinkStatus.failed ?? 0) > 0 ? 'var(--warn)' : 'var(--pos)' }"
                             >
                                 {{ $tChoice(relinkDoneKey, relinkStatus.done ?? 0) }}
@@ -383,7 +383,7 @@ function runRelink(url: string) {
                                     {{ $tChoice('household.preferences.paperless_relink_failed_count', relinkStatus.failed ?? 0) }}
                                 </template>
                             </p>
-                            <p v-else-if="relinkStatus.state === 'failed'" style="font-size: 13px; margin: 0; color: var(--neg)">
+                            <p class="m-0 text-13 text-neg" v-else-if="relinkStatus.state === 'failed'">
                                 {{ $t('household.preferences.paperless_relink_failed', { error: relinkStatus.error ?? '' }) }}
                             </p>
                         </div>

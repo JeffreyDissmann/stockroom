@@ -293,8 +293,8 @@ function destroyItem() {
                 <div class="flex flex-col gap-4">
                     <div>
                         <p class="section-label">{{ item.type.label }}</p>
-                        <h1 style="margin: 4px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">{{ item.name }}</h1>
-                        <p v-if="item.description" style="margin: 12px 0 0; color: var(--fg-muted); font-size: 14px">{{ item.description }}</p>
+                        <h1 class="m-0 mt-1 text-26 font-semibold tracking-display-lg">{{ item.name }}</h1>
+                        <p class="m-0 mt-3 text-sm text-fg-muted" v-if="item.description">{{ item.description }}</p>
                         <div v-if="item.tags?.length" class="mt-3 flex flex-wrap gap-1">
                             <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                         </div>

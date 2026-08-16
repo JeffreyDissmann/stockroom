@@ -48,6 +48,15 @@
     --text-26: 26px;
     --text-32: 32px;
 
+    /*
+     * Display-heading tracking. Both values sit between Tailwind's
+     * `tracking-tight` (-0.025em) and `tracking-normal` (0), so neither could
+     * be expressed without an arbitrary value. Named for the role rather than
+     * the number, because unlike the pixel sizes these read as nothing useful.
+     */
+    --tracking-display: -0.015em;
+    --tracking-display-lg: -0.02em;
+
     /* Lines, chips, and the semantic status trio. */
     --color-border: var(--border);
     --color-border-strong: var(--border-strong);

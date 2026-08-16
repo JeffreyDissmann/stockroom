@@ -97,7 +97,7 @@ function submit() {
                  Indeterminate slider so it's visually obvious work is
                  happening even though done/total are still 0. -->
             <template v-if="status.state === 'discovering'">
-                <p data-test="import-status-discovering" style="display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 8px">
+                <p class="mb-2 flex items-center gap-2 text-13" data-test="import-status-discovering">
                     <Loader2 :size="14" class="animate-spin" :style="{ color: 'var(--accent)' }" />
                     {{ $t('household.import.discovering') }}
                 </p>
@@ -159,9 +159,9 @@ function submit() {
                 "
             >
                 <AlertTriangle class="mt-px shrink-0" :size="18" />
-                <div style="font-size: 13px; line-height: 1.5">
-                    <p style="font-weight: 600; margin: 0">{{ $t('household.import.failed_title') }}</p>
-                    <p style="margin: 4px 0 0; color: var(--fg)">{{ $t('household.import.failed', { error: status.error ?? '' }) }}</p>
+                <div class="text-13 leading-normal">
+                    <p class="m-0 font-semibold">{{ $t('household.import.failed_title') }}</p>
+                    <p class="m-0 mt-1 text-fg">{{ $t('household.import.failed', { error: status.error ?? '' }) }}</p>
                 </div>
             </div>
         </div>

@@ -42,9 +42,9 @@ const cancelHref = computed(() => (props.parent ? `/items/${props.parent.id}` : 
                  Edit.vue, so create and edit share their layout. -->
             <div style="max-width: 720px; margin: 0 auto">
                 <div class="mb-5">
-                    <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.add_title') }}</h2>
+                    <h2 class="m-0 text-22 font-semibold tracking-display">{{ $t('items.add_title') }}</h2>
                     <p class="mt-1 text-13 text-fg-muted" v-if="parent">
-                        {{ $t('items.inside') }} <span style="color: var(--fg); font-weight: 500">{{ parent.name }}</span>
+                        {{ $t('items.inside') }} <span class="font-medium text-fg">{{ parent.name }}</span>
                     </p>
                 </div>
 

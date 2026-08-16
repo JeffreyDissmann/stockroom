@@ -27,7 +27,7 @@ function wipe() {
 </script>
 
 <template>
-    <div v-if="isAdmin" class="space-y-4" style="border-top: 1px solid var(--border); padding-top: 28px">
+    <div v-if="isAdmin" class="space-y-4 border-t border-border pt-7">
         <HeadingSmall :title="$t('household.danger.title')" :description="$t('household.danger.description')" />
 
         <div class="space-y-2">

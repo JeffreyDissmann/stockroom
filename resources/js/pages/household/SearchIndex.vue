@@ -49,7 +49,7 @@ function rebuild() {
             <div class="space-y-6">
                 <HeadingSmall :title="$t('household.nav.search_index')" :description="$t('household.search_index.description')" />
 
-                <p style="font-size: 13px; color: var(--fg-muted)">
+                <p class="text-13 text-fg-muted">
                     {{ $tChoice('household.search_index.count', total) }}
                     <template v-if="semantic">{{ $t('household.search_index.semantic_on') }}</template>
                     <template v-else>{{ $t('household.search_index.semantic_off') }}</template>
@@ -73,10 +73,10 @@ function rebuild() {
                             <div :style="{ width: `${percent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
                         </div>
                     </template>
-                    <p v-else-if="status.state === 'done'" style="font-size: 13px; color: var(--fg)">
+                    <p class="text-13 text-fg" v-else-if="status.state === 'done'">
                         {{ $tChoice('household.search_index.done', status.indexed ?? status.total ?? 0) }}
                     </p>
-                    <p v-else-if="status.state === 'failed'" style="font-size: 13px; color: var(--neg)">
+                    <p class="text-13 text-neg" v-else-if="status.state === 'failed'">
                         {{ $t('household.search_index.failed', { error: status.error ?? '' }) }}
                     </p>
                 </div>
