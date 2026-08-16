@@ -157,8 +157,7 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
                 <td v-if="removable" class="num">
                     <button
                         type="button"
-                        class="btn-ghost"
-                        style="padding: 4px 8px"
+                        class="btn-ghost px-2 py-1"
                         :data-test="`item-remove-${item.id}`"
                         :aria-label="$t('common.remove')"
                         @click="onRemoveClick(item, $event)"

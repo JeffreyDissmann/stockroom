@@ -31,15 +31,15 @@ function wipe() {
         <HeadingSmall :title="$t('household.danger.title')" :description="$t('household.danger.description')" />
 
         <div class="space-y-2">
-            <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+            <label class="flex cursor-pointer items-center gap-2 text-13">
                 <input v-model="form.include_tags" type="checkbox" data-test="wipe-include-tags" />
                 {{ $t('household.danger.include_tags') }}
             </label>
-            <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+            <label class="flex cursor-pointer items-center gap-2 text-13">
                 <input v-model="form.include_custom_fields" type="checkbox" data-test="wipe-include-custom-fields" />
                 {{ $t('household.danger.include_custom_fields') }}
             </label>
-            <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+            <label class="flex cursor-pointer items-center gap-2 text-13">
                 <input v-model="form.include_activity" type="checkbox" data-test="wipe-include-activity" />
                 {{ $t('household.danger.include_activity') }}
             </label>

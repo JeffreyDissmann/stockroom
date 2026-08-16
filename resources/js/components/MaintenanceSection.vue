@@ -60,7 +60,7 @@ function deleteTask(task: MaintenanceTaskRow) {
 <template>
     <section class="mt-8" data-test="maintenance-section">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <h3 class="section-label" style="margin: 0">{{ $t('maintenance.section_title') }}</h3>
+            <h3 class="section-label m-0">{{ $t('maintenance.section_title') }}</h3>
             <button type="button" class="btn-pill" data-test="maintenance-task-add" @click="openCreate">
                 <Plus :size="14" />
                 {{ $t('maintenance.add_task') }}
@@ -69,7 +69,7 @@ function deleteTask(task: MaintenanceTaskRow) {
 
         <p v-if="taskError" class="mnt-error" role="alert">{{ taskError }}</p>
 
-        <div v-if="tasks.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+        <div v-if="tasks.length === 0" class="card card-pad text-center text-13 text-fg-muted">
             {{ $t('maintenance.empty') }}
         </div>
 

@@ -80,7 +80,7 @@ function submit() {
             </div>
 
             <InputError :message="connectionError" />
-            <p style="font-size: 12px; color: var(--fg-muted)">
+            <p class="text-xs text-fg-muted">
                 {{ $t('household.import.note') }}
             </p>
 
@@ -92,7 +92,7 @@ function submit() {
             </div>
         </form>
 
-        <div v-if="status" data-test="import-status" style="border-top: 1px solid var(--border); padding-top: 20px">
+        <div class="border-t border-border pt-5" v-if="status" data-test="import-status">
             <!-- 'discovering': indeterminate state before counts are known.
                  Indeterminate slider so it's visually obvious work is
                  happening even though done/total are still 0. -->
@@ -108,7 +108,7 @@ function submit() {
 
             <!-- 'running': real progress, percent + counter. -->
             <template v-else-if="status.state === 'running'">
-                <p style="font-size: 13px; margin-bottom: 8px">
+                <p class="mb-2 text-13">
                     {{ $t('household.import.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}
                 </p>
                 <div class="hb-bar">
@@ -129,8 +129,8 @@ function submit() {
                     color: var(--pos);
                 "
             >
-                <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
-                <p style="font-size: 13px; line-height: 1.5; margin: 0; color: var(--fg)">
+                <CheckCircle2 class="mt-px shrink-0" :size="18" />
+                <p class="m-0 text-13 leading-normal text-fg">
                     {{
                         $t('household.import.done', {
                             entities: status.entities ?? 0,
@@ -158,7 +158,7 @@ function submit() {
                     color: var(--neg);
                 "
             >
-                <AlertTriangle :size="18" style="flex-shrink: 0; margin-top: 1px" />
+                <AlertTriangle class="mt-px shrink-0" :size="18" />
                 <div style="font-size: 13px; line-height: 1.5">
                     <p style="font-weight: 600; margin: 0">{{ $t('household.import.failed_title') }}</p>
                     <p style="margin: 4px 0 0; color: var(--fg)">{{ $t('household.import.failed', { error: status.error ?? '' }) }}</p>

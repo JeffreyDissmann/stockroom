@@ -97,15 +97,7 @@ function move() {
                 <DialogDescription>{{ $t('items.move.description') }}</DialogDescription>
             </DialogHeader>
 
-            <input
-                v-model="query"
-                type="search"
-                class="field"
-                style="width: 100%"
-                :placeholder="$t('items.move.search')"
-                autofocus
-                data-test="move-search"
-            />
+            <input v-model="query" type="search" class="field w-full" :placeholder="$t('items.move.search')" autofocus data-test="move-search" />
 
             <ul class="move-list">
                 <li>

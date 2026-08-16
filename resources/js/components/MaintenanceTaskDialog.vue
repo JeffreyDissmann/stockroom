@@ -251,8 +251,7 @@ function submit() {
                         />
                         <select
                             v-model="form.interval_unit"
-                            class="field"
-                            style="flex: 1"
+                            class="field flex-1"
                             data-test="maintenance-task-interval-unit"
                             :aria-label="$t('maintenance.dialog.interval_label')"
                         >
@@ -292,8 +291,7 @@ function submit() {
                                 />
                                 <select
                                     v-model="form.schedule_preset.unit"
-                                    class="field"
-                                    style="flex: 1"
+                                    class="field flex-1"
                                     :aria-label="$t('maintenance.dialog.interval_label')"
                                 >
                                     <option v-for="unit in units" :key="unit" :value="unit">
@@ -304,7 +302,7 @@ function submit() {
                         </div>
 
                         <div v-else-if="form.schedule_preset.preset === 'yearly_on'" class="flex gap-2">
-                            <div class="form-row" style="flex: 1">
+                            <div class="form-row flex-1">
                                 <label for="task-preset-month">{{ $t('maintenance.dialog.month_label') }}</label>
                                 <select
                                     id="task-preset-month"
@@ -331,7 +329,7 @@ function submit() {
 
                         <template v-else>
                             <div class="flex gap-2">
-                                <div class="form-row" style="flex: 1">
+                                <div class="form-row flex-1">
                                     <label for="task-preset-ordinal">{{ $t('maintenance.dialog.ordinal_label') }}</label>
                                     <select
                                         id="task-preset-ordinal"
@@ -344,7 +342,7 @@ function submit() {
                                         </option>
                                     </select>
                                 </div>
-                                <div class="form-row" style="flex: 1">
+                                <div class="form-row flex-1">
                                     <label for="task-preset-weekday">{{ $t('maintenance.dialog.weekday_label') }}</label>
                                     <select
                                         id="task-preset-weekday"

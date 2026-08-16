@@ -127,8 +127,7 @@ function link() {
             <input
                 v-model="query"
                 type="search"
-                class="field"
-                style="width: 100%"
+                class="field w-full"
                 :placeholder="$t(isAdmin ? 'items.paperless.add_placeholder_search' : 'items.paperless.add_placeholder_id')"
                 autofocus
                 data-test="paperless-add-input"

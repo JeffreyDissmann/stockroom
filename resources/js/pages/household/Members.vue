@@ -123,7 +123,7 @@ function removeMember(member: MemberRow) {
                             />
                             <InputError :message="createForm.errors.email" />
                         </div>
-                        <button type="submit" class="btn-primary" style="height: 32px" :disabled="createForm.processing">
+                        <button type="submit" class="btn-primary h-8" :disabled="createForm.processing">
                             <Plus :size="14" />
                             {{ $t('members.create') }}
                         </button>
@@ -145,7 +145,7 @@ function removeMember(member: MemberRow) {
                         <li v-for="invitation in invitations" :key="invitation.id" class="space-y-2 border-b border-border py-3">
                             <div class="flex items-center gap-3">
                                 <div class="flex-1">
-                                    <div style="font-weight: 500; font-size: 14px">
+                                    <div class="text-sm font-medium">
                                         {{ invitation.label || invitation.email || $t('members.link') }}
                                     </div>
                                     <div class="text-xs text-fg-muted">
@@ -180,8 +180,7 @@ function removeMember(member: MemberRow) {
                                 <input
                                     :value="invitation.url"
                                     readonly
-                                    class="field mono flex-1"
-                                    style="font-size: 12px"
+                                    class="field mono flex-1 text-xs"
                                     @focus="(e) => (e.target as HTMLInputElement).select()"
                                 />
                                 <button type="button" class="btn-pill" @click="copyLink(invitation)">
@@ -199,7 +198,7 @@ function removeMember(member: MemberRow) {
                     <ul class="divide-y border-t border-border">
                         <li v-for="member in members" :key="member.id" class="flex items-center gap-3 border-b border-border py-3">
                             <div class="flex-1">
-                                <div style="font-weight: 500; font-size: 14px">
+                                <div class="text-sm font-medium">
                                     {{ member.name }}
                                     <span v-if="member.is_self" class="text-xs text-fg-subtle">{{ $t('members.you') }}</span>
                                 </div>
@@ -207,7 +206,7 @@ function removeMember(member: MemberRow) {
                             </div>
                             <span class="text-xs text-fg-subtle">{{ member.is_admin ? $t('members.role_admin') : $t('members.role_member') }}</span>
                             <template v-if="isAdmin && !member.is_self">
-                                <button type="button" class="btn-ghost" style="font-size: 12px" @click="toggleAdmin(member)">
+                                <button type="button" class="btn-ghost text-xs" @click="toggleAdmin(member)">
                                     {{ member.is_admin ? $t('members.remove_admin') : $t('members.make_admin') }}
                                 </button>
                                 <button type="button" class="btn-ghost btn-danger" :title="$t('members.remove')" @click="removeMember(member)">

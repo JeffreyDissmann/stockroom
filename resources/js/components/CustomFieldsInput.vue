@@ -31,7 +31,7 @@ function onCheckbox(id: number, event: Event) {
             <div v-for="field in fields" :key="field.id" class="form-row">
                 <label v-if="field.type !== 'boolean'" :for="`cf-${field.id}`">{{ field.name }}</label>
 
-                <label v-if="field.type === 'boolean'" class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+                <label v-if="field.type === 'boolean'" class="flex cursor-pointer items-center gap-2 text-13">
                     <input :id="`cf-${field.id}`" type="checkbox" :checked="modelValue[field.id] === true" @change="onCheckbox(field.id, $event)" />
                     {{ field.name }}
                 </label>

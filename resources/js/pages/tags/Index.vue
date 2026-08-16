@@ -91,7 +91,7 @@ function destroyTag(tag: TagRow) {
 
         <div class="page">
             <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('tags.title') }}</h2>
-            <p class="sub" style="color: var(--fg-muted); font-size: 13px; margin: 0 0 20px">
+            <p class="sub m-0 mb-5 text-13 text-fg-muted">
                 {{ $t('tags.subtitle') }}
             </p>
 
@@ -111,8 +111,8 @@ function destroyTag(tag: TagRow) {
                     color: var(--neg);
                 "
             >
-                <AlertTriangle :size="18" style="flex-shrink: 0; margin-top: 1px" />
-                <p style="font-size: 13px; line-height: 1.5; margin: 0; color: var(--fg)">
+                <AlertTriangle class="mt-px shrink-0" :size="18" />
+                <p class="m-0 text-13 leading-normal text-fg">
                     {{ deleteError }}
                     <Link
                         :href="householdPreferences.edit().url"
@@ -133,17 +133,17 @@ function destroyTag(tag: TagRow) {
                     </div>
                     <div class="form-row">
                         <label for="new-color">{{ $t('tags.color') }}</label>
-                        <input id="new-color" v-model="createForm.color" type="color" class="field" style="padding: 2px; height: 32px" />
+                        <input id="new-color" v-model="createForm.color" type="color" class="field h-8 p-0.5" />
                         <InputError :message="createForm.errors.color" />
                     </div>
-                    <button type="submit" :disabled="createForm.processing" class="btn-primary" style="height: 32px">
+                    <button type="submit" :disabled="createForm.processing" class="btn-primary h-8">
                         <Plus :size="14" />
                         {{ $t('tags.add') }}
                     </button>
                 </div>
             </form>
 
-            <div v-if="tags.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
+            <div v-if="tags.length === 0" class="card card-pad text-center text-fg-muted">
                 {{ $t('tags.empty') }}
             </div>
 
@@ -158,13 +158,7 @@ function destroyTag(tag: TagRow) {
                             </div>
                             <div class="form-row">
                                 <label :for="`edit-color-${tag.id}`">{{ $t('tags.color') }}</label>
-                                <input
-                                    :id="`edit-color-${tag.id}`"
-                                    v-model="editForm.color"
-                                    type="color"
-                                    class="field"
-                                    style="padding: 2px; height: 32px"
-                                />
+                                <input :id="`edit-color-${tag.id}`" v-model="editForm.color" type="color" class="field h-8 p-0.5" />
                                 <InputError :message="editForm.errors.color" />
                             </div>
                             <div class="flex gap-2">

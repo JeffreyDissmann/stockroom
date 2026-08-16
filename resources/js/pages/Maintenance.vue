@@ -49,7 +49,7 @@ function openMarkDone(task: GlobalTaskRow) {
 
         <div class="page">
             <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('maintenance.page.title') }}</h2>
-            <p class="sub" style="color: var(--fg-muted); font-size: 13px; margin: 0 0 20px">
+            <p class="sub m-0 mb-5 text-13 text-fg-muted">
                 {{ $t('maintenance.page.subtitle') }}
             </p>
 
@@ -66,7 +66,7 @@ function openMarkDone(task: GlobalTaskRow) {
                 </Link>
             </div>
 
-            <div v-if="tasks.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+            <div v-if="tasks.length === 0" class="card card-pad text-center text-13 text-fg-muted">
                 {{ $t('maintenance.page.empty') }}
             </div>
 

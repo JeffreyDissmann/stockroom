@@ -252,7 +252,7 @@ function destroyItem() {
                     color: var(--pos);
                 "
             >
-                <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
+                <CheckCircle2 class="mt-px shrink-0" :size="18" />
                 <p style="font-size: 13px; line-height: 1.5; margin: 0; flex: 1; color: var(--fg)">
                     {{ $t('items.box.created_for', { name: boxCreatedFor }) }}
                 </p>
@@ -305,7 +305,7 @@ function destroyItem() {
                             <h3>{{ $t('items.show.where') }}</h3>
                         </div>
                         <div class="card-pad">
-                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">
+                            <div class="text-13 text-fg-muted" v-if="breadcrumb.length === 0">
                                 {{ $t('items.show.top_level_none') }}
                             </div>
                             <div v-else class="flex flex-wrap items-center gap-1.5 text-13">
@@ -331,7 +331,7 @@ function destroyItem() {
                                     <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
                                 </template>
                             </dl>
-                            <p v-if="item.warranty_details" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
+                            <p class="m-0 mt-3 text-13 text-fg-muted" v-if="item.warranty_details">
                                 {{ item.warranty_details }}
                             </p>
                         </div>
@@ -414,7 +414,7 @@ function destroyItem() {
                                     <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
                                 </template>
                             </dl>
-                            <p v-if="item.sold_notes" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
+                            <p class="m-0 mt-3 text-13 text-fg-muted" v-if="item.sold_notes">
                                 {{ item.sold_notes }}
                             </p>
                         </div>
@@ -432,7 +432,7 @@ function destroyItem() {
             <div class="section-split mt-8">
                 <section>
                     <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                        <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
+                        <h3 class="section-label m-0">{{ $t('items.show.contents') }}</h3>
                         <div class="flex flex-wrap items-center justify-end gap-2">
                             <BulkSelectToggle v-if="children.length" />
                             <ItemViewToggle v-if="children.length" v-model="contentsView" />
@@ -443,7 +443,7 @@ function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
+                    <div v-if="children.length === 0" class="card card-pad text-center text-fg-muted">
                         {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
                     </div>
 
@@ -460,14 +460,14 @@ function destroyItem() {
                      sibling lists feel like the same UI element. -->
                 <section data-test="related-items-section">
                     <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                        <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
+                        <h3 class="section-label m-0">{{ $t('items.related.section_title') }}</h3>
                         <div class="flex flex-wrap items-center justify-end gap-2">
                             <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
                             <LinkRelatedItemDialog :item="item" />
                         </div>
                     </div>
 
-                    <div v-if="relatedItems.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+                    <div v-if="relatedItems.length === 0" class="card card-pad text-center text-13 text-fg-muted">
                         {{ $t('items.related.empty') }}
                     </div>
 
@@ -484,7 +484,7 @@ function destroyItem() {
                 <MaintenanceHistory :item="item" :entries="maintenance.entries" />
 
                 <section v-if="activities.length">
-                    <h3 class="section-label mb-3" style="margin: 0 0 12px">{{ $t('activity.title') }}</h3>
+                    <h3 class="section-label m-0 mb-3">{{ $t('activity.title') }}</h3>
                     <ActivityFeed :rows="activities" :show-subject="false" />
                 </section>
             </div>

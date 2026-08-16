@@ -158,8 +158,7 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
                     />
                     <button
                         type="submit"
-                        class="btn-primary"
-                        style="height: 32px"
+                        class="btn-primary h-8"
                         :disabled="sending || (!input.trim() && !attachedImage)"
                         :title="$t('assistant.send')"
                     >

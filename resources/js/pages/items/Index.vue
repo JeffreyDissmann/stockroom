@@ -97,7 +97,7 @@ watch(
                 </div>
             </div>
 
-            <div class="filterbar" style="padding: 0; margin-bottom: 14px">
+            <div class="filterbar mb-3.5 p-0">
                 <div class="search">
                     <Search :size="14" />
                     <input v-model="search" type="search" :placeholder="$tChoice('items.index.search', items.length)" />
@@ -105,7 +105,7 @@ watch(
                 <span class="section-label" style="margin-left: auto">{{ $t('items.index.shown', { count: filtered.length }) }}</span>
             </div>
 
-            <div v-if="filtered.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
+            <div v-if="filtered.length === 0" class="card card-pad text-center text-fg-muted">
                 <p class="m-0" v-if="items.length === 0">
                     {{ $t('items.index.empty') }}
                     <Link :href="createHref" style="color: var(--fg); font-weight: 500; text-decoration: underline; text-underline-offset: 3px">{{

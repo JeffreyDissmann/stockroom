@@ -201,7 +201,7 @@ function runRelink(url: string) {
                             <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                         </select>
                         <InputError :message="form.errors.box_tag_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.box_tag_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.box_tag_help') }}</p>
                     </div>
 
                     <div v-if="showHomeAssistantTag" class="form-row">
@@ -211,7 +211,7 @@ function runRelink(url: string) {
                             <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                         </select>
                         <InputError :message="form.errors.home_assistant_tag_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.home_assistant_tag_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.home_assistant_tag_help') }}</p>
                     </div>
 
                     <div v-if="showBatteryTag" class="form-row">
@@ -221,7 +221,7 @@ function runRelink(url: string) {
                             <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                         </select>
                         <InputError :message="form.errors.battery_tag_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.battery_tag_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.battery_tag_help') }}</p>
                     </div>
 
                     <!-- Unlike the Battery tag above, this is always shown: the
@@ -236,12 +236,11 @@ function runRelink(url: string) {
                             :min="batteryThresholdRange.min"
                             :max="batteryThresholdRange.max"
                             step="1"
-                            class="field"
-                            style="max-width: 8rem"
+                            class="field max-w-32"
                             data-test="battery-low-threshold-input"
                         />
                         <InputError :message="form.errors.battery_low_threshold" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">
+                        <p class="text-xs text-fg-muted">
                             {{
                                 $t('household.preferences.battery_low_threshold_help', {
                                     min: batteryThresholdRange.min,
@@ -321,7 +320,7 @@ function runRelink(url: string) {
                         </div>
 
                         <InputError :message="form.errors.paperless_parent_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_parent_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.paperless_parent_help') }}</p>
                     </div>
 
                     <!-- Operator repair: re-apply Stockroom annotations on the
@@ -352,7 +351,7 @@ function runRelink(url: string) {
                                 {{ $t('household.preferences.paperless_metadata_action') }}
                             </button>
                         </div>
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_relink_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.paperless_relink_help') }}</p>
 
                         <!-- Live status pane. Mirrors the search-index rebuild
                              layout: a progress bar while running, then a done
@@ -368,7 +367,7 @@ function runRelink(url: string) {
                                         })
                                     }}
                                 </p>
-                                <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
+                                <div class="h-2 overflow-hidden rounded-full bg-bg-sunken">
                                     <div
                                         :style="{ width: `${relinkPercent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }"
                                     />

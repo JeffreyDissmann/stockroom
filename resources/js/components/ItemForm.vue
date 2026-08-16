@@ -531,7 +531,7 @@ function submit() {
 
         <div class="form-row">
             <label>{{ $t('items.form.tags') }}</label>
-            <div v-if="tags.length === 0" style="color: var(--fg-muted); font-size: 13px">
+            <div class="text-13 text-fg-muted" v-if="tags.length === 0">
                 {{ $t('items.form.no_tags') }}
             </div>
             <div v-else class="flex flex-wrap gap-2">
@@ -560,7 +560,7 @@ function submit() {
         </div>
 
         <template v-if="showDetails">
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+            <hr class="my-0.5 border-0 border-t border-border" />
             <p class="section-label">{{ $t('items.form.section_purchase') }}</p>
 
             <div class="form-grid">
@@ -700,7 +700,7 @@ function submit() {
              Paperless enabled the section always shows, hosting the
              "link a document" input. -->
             <template v-if="mode === 'edit' && (hasConnections || paperlessEnabled)">
-                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+                <hr class="my-0.5 border-0 border-t border-border" />
                 <p class="section-label">{{ $t('items.links.section_title') }}</p>
                 <ul v-if="hasConnections" class="paperless-list" data-test="connections-edit-list">
                     <li v-if="homeAssistantLink" class="paperless-row" data-test="ha-edit-row">
@@ -719,8 +719,7 @@ function submit() {
                         </span>
                         <button
                             type="button"
-                            class="btn-ghost"
-                            style="padding: 4px 8px"
+                            class="btn-ghost px-2 py-1"
                             data-test="ha-unlink"
                             :aria-label="$t('items.home_assistant.unlink')"
                             @click="unlinkHomeAssistant"
@@ -748,8 +747,7 @@ function submit() {
                         <button
                             v-if="aiEnabled"
                             type="button"
-                            class="btn-ghost"
-                            style="padding: 4px 8px"
+                            class="btn-ghost px-2 py-1"
                             :data-test="`paperless-suggest-${link.document_id}`"
                             :disabled="suggestingDocument !== null"
                             :aria-label="$t('items.paperless.suggest')"
@@ -761,8 +759,7 @@ function submit() {
                         </button>
                         <button
                             type="button"
-                            class="btn-ghost"
-                            style="padding: 4px 8px; margin-left: auto"
+                            class="btn-ghost ml-auto px-2 py-1"
                             :data-test="`paperless-unlink-${link.document_id}`"
                             :aria-label="$t('items.paperless.unlink')"
                             @click="unlinkPaperless(link.document_id)"
@@ -778,15 +775,15 @@ function submit() {
             </template>
 
             <template v-if="customFields.length">
-                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+                <hr class="my-0.5 border-0 border-t border-border" />
                 <p class="section-label">{{ $t('items.form.section_custom') }}</p>
                 <CustomFieldsInput v-model="form.custom_fields" :fields="customFields" :errors="form.errors" />
             </template>
 
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+            <hr class="my-0.5 border-0 border-t border-border" />
             <p class="section-label">{{ $t('items.form.section_warranty') }}</p>
 
-            <label class="flex items-center gap-2" style="font-size: 13px; cursor: pointer">
+            <label class="flex cursor-pointer items-center gap-2 text-13">
                 <input v-model="form.lifetime_warranty" type="checkbox" />
                 {{ $t('items.form.lifetime_warranty') }}
             </label>
@@ -809,7 +806,7 @@ function submit() {
                 <InputError :message="form.errors.warranty_details" />
             </div>
 
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 2px 0" />
+            <hr class="my-0.5 border-0 border-t border-border" />
             <p class="section-label">{{ $t('items.form.section_sold') }}</p>
 
             <div class="form-grid">

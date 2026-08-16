@@ -74,7 +74,7 @@ const valueLabel = computed(() =>
                 <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">
                     {{ $t('dashboard.welcome', { name: firstName }) }}
                 </h2>
-                <p style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.subtitle') }}</p>
+                <p class="mt-1 text-13 text-fg-muted">{{ $t('dashboard.subtitle') }}</p>
             </div>
 
             <section class="stats-strip mb-4">
@@ -102,7 +102,7 @@ const valueLabel = computed(() =>
 
             <!-- Tags: most-used first; click to open search filtered by that tag. -->
             <section class="card mb-4">
-                <div v-if="tags.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_tags') }}</div>
+                <div v-if="tags.length === 0" class="card-pad text-13 text-fg-muted">{{ $t('dashboard.no_tags') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link
                         v-for="tag in tags"
@@ -122,7 +122,7 @@ const valueLabel = computed(() =>
 
             <!-- Rooms: fullest first; click to open the room. -->
             <section class="card mb-4">
-                <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_rooms') }}</div>
+                <div v-if="rooms.length === 0" class="card-pad text-13 text-fg-muted">{{ $t('dashboard.no_rooms') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link v-for="room in rooms" :key="room.id" :href="itemRoutes.show(room.id).url" class="tag-pill shrink-0 whitespace-nowrap">
                         <component :is="itemIconMap[room.icon]" v-if="room.icon && itemIconMap[room.icon]" class="size-3.5" />
@@ -165,7 +165,7 @@ const valueLabel = computed(() =>
                             >{{ $t('dashboard.view_all') }} <ChevronRight :size="12"
                         /></Link>
                     </div>
-                    <div v-if="recent.length === 0" class="card-pad" style="text-align: center; color: var(--fg-muted)">
+                    <div v-if="recent.length === 0" class="card-pad text-center text-fg-muted">
                         {{ $t('dashboard.nothing_yet') }}
                         <Link :href="itemRoutes.create().url" style="color: var(--fg); font-weight: 500; text-decoration: underline">{{
                             $t('dashboard.add_first')
@@ -217,7 +217,7 @@ const valueLabel = computed(() =>
                         <Link :href="activityRoute().url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                     </div>
                     <ActivityFeed v-if="activity.length" :rows="activity" flat />
-                    <div v-else class="card-pad" style="text-align: center; color: var(--fg-muted)">{{ $t('dashboard.no_activity') }}</div>
+                    <div v-else class="card-pad text-center text-fg-muted">{{ $t('dashboard.no_activity') }}</div>
                 </section>
             </div>
         </div>

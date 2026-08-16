@@ -30,7 +30,7 @@ function deleteEntry(entry: MaintenanceEntryRow) {
 <template>
     <section data-test="maintenance-history-section">
         <div class="mb-3 flex items-center justify-between gap-3">
-            <h3 class="section-label" style="margin: 0">{{ $t('maintenance.history_title') }}</h3>
+            <h3 class="section-label m-0">{{ $t('maintenance.history_title') }}</h3>
             <AdHocEntryDialog :item="item" />
         </div>
 

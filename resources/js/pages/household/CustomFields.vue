@@ -76,7 +76,7 @@ function typeLabel(type: CustomFieldTypeValue) {
                         <input v-model="createForm.searchable" type="checkbox" data-test="custom-field-searchable" />
                         {{ $t('household.custom_fields.searchable') }}
                     </label>
-                    <button type="submit" class="btn-primary" style="height: 32px" :disabled="createForm.processing || !createForm.name">
+                    <button type="submit" class="btn-primary h-8" :disabled="createForm.processing || !createForm.name">
                         <Plus :size="14" />
                         {{ $t('household.custom_fields.add') }}
                     </button>
@@ -100,7 +100,7 @@ function typeLabel(type: CustomFieldTypeValue) {
                         </template>
                         <template v-else>
                             <div class="flex-1">
-                                <div style="font-weight: 500; font-size: 14px">{{ field.name }}</div>
+                                <div class="text-sm font-medium">{{ field.name }}</div>
                                 <div class="flex items-center gap-2 text-xs text-fg-muted">
                                     <span>{{ typeLabel(field.type) }}</span>
                                     <span

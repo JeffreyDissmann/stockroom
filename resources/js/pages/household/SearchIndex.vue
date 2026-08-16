@@ -64,12 +64,12 @@ function rebuild() {
                 </div>
                 <p v-else class="text-sm text-fg-muted">{{ $t('common.admin_only') }}</p>
 
-                <div v-if="status" data-test="reindex-status" style="border-top: 1px solid var(--border); padding-top: 20px">
+                <div class="border-t border-border pt-5" v-if="status" data-test="reindex-status">
                     <template v-if="status.state === 'running'">
-                        <p style="font-size: 13px; margin-bottom: 8px">
+                        <p class="mb-2 text-13">
                             {{ $t('household.search_index.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}
                         </p>
-                        <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
+                        <div class="h-2 overflow-hidden rounded-full bg-bg-sunken">
                             <div :style="{ width: `${percent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
                         </div>
                     </template>
