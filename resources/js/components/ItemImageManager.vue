@@ -263,7 +263,7 @@ const totalCount = computed(() => sortableExisting.value.length + pending.value.
 }
 .dz-hint {
     margin: 2px 0 0;
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--fg-subtle);
 }
 .hint {

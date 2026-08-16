@@ -541,7 +541,7 @@ function submit() {
                     type="button"
                     :disabled="isTagLocked(tag.id)"
                     :title="isTagLocked(tag.id) ? $t('items.form.tag_locked') : undefined"
-                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11.5px] transition"
+                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition"
                     :class="{ 'cursor-not-allowed': isTagLocked(tag.id) }"
                     :style="
                         form.tags.includes(tag.id)
@@ -865,7 +865,7 @@ function submit() {
     flex-basis: 100%;
     margin: 0;
     font-size: 12px;
-    color: #dc2626;
+    color: var(--neg);
 }
 .dark .ai-fill-error {
     color: #f87171;

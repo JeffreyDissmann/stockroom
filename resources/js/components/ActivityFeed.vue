@@ -197,7 +197,7 @@ function when(iso: string | null): string {
 .act-deleted,
 .act-maintenance_task_deleted,
 .act-maintenance_entry_deleted {
-    background: #dc2626;
+    background: var(--neg);
 }
 .act-text-created,
 .act-text-image_added,
@@ -208,7 +208,7 @@ function when(iso: string | null): string {
 .act-text-deleted,
 .act-text-maintenance_task_deleted,
 .act-text-maintenance_entry_deleted {
-    color: #dc2626;
+    color: var(--neg);
 }
 .act-text-link_added,
 .act-text-link_removed,

@@ -195,13 +195,12 @@ const valueLabel = computed(() =>
                                     <Link
                                         v-if="r.parent"
                                         :href="itemRoutes.show(r.parent.id).url"
-                                        class="flex items-center gap-1.5"
-                                        style="font-size: 12.5px; color: var(--fg-muted)"
+                                        class="flex items-center gap-1.5 text-13 text-fg-muted"
                                     >
                                         <ItemTypeIcon :type="r.parent.type.value" class="size-3.5" />
                                         {{ r.parent.name }}
                                     </Link>
-                                    <span v-else style="color: var(--fg-subtle); font-size: 12.5px">{{ $t('common.top_level') }}</span>
+                                    <span v-else class="text-13 text-fg-subtle">{{ $t('common.top_level') }}</span>
                                 </td>
                                 <td class="num mono text-xs text-fg-subtle">{{ r.created_at_human }}</td>
                             </tr>
@@ -268,7 +267,7 @@ const valueLabel = computed(() =>
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--fg-subtle);
-    font-size: 12.5px;
+    font-size: 13px;
 }
 .stat-cell-link {
     text-decoration: none;

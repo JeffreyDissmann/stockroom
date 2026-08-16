@@ -114,7 +114,7 @@ function initials(name: string): string {
     border-radius: 999px;
     background: var(--bg-elev);
     color: var(--fg-muted);
-    font-size: 12.5px;
+    font-size: 13px;
     cursor: pointer;
 }
 .topnav-search:hover {

@@ -122,7 +122,7 @@ onUnmounted(() => window.removeEventListener('keydown', onShortcut));
                     {{ $t('assistant.thinking') }}
                 </div>
 
-                <p v-if="error" class="text-sm" style="color: #dc2626">{{ error }}</p>
+                <p v-if="error" class="text-sm text-neg">{{ error }}</p>
             </div>
 
             <div class="border-t p-3">

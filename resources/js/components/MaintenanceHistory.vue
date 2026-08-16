@@ -118,7 +118,7 @@ function deleteEntry(entry: MaintenanceEntryRow) {
 .mnt-history-cost {
     flex-shrink: 0;
     color: var(--fg-muted);
-    font-size: 12.5px;
+    font-size: 13px;
 }
 .mnt-history-by {
     flex-shrink: 0;

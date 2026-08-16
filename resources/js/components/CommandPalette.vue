@@ -224,7 +224,7 @@ defineExpose({ open });
     text-overflow: ellipsis;
 }
 .cmdk-path {
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--fg-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -242,7 +242,7 @@ defineExpose({ open });
     background: transparent;
     padding: 10px 16px;
     text-align: left;
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--fg-muted);
     cursor: pointer;
 }

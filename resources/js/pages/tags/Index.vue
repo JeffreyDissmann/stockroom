@@ -184,7 +184,7 @@ function destroyTag(tag: TagRow) {
                             :title="trans('tags.show_tagged', { name: tag.name })"
                         >
                             <div class="text-13 font-medium group-hover:underline">{{ tag.name }}</div>
-                            <div class="mono" style="font-size: 11.5px; color: var(--fg-subtle)">
+                            <div class="mono text-xs text-fg-subtle">
                                 {{ transChoice('tags.items_count', tag.items_count) }}
                             </div>
                         </Link>
