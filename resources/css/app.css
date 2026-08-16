@@ -57,6 +57,22 @@
     --tracking-display: -0.015em;
     --tracking-display-lg: -0.02em;
 
+    /*
+     * Radius and shadow. Both namespaces are already owned by :root below, but
+     * Tailwind only knows what it is told: it was emitting its own .25rem for a
+     * bare `rounded` and its own drop shadows for shadow-*, so the utilities and
+     * the hand-written CSS were drawing from two different scales.
+     *
+     * These map a name onto itself, which is only sound because `inline`
+     * substitutes the value into the utility instead of re-emitting the
+     * variable — so `shadow-md` compiles to `box-shadow: var(--shadow-md)` and
+     * resolves against :root at runtime, picking up the .dark overrides too.
+     */
+    --radius: var(--radius);
+    --shadow-sm: var(--shadow-sm);
+    --shadow-md: var(--shadow-md);
+    --shadow-lg: var(--shadow-lg);
+
     /* Lines, chips, and the semantic status trio. */
     --color-border: var(--border);
     --color-border-strong: var(--border-strong);
