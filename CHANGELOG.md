@@ -7,6 +7,40 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.08.03] — 2026-08-17
+
+### Fixed
+
+- **Maintenance rows read the right way round.** Each row named the item before
+  its location — "Door sensor › Garage" — while every other trail in the app,
+  including the breadcrumb directly above it, goes outermost first. It now
+  reads "Garage / Toolbox › Lawnmower".
+- **Menu and dropdown hover states actually appear.** The colour behind them
+  was defined in a way that produced invalid CSS, so nothing was ever drawn.
+- Error messages now use the palette's red rather than a hardcoded one, so they
+  follow the dark theme like everything else.
+
+### Changed
+
+- **The battery panel moved below Contents and Related items** on an item's
+  page. Battery-tracked items are the minority, and the panel was pushing
+  everything else down: what the item holds comes first, then its state, then
+  the maintenance to do about it.
+
+### Internal
+
+- **Tailwind 4.** The design tokens, type scale and heading tracking are now
+  Tailwind utilities, so styling reaches for `text-fg-muted` instead of an
+  inline `style` attribute — of which 216 became 9. The project's CSS moved
+  into a cascade layer, which is what lets a utility override a component class
+  at all.
+- **The frontend type-checks.** Two bad entries in `tsconfig.json` meant the
+  checker had been bailing out before reading a single file, hiding 17 errors —
+  including a component importing a file that does not exist. All fixed, and CI
+  now runs the check.
+- The production image build now also runs when frontend files change; it
+  caught a broken build in this release that no test could see.
+
 ## [2026.08.02] — 2026-08-09
 
 ### Added
@@ -633,7 +667,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.02...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.03...HEAD
+[2026.08.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.02...2026.08.03
 [2026.08.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.01...2026.08.02
 [2026.08.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.08...2026.08.01
 [2026.06.08]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.07...2026.06.08
