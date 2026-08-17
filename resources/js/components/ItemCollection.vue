@@ -67,7 +67,7 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
 </script>
 
 <template>
-    <table v-if="view === 'list'" class="card table" style="border-radius: var(--radius)">
+    <table v-if="view === 'list'" class="card table rounded">
         <thead>
             <tr>
                 <th v-if="selectable && bulk.isSelectMode.value" class="num w-8" />

@@ -82,8 +82,7 @@ function submit() {
                         type="number"
                         step="0.01"
                         min="0"
-                        class="field"
-                        style="max-width: 140px"
+                        class="field max-w-35"
                         data-test="maintenance-entry-cost"
                     />
                     <InputError :message="form.errors.cost" />

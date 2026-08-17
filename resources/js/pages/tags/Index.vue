@@ -114,11 +114,7 @@ function destroyTag(tag: TagRow) {
                 <AlertTriangle class="mt-px shrink-0" :size="18" />
                 <p class="m-0 text-13 leading-normal text-fg">
                     {{ deleteError }}
-                    <Link
-                        :href="householdPreferences.edit().url"
-                        style="color: var(--accent); text-decoration: underline"
-                        data-test="tag-delete-error-cta"
-                    >
+                    <Link class="text-accent-solid underline" :href="householdPreferences.edit().url" data-test="tag-delete-error-cta">
                         {{ $t('tags.cannot_delete_box_tag_cta') }}
                     </Link>
                 </p>

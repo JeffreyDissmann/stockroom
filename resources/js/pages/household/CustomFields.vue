@@ -60,7 +60,7 @@ function typeLabel(type: CustomFieldTypeValue) {
                 <HeadingSmall :title="$t('household.nav.custom_fields')" :description="$t('household.custom_fields.description')" />
 
                 <form v-if="isAdmin" class="flex flex-wrap items-center gap-2" data-test="custom-field-create" @submit.prevent="add">
-                    <div class="flex-1" style="min-width: 180px">
+                    <div class="min-w-45 flex-1">
                         <input
                             v-model="createForm.name"
                             :placeholder="$t('household.custom_fields.name_placeholder')"

@@ -102,7 +102,7 @@ function removeMember(member: MemberRow) {
                     <HeadingSmall :title="$t('members.invites_title')" :description="$t('members.invites_desc')" />
 
                     <form class="flex flex-wrap items-center gap-2" data-test="invite-create" @submit.prevent="createInvite">
-                        <div class="flex-1" style="min-width: 160px">
+                        <div class="min-w-40 flex-1">
                             <input
                                 v-model="createForm.label"
                                 :placeholder="$t('members.label_placeholder')"
@@ -112,7 +112,7 @@ function removeMember(member: MemberRow) {
                             />
                             <InputError :message="createForm.errors.label" />
                         </div>
-                        <div class="flex-1" style="min-width: 200px">
+                        <div class="min-w-50 flex-1">
                             <input
                                 v-model="createForm.email"
                                 type="email"

@@ -253,13 +253,12 @@ function destroyItem() {
                 "
             >
                 <CheckCircle2 class="mt-px shrink-0" :size="18" />
-                <p style="font-size: 13px; line-height: 1.5; margin: 0; flex: 1; color: var(--fg)">
+                <p class="m-0 flex-1 text-13 leading-normal text-fg">
                     {{ $t('items.box.created_for', { name: boxCreatedFor }) }}
                 </p>
                 <button
                     type="button"
-                    class="btn-ghost"
-                    style="padding: 2px 6px; font-size: 12px"
+                    class="btn-ghost px-1.5 py-0.5 text-xs"
                     data-test="box-created-banner-dismiss"
                     :aria-label="$t('common.close')"
                     @click="boxBannerDismissed = true"
@@ -393,7 +392,7 @@ function destroyItem() {
                                     <dt>{{ field.name }}</dt>
                                     <dd v-if="field.type === 'boolean'">{{ field.value ? $t('common.yes') : $t('common.no') }}</dd>
                                     <dd v-else-if="field.type === 'url'">
-                                        <a :href="String(field.value)" target="_blank" rel="noopener noreferrer" style="color: var(--accent)">{{
+                                        <a class="text-accent-solid" :href="String(field.value)" target="_blank" rel="noopener noreferrer">{{
                                             field.value
                                         }}</a>
                                     </dd>

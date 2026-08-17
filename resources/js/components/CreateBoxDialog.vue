@@ -122,15 +122,7 @@ function submit() {
 
                 <div class="form-row">
                     <label for="box-quantity">{{ $t('items.form.quantity') }}</label>
-                    <input
-                        id="box-quantity"
-                        v-model.number="form.quantity"
-                        type="number"
-                        min="1"
-                        class="field"
-                        style="max-width: 100px"
-                        data-test="box-quantity"
-                    />
+                    <input id="box-quantity" v-model.number="form.quantity" type="number" min="1" class="field max-w-25" data-test="box-quantity" />
                     <InputError :message="form.errors.quantity" />
                 </div>
 

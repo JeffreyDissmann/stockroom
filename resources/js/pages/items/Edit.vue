@@ -48,7 +48,7 @@ const breadcrumbs = computed<BreadcrumbItemType[]>(() => [
         <div class="page">
             <!-- Centered column matching the form's 720px cap — without it
                  the form hugs the left edge of the 1400px-wide .page. -->
-            <div style="max-width: 720px; margin: 0 auto">
+            <div class="mx-auto max-w-180">
                 <h2 class="m-0 mb-5 text-22 font-semibold tracking-display">
                     {{ $t('items.edit_title', { name: item.name }) }}
                 </h2>

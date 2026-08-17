@@ -73,6 +73,14 @@
     --shadow-md: var(--shadow-md);
     --shadow-lg: var(--shadow-lg);
 
+    /*
+     * The design system's solid accent — near-black in light, near-white in
+     * dark. It cannot be called `accent`: shadcn's bridge already owns that
+     * name for a muted hover background, and the two are nothing alike.
+     */
+    --color-accent-solid: var(--accent);
+    --color-accent-fg: var(--accent-fg);
+
     /* Lines, chips, and the semantic status trio. */
     --color-border: var(--border);
     --color-border-strong: var(--border-strong);

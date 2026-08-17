@@ -475,7 +475,7 @@ function submit() {
             <InputError :message="form.errors.icon" />
         </div>
 
-        <div v-if="showDetails" class="form-row" style="max-width: 160px">
+        <div v-if="showDetails" class="form-row max-w-40">
             <label for="quantity">{{ $t('items.form.quantity') }} <AiFieldBadge :state="fieldStates.quantity" /></label>
             <input
                 id="quantity"
