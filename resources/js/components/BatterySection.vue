@@ -41,7 +41,7 @@ function changeBattery() {
         <!-- Heading + action live outside the card, matching the Contents,
              Related and Maintenance sections. -->
         <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <h3 class="section-label flex items-center gap-2" style="margin: 0">
+            <h3 class="section-label m-0 flex items-center gap-2">
                 {{ $t('items.battery.title') }}
                 <span v-if="summary.battery_type" class="battery-type-chip">{{ summary.battery_type }}</span>
             </h3>

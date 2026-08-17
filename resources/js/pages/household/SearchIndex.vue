@@ -49,7 +49,7 @@ function rebuild() {
             <div class="space-y-6">
                 <HeadingSmall :title="$t('household.nav.search_index')" :description="$t('household.search_index.description')" />
 
-                <p style="font-size: 13px; color: var(--fg-muted)">
+                <p class="text-13 text-fg-muted">
                     {{ $tChoice('household.search_index.count', total) }}
                     <template v-if="semantic">{{ $t('household.search_index.semantic_on') }}</template>
                     <template v-else>{{ $t('household.search_index.semantic_off') }}</template>
@@ -62,21 +62,21 @@ function rebuild() {
                         {{ $t('household.search_index.rebuild') }}
                     </button>
                 </div>
-                <p v-else class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
+                <p v-else class="text-sm text-fg-muted">{{ $t('common.admin_only') }}</p>
 
-                <div v-if="status" data-test="reindex-status" style="border-top: 1px solid var(--border); padding-top: 20px">
+                <div class="border-t border-border pt-5" v-if="status" data-test="reindex-status">
                     <template v-if="status.state === 'running'">
-                        <p style="font-size: 13px; margin-bottom: 8px">
+                        <p class="mb-2 text-13">
                             {{ $t('household.search_index.progress', { done: status.done ?? 0, total: status.total ?? 0 }) }}
                         </p>
-                        <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
+                        <div class="h-2 overflow-hidden rounded-full bg-bg-sunken">
                             <div :style="{ width: `${percent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }" />
                         </div>
                     </template>
-                    <p v-else-if="status.state === 'done'" style="font-size: 13px; color: var(--fg)">
+                    <p class="text-13 text-fg" v-else-if="status.state === 'done'">
                         {{ $tChoice('household.search_index.done', status.indexed ?? status.total ?? 0) }}
                     </p>
-                    <p v-else-if="status.state === 'failed'" style="font-size: 13px; color: var(--neg)">
+                    <p class="text-13 text-neg" v-else-if="status.state === 'failed'">
                         {{ $t('household.search_index.failed', { error: status.error ?? '' }) }}
                     </p>
                 </div>

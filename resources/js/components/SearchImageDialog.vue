@@ -150,14 +150,7 @@ function attach(): void {
                 }}</DialogDescription>
             </DialogHeader>
 
-            <input
-                v-model="query"
-                type="search"
-                class="field"
-                style="width: 100%"
-                :placeholder="$t('items.image_search.search')"
-                data-test="image-search-query"
-            />
+            <input v-model="query" type="search" class="field w-full" :placeholder="$t('items.image_search.search')" data-test="image-search-query" />
 
             <div class="img-results">
                 <p v-if="loading" class="img-results-note">{{ $t('items.image_search.searching') }}</p>

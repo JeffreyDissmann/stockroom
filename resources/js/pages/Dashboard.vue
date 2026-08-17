@@ -71,10 +71,10 @@ const valueLabel = computed(() =>
 
         <div class="page">
             <div class="mb-5">
-                <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">
+                <h2 class="m-0 text-22 font-semibold tracking-display">
                     {{ $t('dashboard.welcome', { name: firstName }) }}
                 </h2>
-                <p style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.subtitle') }}</p>
+                <p class="mt-1 text-13 text-fg-muted">{{ $t('dashboard.subtitle') }}</p>
             </div>
 
             <section class="stats-strip mb-4">
@@ -102,7 +102,7 @@ const valueLabel = computed(() =>
 
             <!-- Tags: most-used first; click to open search filtered by that tag. -->
             <section class="card mb-4">
-                <div v-if="tags.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_tags') }}</div>
+                <div v-if="tags.length === 0" class="card-pad text-13 text-fg-muted">{{ $t('dashboard.no_tags') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link
                         v-for="tag in tags"
@@ -122,7 +122,7 @@ const valueLabel = computed(() =>
 
             <!-- Rooms: fullest first; click to open the room. -->
             <section class="card mb-4">
-                <div v-if="rooms.length === 0" class="card-pad" style="color: var(--fg-muted); font-size: 13px">{{ $t('dashboard.no_rooms') }}</div>
+                <div v-if="rooms.length === 0" class="card-pad text-13 text-fg-muted">{{ $t('dashboard.no_rooms') }}</div>
                 <div v-else class="card-pad flex items-center gap-2 overflow-x-auto">
                     <Link v-for="room in rooms" :key="room.id" :href="itemRoutes.show(room.id).url" class="tag-pill shrink-0 whitespace-nowrap">
                         <component :is="itemIconMap[room.icon]" v-if="room.icon && itemIconMap[room.icon]" class="size-3.5" />
@@ -142,7 +142,7 @@ const valueLabel = computed(() =>
             <section v-if="maintenance.count > 0" class="card mb-4" data-test="dashboard-maintenance-card">
                 <div class="card-head">
                     <h3 class="flex items-center gap-2">
-                        <Wrench :size="14" style="color: var(--fg-muted)" /> {{ $t('dashboard.maintenance_due', { count: maintenance.count }) }}
+                        <Wrench class="text-fg-muted" :size="14" /> {{ $t('dashboard.maintenance_due', { count: maintenance.count }) }}
                     </h3>
                     <Link :href="maintenanceRoute().url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                 </div>
@@ -165,11 +165,9 @@ const valueLabel = computed(() =>
                             >{{ $t('dashboard.view_all') }} <ChevronRight :size="12"
                         /></Link>
                     </div>
-                    <div v-if="recent.length === 0" class="card-pad" style="text-align: center; color: var(--fg-muted)">
+                    <div v-if="recent.length === 0" class="card-pad text-center text-fg-muted">
                         {{ $t('dashboard.nothing_yet') }}
-                        <Link :href="itemRoutes.create().url" style="color: var(--fg); font-weight: 500; text-decoration: underline">{{
-                            $t('dashboard.add_first')
-                        }}</Link
+                        <Link class="font-medium text-fg underline" :href="itemRoutes.create().url">{{ $t('dashboard.add_first') }}</Link
                         >.
                     </div>
                     <table v-else class="table">
@@ -197,15 +195,14 @@ const valueLabel = computed(() =>
                                     <Link
                                         v-if="r.parent"
                                         :href="itemRoutes.show(r.parent.id).url"
-                                        class="flex items-center gap-1.5"
-                                        style="font-size: 12.5px; color: var(--fg-muted)"
+                                        class="flex items-center gap-1.5 text-13 text-fg-muted"
                                     >
                                         <ItemTypeIcon :type="r.parent.type.value" class="size-3.5" />
                                         {{ r.parent.name }}
                                     </Link>
-                                    <span v-else style="color: var(--fg-subtle); font-size: 12.5px">{{ $t('common.top_level') }}</span>
+                                    <span v-else class="text-13 text-fg-subtle">{{ $t('common.top_level') }}</span>
                                 </td>
-                                <td class="num mono" style="color: var(--fg-subtle); font-size: 12px">{{ r.created_at_human }}</td>
+                                <td class="num mono text-xs text-fg-subtle">{{ r.created_at_human }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -217,7 +214,7 @@ const valueLabel = computed(() =>
                         <Link :href="activityRoute().url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
                     </div>
                     <ActivityFeed v-if="activity.length" :rows="activity" flat />
-                    <div v-else class="card-pad" style="text-align: center; color: var(--fg-muted)">{{ $t('dashboard.no_activity') }}</div>
+                    <div v-else class="card-pad text-center text-fg-muted">{{ $t('dashboard.no_activity') }}</div>
                 </section>
             </div>
         </div>
@@ -270,7 +267,7 @@ const valueLabel = computed(() =>
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--fg-subtle);
-    font-size: 12.5px;
+    font-size: 13px;
 }
 .stat-cell-link {
     text-decoration: none;

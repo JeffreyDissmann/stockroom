@@ -40,11 +40,11 @@ const cancelHref = computed(() => (props.parent ? `/items/${props.parent.id}` : 
         <div class="page">
             <!-- Centered column matching the form's 720px cap — same as
                  Edit.vue, so create and edit share their layout. -->
-            <div style="max-width: 720px; margin: 0 auto">
+            <div class="mx-auto max-w-180">
                 <div class="mb-5">
-                    <h2 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('items.add_title') }}</h2>
-                    <p v-if="parent" style="margin-top: 4px; color: var(--fg-muted); font-size: 13px">
-                        {{ $t('items.inside') }} <span style="color: var(--fg); font-weight: 500">{{ parent.name }}</span>
+                    <h2 class="m-0 text-22 font-semibold tracking-display">{{ $t('items.add_title') }}</h2>
+                    <p class="mt-1 text-13 text-fg-muted" v-if="parent">
+                        {{ $t('items.inside') }} <span class="font-medium text-fg">{{ parent.name }}</span>
                     </p>
                 </div>
 

@@ -97,15 +97,7 @@ function move() {
                 <DialogDescription>{{ $t('items.move.description') }}</DialogDescription>
             </DialogHeader>
 
-            <input
-                v-model="query"
-                type="search"
-                class="field"
-                style="width: 100%"
-                :placeholder="$t('items.move.search')"
-                autofocus
-                data-test="move-search"
-            />
+            <input v-model="query" type="search" class="field w-full" :placeholder="$t('items.move.search')" autofocus data-test="move-search" />
 
             <ul class="move-list">
                 <li>
@@ -132,7 +124,7 @@ function move() {
                 </li>
             </ul>
 
-            <label class="flex items-center gap-2 text-sm" style="color: var(--fg-muted)">
+            <label class="flex items-center gap-2 text-sm text-fg-muted">
                 <input v-model="includeAll" type="checkbox" data-test="move-include-all" />
                 {{ $t('items.move.include_all') }}
             </label>

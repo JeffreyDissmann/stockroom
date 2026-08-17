@@ -67,10 +67,10 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
 </script>
 
 <template>
-    <table v-if="view === 'list'" class="card table" style="border-radius: var(--radius)">
+    <table v-if="view === 'list'" class="card table rounded">
         <thead>
             <tr>
-                <th v-if="selectable && bulk.isSelectMode.value" class="num" style="width: 32px" />
+                <th v-if="selectable && bulk.isSelectMode.value" class="num w-8" />
                 <th :aria-sort="sort === undefined ? undefined : ariaSort('name')">
                     <button v-if="sort !== undefined" type="button" class="th-sort" @click="emit('sort', 'name')">
                         {{ $t('items.collection.item') }}
@@ -157,8 +157,7 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
                 <td v-if="removable" class="num">
                     <button
                         type="button"
-                        class="btn-ghost"
-                        style="padding: 4px 8px"
+                        class="btn-ghost px-2 py-1"
                         :data-test="`item-remove-${item.id}`"
                         :aria-label="$t('common.remove')"
                         @click="onRemoveClick(item, $event)"

@@ -120,8 +120,7 @@ function link() {
             <input
                 v-model="query"
                 type="search"
-                class="field"
-                style="width: 100%"
+                class="field w-full"
                 :placeholder="$t('items.related.search')"
                 autofocus
                 data-test="link-related-search"

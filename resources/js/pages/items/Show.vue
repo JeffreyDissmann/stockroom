@@ -252,14 +252,13 @@ function destroyItem() {
                     color: var(--pos);
                 "
             >
-                <CheckCircle2 :size="18" style="flex-shrink: 0; margin-top: 1px" />
-                <p style="font-size: 13px; line-height: 1.5; margin: 0; flex: 1; color: var(--fg)">
+                <CheckCircle2 class="mt-px shrink-0" :size="18" />
+                <p class="m-0 flex-1 text-13 leading-normal text-fg">
                     {{ $t('items.box.created_for', { name: boxCreatedFor }) }}
                 </p>
                 <button
                     type="button"
-                    class="btn-ghost"
-                    style="padding: 2px 6px; font-size: 12px"
+                    class="btn-ghost px-1.5 py-0.5 text-xs"
                     data-test="box-created-banner-dismiss"
                     :aria-label="$t('common.close')"
                     @click="boxBannerDismissed = true"
@@ -293,8 +292,8 @@ function destroyItem() {
                 <div class="flex flex-col gap-4">
                     <div>
                         <p class="section-label">{{ item.type.label }}</p>
-                        <h1 style="margin: 4px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">{{ item.name }}</h1>
-                        <p v-if="item.description" style="margin: 12px 0 0; color: var(--fg-muted); font-size: 14px">{{ item.description }}</p>
+                        <h1 class="m-0 mt-1 text-26 font-semibold tracking-display-lg">{{ item.name }}</h1>
+                        <p class="m-0 mt-3 text-sm text-fg-muted" v-if="item.description">{{ item.description }}</p>
                         <div v-if="item.tags?.length" class="mt-3 flex flex-wrap gap-1">
                             <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                         </div>
@@ -305,12 +304,12 @@ function destroyItem() {
                             <h3>{{ $t('items.show.where') }}</h3>
                         </div>
                         <div class="card-pad">
-                            <div v-if="breadcrumb.length === 0" style="color: var(--fg-muted); font-size: 13px">
+                            <div class="text-13 text-fg-muted" v-if="breadcrumb.length === 0">
                                 {{ $t('items.show.top_level_none') }}
                             </div>
-                            <div v-else class="flex flex-wrap items-center gap-1.5" style="font-size: 13px">
+                            <div v-else class="flex flex-wrap items-center gap-1.5 text-13">
                                 <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
-                                    <ChevronRight v-if="i > 0" :size="12" style="color: var(--fg-subtle)" />
+                                    <ChevronRight v-if="i > 0" class="text-fg-subtle" :size="12" />
                                     <Link :href="itemRoutes.show(crumb.id).url" class="flex items-center gap-1.5">
                                         <ItemTypeIcon :type="crumb.type.value" class="size-3.5" />
                                         <span>{{ crumb.name }}</span>
@@ -331,7 +330,7 @@ function destroyItem() {
                                     <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
                                 </template>
                             </dl>
-                            <p v-if="item.warranty_details" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
+                            <p class="m-0 mt-3 text-13 text-fg-muted" v-if="item.warranty_details">
                                 {{ item.warranty_details }}
                             </p>
                         </div>
@@ -393,7 +392,7 @@ function destroyItem() {
                                     <dt>{{ field.name }}</dt>
                                     <dd v-if="field.type === 'boolean'">{{ field.value ? $t('common.yes') : $t('common.no') }}</dd>
                                     <dd v-else-if="field.type === 'url'">
-                                        <a :href="String(field.value)" target="_blank" rel="noopener noreferrer" style="color: var(--accent)">{{
+                                        <a class="text-accent-solid" :href="String(field.value)" target="_blank" rel="noopener noreferrer">{{
                                             field.value
                                         }}</a>
                                     </dd>
@@ -414,7 +413,7 @@ function destroyItem() {
                                     <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
                                 </template>
                             </dl>
-                            <p v-if="item.sold_notes" style="margin: 12px 0 0; font-size: 13px; color: var(--fg-muted)">
+                            <p class="m-0 mt-3 text-13 text-fg-muted" v-if="item.sold_notes">
                                 {{ item.sold_notes }}
                             </p>
                         </div>
@@ -422,17 +421,13 @@ function destroyItem() {
                 </div>
             </div>
 
-            <!-- Battery tracking panel (level, forecast, reminder, chart).
-                 Self-hides until the item has battery history. -->
-            <BatterySection :item="item" :battery="battery" class="mt-8" />
-
             <!-- Contents | Related side by side on wide screens — they're
                  sibling collections of the same shape, and pairing them
                  halves the scroll distance to Maintenance/Activity below. -->
             <div class="section-split mt-8">
                 <section>
                     <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                        <h3 class="section-label" style="margin: 0">{{ $t('items.show.contents') }}</h3>
+                        <h3 class="section-label m-0">{{ $t('items.show.contents') }}</h3>
                         <div class="flex flex-wrap items-center justify-end gap-2">
                             <BulkSelectToggle v-if="children.length" />
                             <ItemViewToggle v-if="children.length" v-model="contentsView" />
@@ -443,7 +438,7 @@ function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="children.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
+                    <div v-if="children.length === 0" class="card card-pad text-center text-fg-muted">
                         {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
                     </div>
 
@@ -460,20 +455,27 @@ function destroyItem() {
                      sibling lists feel like the same UI element. -->
                 <section data-test="related-items-section">
                     <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                        <h3 class="section-label" style="margin: 0">{{ $t('items.related.section_title') }}</h3>
+                        <h3 class="section-label m-0">{{ $t('items.related.section_title') }}</h3>
                         <div class="flex flex-wrap items-center justify-end gap-2">
                             <ItemViewToggle v-if="relatedItems.length" v-model="relatedView" />
                             <LinkRelatedItemDialog :item="item" />
                         </div>
                     </div>
 
-                    <div v-if="relatedItems.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+                    <div v-if="relatedItems.length === 0" class="card card-pad text-center text-13 text-fg-muted">
                         {{ $t('items.related.empty') }}
                     </div>
 
                     <ItemCollection v-else :items="relatedItems" :view="relatedView" removable @remove="unlinkRelated" />
                 </section>
             </div>
+
+            <!-- Battery tracking panel (level, forecast, reminder, chart).
+                 Self-hides until the item has battery history. Sits after the
+                 collections and before maintenance: what the item *is* and what
+                 it holds comes first, then its state, then the things to do
+                 about it. -->
+            <BatterySection :item="item" :battery="battery" class="mt-8" />
 
             <!-- Maintenance schedules, full width — the actionable block.
                  Below it the two audit trails (maintenance history and
@@ -484,7 +486,7 @@ function destroyItem() {
                 <MaintenanceHistory :item="item" :entries="maintenance.entries" />
 
                 <section v-if="activities.length">
-                    <h3 class="section-label mb-3" style="margin: 0 0 12px">{{ $t('activity.title') }}</h3>
+                    <h3 class="section-label m-0 mb-3">{{ $t('activity.title') }}</h3>
                     <ActivityFeed :rows="activities" :show-subject="false" />
                 </section>
             </div>

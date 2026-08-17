@@ -110,7 +110,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
 </script>
 
 <template>
-    <div style="height: 240px">
+    <div class="h-60">
         <Line :data="chartData" :options="chartOptions" />
     </div>
 </template>

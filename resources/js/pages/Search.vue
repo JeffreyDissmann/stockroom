@@ -99,8 +99,8 @@ function clearFilters() {
         <Head :title="$t('nav.search')" />
 
         <div class="page">
-            <form class="filterbar searchbar" style="padding: 0; margin-bottom: 14px" @submit.prevent>
-                <div class="search" style="flex: 1">
+            <form class="filterbar searchbar mb-3.5 p-0" @submit.prevent>
+                <div class="search flex-1">
                     <SearchIcon :size="14" />
                     <input v-model="term" type="search" :placeholder="$t('search.placeholder')" autofocus @search="searchNow" />
                 </div>
@@ -115,7 +115,7 @@ function clearFilters() {
                 class="mb-3 flex items-center gap-2"
                 data-test="paperless-filter-chip"
             >
-                <span class="chip active" style="display: inline-flex; align-items: center; gap: 6px">
+                <span class="chip active inline-flex items-center gap-1.5">
                     <FileText :size="12" />
                     {{ $t('search.paperless_filter', { id: filters.paperless_document }) }}
                     <button
@@ -174,8 +174,7 @@ function clearFilters() {
                 <button
                     v-if="hasActiveFilters"
                     type="button"
-                    class="chip"
-                    style="display: inline-flex; align-items: center; gap: 6px"
+                    class="chip inline-flex items-center gap-1.5"
                     data-test="clear-filters"
                     @click="clearFilters"
                 >
@@ -183,16 +182,16 @@ function clearFilters() {
                     {{ $t('search.clear_filters') }}
                 </button>
 
-                <div class="flex items-center gap-2" style="margin-left: auto">
+                <div class="ml-auto flex items-center gap-2">
                     <span class="section-label">{{ $tChoice('search.results', items.total) }}</span>
                     <BulkSelectToggle />
                     <ItemViewToggle v-model="view" />
                 </div>
             </div>
 
-            <div v-if="items.data.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted)">
-                <p v-if="query === '' && filters.type === null && filters.tags.length === 0" style="margin: 0">{{ $t('search.empty_prompt') }}</p>
-                <p v-else style="margin: 0">{{ $t('search.no_match') }}</p>
+            <div v-if="items.data.length === 0" class="card card-pad text-center text-fg-muted">
+                <p class="m-0" v-if="query === '' && filters.type === null && filters.tags.length === 0">{{ $t('search.empty_prompt') }}</p>
+                <p class="m-0" v-else>{{ $t('search.no_match') }}</p>
             </div>
 
             <template v-else>

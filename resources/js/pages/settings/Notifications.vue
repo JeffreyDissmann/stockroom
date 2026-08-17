@@ -54,7 +54,7 @@ const submit = () => {
                         />
                         <div class="grid gap-0.5">
                             <Label for="maintenance-digest">{{ $t('settings.notifications.maintenance_digest_label') }}</Label>
-                            <p class="text-sm" style="color: var(--fg-muted)">{{ $t('settings.notifications.maintenance_digest_hint') }}</p>
+                            <p class="text-sm text-fg-muted">{{ $t('settings.notifications.maintenance_digest_hint') }}</p>
                         </div>
                     </div>
                     <InputError class="mt-2" :message="form.errors.maintenance_digest_opt_in" />

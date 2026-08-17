@@ -102,7 +102,7 @@ function removeMember(member: MemberRow) {
                     <HeadingSmall :title="$t('members.invites_title')" :description="$t('members.invites_desc')" />
 
                     <form class="flex flex-wrap items-center gap-2" data-test="invite-create" @submit.prevent="createInvite">
-                        <div class="flex-1" style="min-width: 160px">
+                        <div class="min-w-40 flex-1">
                             <input
                                 v-model="createForm.label"
                                 :placeholder="$t('members.label_placeholder')"
@@ -112,7 +112,7 @@ function removeMember(member: MemberRow) {
                             />
                             <InputError :message="createForm.errors.label" />
                         </div>
-                        <div class="flex-1" style="min-width: 200px">
+                        <div class="min-w-50 flex-1">
                             <input
                                 v-model="createForm.email"
                                 type="email"
@@ -123,7 +123,7 @@ function removeMember(member: MemberRow) {
                             />
                             <InputError :message="createForm.errors.email" />
                         </div>
-                        <button type="submit" class="btn-primary" style="height: 32px" :disabled="createForm.processing">
+                        <button type="submit" class="btn-primary h-8" :disabled="createForm.processing">
                             <Plus :size="14" />
                             {{ $t('members.create') }}
                         </button>
@@ -131,29 +131,24 @@ function removeMember(member: MemberRow) {
 
                     <!-- One-shot send feedback (store/resend) + the stale-page
                          resend error. Gone on the next navigation. -->
-                    <p v-if="mailFlash === 'sent'" class="text-sm" style="color: var(--pos)" data-test="invite-mail-sent" role="status">
+                    <p v-if="mailFlash === 'sent'" class="text-sm text-pos" data-test="invite-mail-sent" role="status">
                         {{ $t('members.mail_sent') }}
                     </p>
-                    <p v-else-if="mailFlash === 'failed'" class="text-sm" style="color: var(--neg)" data-test="invite-mail-failed" role="alert">
+                    <p v-else-if="mailFlash === 'failed'" class="text-sm text-neg" data-test="invite-mail-failed" role="alert">
                         {{ $t('members.mail_failed') }}
                     </p>
-                    <p v-if="invitationError" class="text-sm" style="color: var(--neg)" role="alert">{{ invitationError }}</p>
+                    <p v-if="invitationError" class="text-sm text-neg" role="alert">{{ invitationError }}</p>
 
-                    <div v-if="invitations.length === 0" class="text-sm" style="color: var(--fg-muted)">{{ $t('members.none') }}</div>
+                    <div v-if="invitations.length === 0" class="text-sm text-fg-muted">{{ $t('members.none') }}</div>
 
-                    <ul v-else class="divide-y" style="border-top: 1px solid var(--border)">
-                        <li
-                            v-for="invitation in invitations"
-                            :key="invitation.id"
-                            class="space-y-2 py-3"
-                            style="border-bottom: 1px solid var(--border)"
-                        >
+                    <ul v-else class="divide-y border-t border-border">
+                        <li v-for="invitation in invitations" :key="invitation.id" class="space-y-2 border-b border-border py-3">
                             <div class="flex items-center gap-3">
                                 <div class="flex-1">
-                                    <div style="font-weight: 500; font-size: 14px">
+                                    <div class="text-sm font-medium">
                                         {{ invitation.label || invitation.email || $t('members.link') }}
                                     </div>
-                                    <div class="text-xs" style="color: var(--fg-muted)">
+                                    <div class="text-xs text-fg-muted">
                                         {{ $t('members.expires', { when: invitation.expires_human })
                                         }}<template v-if="invitation.created_by">
                                             · {{ $t('members.from', { name: invitation.created_by }) }}</template
@@ -161,7 +156,7 @@ function removeMember(member: MemberRow) {
                                         <template v-if="invitation.email">
                                             ·
                                             <span class="inline-flex items-center gap-1" data-test="invite-sent-to">
-                                                <Mail :size="11" style="display: inline" /> {{ $t('members.sent_to', { email: invitation.email }) }}
+                                                <Mail class="inline" :size="11" /> {{ $t('members.sent_to', { email: invitation.email }) }}
                                             </span>
                                         </template>
                                     </div>
@@ -185,8 +180,7 @@ function removeMember(member: MemberRow) {
                                 <input
                                     :value="invitation.url"
                                     readonly
-                                    class="field mono flex-1"
-                                    style="font-size: 12px"
+                                    class="field mono flex-1 text-xs"
                                     @focus="(e) => (e.target as HTMLInputElement).select()"
                                 />
                                 <button type="button" class="btn-pill" @click="copyLink(invitation)">
@@ -201,32 +195,25 @@ function removeMember(member: MemberRow) {
                 <div class="space-y-4">
                     <HeadingSmall :title="$t('members.people_title')" :description="$t('members.people_desc')" />
 
-                    <ul class="divide-y" style="border-top: 1px solid var(--border)">
-                        <li
-                            v-for="member in members"
-                            :key="member.id"
-                            class="flex items-center gap-3 py-3"
-                            style="border-bottom: 1px solid var(--border)"
-                        >
+                    <ul class="divide-y border-t border-border">
+                        <li v-for="member in members" :key="member.id" class="flex items-center gap-3 border-b border-border py-3">
                             <div class="flex-1">
-                                <div style="font-weight: 500; font-size: 14px">
+                                <div class="text-sm font-medium">
                                     {{ member.name }}
-                                    <span v-if="member.is_self" class="text-xs" style="color: var(--fg-subtle)">{{ $t('members.you') }}</span>
+                                    <span v-if="member.is_self" class="text-xs text-fg-subtle">{{ $t('members.you') }}</span>
                                 </div>
-                                <div class="text-xs" style="color: var(--fg-muted)">{{ member.email }}</div>
+                                <div class="text-xs text-fg-muted">{{ member.email }}</div>
                             </div>
-                            <span class="text-xs" style="color: var(--fg-subtle)">{{
-                                member.is_admin ? $t('members.role_admin') : $t('members.role_member')
-                            }}</span>
+                            <span class="text-xs text-fg-subtle">{{ member.is_admin ? $t('members.role_admin') : $t('members.role_member') }}</span>
                             <template v-if="isAdmin && !member.is_self">
-                                <button type="button" class="btn-ghost" style="font-size: 12px" @click="toggleAdmin(member)">
+                                <button type="button" class="btn-ghost text-xs" @click="toggleAdmin(member)">
                                     {{ member.is_admin ? $t('members.remove_admin') : $t('members.make_admin') }}
                                 </button>
                                 <button type="button" class="btn-ghost btn-danger" :title="$t('members.remove')" @click="removeMember(member)">
                                     <Trash2 :size="14" />
                                 </button>
                             </template>
-                            <div v-else-if="member.joined_human" class="text-xs" style="color: var(--fg-subtle)">
+                            <div v-else-if="member.joined_human" class="text-xs text-fg-subtle">
                                 {{ $t('members.joined', { when: member.joined_human }) }}
                             </div>
                         </li>

@@ -60,7 +60,7 @@ function typeLabel(type: CustomFieldTypeValue) {
                 <HeadingSmall :title="$t('household.nav.custom_fields')" :description="$t('household.custom_fields.description')" />
 
                 <form v-if="isAdmin" class="flex flex-wrap items-center gap-2" data-test="custom-field-create" @submit.prevent="add">
-                    <div class="flex-1" style="min-width: 180px">
+                    <div class="min-w-45 flex-1">
                         <input
                             v-model="createForm.name"
                             :placeholder="$t('household.custom_fields.name_placeholder')"
@@ -72,34 +72,26 @@ function typeLabel(type: CustomFieldTypeValue) {
                     <select v-model="createForm.type" class="field" style="max-width: 150px" data-test="custom-field-type">
                         <option v-for="t in types" :key="t.value" :value="t.value">{{ t.label }}</option>
                     </select>
-                    <label
-                        class="flex items-center gap-1.5 text-sm"
-                        style="color: var(--fg-muted)"
-                        :title="$t('household.custom_fields.searchable_title')"
-                    >
+                    <label class="flex items-center gap-1.5 text-sm text-fg-muted" :title="$t('household.custom_fields.searchable_title')">
                         <input v-model="createForm.searchable" type="checkbox" data-test="custom-field-searchable" />
                         {{ $t('household.custom_fields.searchable') }}
                     </label>
-                    <button type="submit" class="btn-primary" style="height: 32px" :disabled="createForm.processing || !createForm.name">
+                    <button type="submit" class="btn-primary h-8" :disabled="createForm.processing || !createForm.name">
                         <Plus :size="14" />
                         {{ $t('household.custom_fields.add') }}
                     </button>
                 </form>
 
-                <div v-if="fields.length === 0" class="text-sm" style="color: var(--fg-muted)">{{ $t('household.custom_fields.empty') }}</div>
+                <div v-if="fields.length === 0" class="text-sm text-fg-muted">{{ $t('household.custom_fields.empty') }}</div>
 
-                <ul v-else class="divide-y" style="border-top: 1px solid var(--border)">
-                    <li v-for="field in fields" :key="field.id" class="flex items-center gap-3 py-3" style="border-bottom: 1px solid var(--border)">
+                <ul v-else class="divide-y border-t border-border">
+                    <li v-for="field in fields" :key="field.id" class="flex items-center gap-3 border-b border-border py-3">
                         <template v-if="editingId === field.id">
                             <input v-model="editForm.name" class="field flex-1" />
                             <select v-model="editForm.type" class="field" style="max-width: 150px">
                                 <option v-for="t in types" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
-                            <label
-                                class="flex items-center gap-1.5 text-sm"
-                                style="color: var(--fg-muted)"
-                                :title="$t('household.custom_fields.searchable_title')"
-                            >
+                            <label class="flex items-center gap-1.5 text-sm text-fg-muted" :title="$t('household.custom_fields.searchable_title')">
                                 <input v-model="editForm.searchable" type="checkbox" />
                                 {{ $t('household.custom_fields.searchable') }}
                             </label>
@@ -108,8 +100,8 @@ function typeLabel(type: CustomFieldTypeValue) {
                         </template>
                         <template v-else>
                             <div class="flex-1">
-                                <div style="font-weight: 500; font-size: 14px">{{ field.name }}</div>
-                                <div class="flex items-center gap-2 text-xs" style="color: var(--fg-muted)">
+                                <div class="text-sm font-medium">{{ field.name }}</div>
+                                <div class="flex items-center gap-2 text-xs text-fg-muted">
                                     <span>{{ typeLabel(field.type) }}</span>
                                     <span
                                         class="inline-flex items-center gap-1"
@@ -124,7 +116,7 @@ function typeLabel(type: CustomFieldTypeValue) {
                                     </span>
                                 </div>
                             </div>
-                            <span v-if="field.is_system" class="inline-flex items-center gap-1 text-xs" style="color: var(--fg-subtle)">
+                            <span v-if="field.is_system" class="inline-flex items-center gap-1 text-xs text-fg-subtle">
                                 <Lock :size="12" /> {{ $t('household.custom_fields.system') }}
                             </span>
                             <template v-else-if="isAdmin">

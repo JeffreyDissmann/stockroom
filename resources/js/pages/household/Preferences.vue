@@ -190,7 +190,7 @@ function runRelink(url: string) {
             <div class="space-y-6">
                 <HeadingSmall :title="$t('household.nav.preferences')" :description="$t('household.preferences.description')" />
 
-                <p v-if="!isAdmin" class="text-sm" style="color: var(--fg-muted)">{{ $t('common.admin_only') }}</p>
+                <p v-if="!isAdmin" class="text-sm text-fg-muted">{{ $t('common.admin_only') }}</p>
 
                 <form v-if="isAdmin" class="form" @submit.prevent="submit" data-test="preferences-form">
                     <div class="form-row">
@@ -201,7 +201,7 @@ function runRelink(url: string) {
                             <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                         </select>
                         <InputError :message="form.errors.box_tag_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.box_tag_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.box_tag_help') }}</p>
                     </div>
 
                     <div v-if="showHomeAssistantTag" class="form-row">
@@ -211,7 +211,7 @@ function runRelink(url: string) {
                             <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                         </select>
                         <InputError :message="form.errors.home_assistant_tag_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.home_assistant_tag_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.home_assistant_tag_help') }}</p>
                     </div>
 
                     <div v-if="showBatteryTag" class="form-row">
@@ -221,7 +221,7 @@ function runRelink(url: string) {
                             <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
                         </select>
                         <InputError :message="form.errors.battery_tag_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.battery_tag_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.battery_tag_help') }}</p>
                     </div>
 
                     <!-- Unlike the Battery tag above, this is always shown: the
@@ -236,12 +236,11 @@ function runRelink(url: string) {
                             :min="batteryThresholdRange.min"
                             :max="batteryThresholdRange.max"
                             step="1"
-                            class="field"
-                            style="max-width: 8rem"
+                            class="field max-w-32"
                             data-test="battery-low-threshold-input"
                         />
                         <InputError :message="form.errors.battery_low_threshold" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">
+                        <p class="text-xs text-fg-muted">
                             {{
                                 $t('household.preferences.battery_low_threshold_help', {
                                     min: batteryThresholdRange.min,
@@ -321,7 +320,7 @@ function runRelink(url: string) {
                         </div>
 
                         <InputError :message="form.errors.paperless_parent_id" />
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_parent_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.paperless_parent_help') }}</p>
                     </div>
 
                     <!-- Operator repair: re-apply Stockroom annotations on the
@@ -330,7 +329,7 @@ function runRelink(url: string) {
                          are Paperless-only and admin-only. -->
                     <div v-if="paperlessEnabled" class="form-row">
                         <label>{{ $t('household.preferences.paperless_relink') }}</label>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                        <div class="flex flex-wrap gap-2">
                             <button
                                 type="button"
                                 class="btn-pill"
@@ -352,15 +351,15 @@ function runRelink(url: string) {
                                 {{ $t('household.preferences.paperless_metadata_action') }}
                             </button>
                         </div>
-                        <p style="font-size: 12px; color: var(--fg-muted)">{{ $t('household.preferences.paperless_relink_help') }}</p>
+                        <p class="text-xs text-fg-muted">{{ $t('household.preferences.paperless_relink_help') }}</p>
 
                         <!-- Live status pane. Mirrors the search-index rebuild
                              layout: a progress bar while running, then a done
                              or failed line. Hidden when no run has happened
                              (or its cache key expired). -->
-                        <div v-if="relinkStatus" data-test="paperless-relink-status" style="margin-top: 12px">
+                        <div class="mt-3" v-if="relinkStatus" data-test="paperless-relink-status">
                             <template v-if="relinkStatus.state === 'running'">
-                                <p style="font-size: 13px; margin: 0 0 8px">
+                                <p class="m-0 mb-2 text-13">
                                     {{
                                         $t('household.preferences.paperless_relink_progress', {
                                             done: (relinkStatus.done ?? 0) + (relinkStatus.failed ?? 0),
@@ -368,15 +367,15 @@ function runRelink(url: string) {
                                         })
                                     }}
                                 </p>
-                                <div style="height: 8px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden">
+                                <div class="h-2 overflow-hidden rounded-full bg-bg-sunken">
                                     <div
                                         :style="{ width: `${relinkPercent}%`, height: '100%', background: 'var(--accent)', transition: 'width .3s' }"
                                     />
                                 </div>
                             </template>
                             <p
+                                class="m-0 text-13"
                                 v-else-if="relinkStatus.state === 'done'"
-                                style="font-size: 13px; margin: 0"
                                 :style="{ color: (relinkStatus.failed ?? 0) > 0 ? 'var(--warn)' : 'var(--pos)' }"
                             >
                                 {{ $tChoice(relinkDoneKey, relinkStatus.done ?? 0) }}
@@ -384,7 +383,7 @@ function runRelink(url: string) {
                                     {{ $tChoice('household.preferences.paperless_relink_failed_count', relinkStatus.failed ?? 0) }}
                                 </template>
                             </p>
-                            <p v-else-if="relinkStatus.state === 'failed'" style="font-size: 13px; margin: 0; color: var(--neg)">
+                            <p class="m-0 text-13 text-neg" v-else-if="relinkStatus.state === 'failed'">
                                 {{ $t('household.preferences.paperless_relink_failed', { error: relinkStatus.error ?? '' }) }}
                             </p>
                         </div>
@@ -395,7 +394,7 @@ function runRelink(url: string) {
                             <Save :size="14" />
                             {{ $t('common.save') }}
                         </button>
-                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm" style="color: var(--pos)">{{ $t('common.saved') }}</span>
+                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-pos">{{ $t('common.saved') }}</span>
                     </div>
                 </form>
             </div>

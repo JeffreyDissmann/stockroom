@@ -48,8 +48,8 @@ function openMarkDone(task: GlobalTaskRow) {
         <Head :title="$t('maintenance.page.title')" />
 
         <div class="page">
-            <h2 style="margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em">{{ $t('maintenance.page.title') }}</h2>
-            <p class="sub" style="color: var(--fg-muted); font-size: 13px; margin: 0 0 20px">
+            <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('maintenance.page.title') }}</h2>
+            <p class="sub m-0 mb-5 text-13 text-fg-muted">
                 {{ $t('maintenance.page.subtitle') }}
             </p>
 
@@ -62,11 +62,11 @@ function openMarkDone(task: GlobalTaskRow) {
                     :data-test="`maintenance-filter-${entry.key}`"
                 >
                     {{ entry.label }}
-                    <span style="opacity: 0.65">{{ entry.count }}</span>
+                    <span class="opacity-65">{{ entry.count }}</span>
                 </Link>
             </div>
 
-            <div v-if="tasks.length === 0" class="card card-pad" style="text-align: center; color: var(--fg-muted); font-size: 13px">
+            <div v-if="tasks.length === 0" class="card card-pad text-center text-13 text-fg-muted">
                 {{ $t('maintenance.page.empty') }}
             </div>
 
@@ -75,12 +75,15 @@ function openMarkDone(task: GlobalTaskRow) {
                     <div class="mnt-main">
                         <span class="mnt-title">{{ task.title }}</span>
                         <span class="mnt-summary">{{ task.schedule_summary }}</span>
+                        <!-- Location first, then the item: a breadcrumb reads outermost
+                             to innermost ("Garage / Toolbox › Lawnmower"), matching the
+                             topbar and every other trail in the app. -->
                         <Link :href="itemRoutes.show(task.item.id).url" class="mnt-item-link">
-                            <span>{{ task.item.name }}</span>
                             <template v-if="task.item.location">
-                                <ChevronRight :size="11" style="opacity: 0.6" />
                                 <span class="mnt-item-location">{{ task.item.location }}</span>
+                                <ChevronRight class="opacity-60" :size="11" />
                             </template>
+                            <span>{{ task.item.name }}</span>
                         </Link>
                     </div>
                     <div class="mnt-due">
@@ -124,9 +127,17 @@ function openMarkDone(task: GlobalTaskRow) {
 .mnt-item-link:hover {
     color: var(--accent);
 }
+/* The location leads the trail, so it is the part that gives way when the row
+   is cramped — min-width lets it actually shrink inside the flex row, and the
+   item name after it never collapses. */
 .mnt-item-location {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
+}
+.mnt-item-link > span:last-child {
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 </style>
