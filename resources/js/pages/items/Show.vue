@@ -421,10 +421,6 @@ function destroyItem() {
                 </div>
             </div>
 
-            <!-- Battery tracking panel (level, forecast, reminder, chart).
-                 Self-hides until the item has battery history. -->
-            <BatterySection :item="item" :battery="battery" class="mt-8" />
-
             <!-- Contents | Related side by side on wide screens — they're
                  sibling collections of the same shape, and pairing them
                  halves the scroll distance to Maintenance/Activity below. -->
@@ -473,6 +469,13 @@ function destroyItem() {
                     <ItemCollection v-else :items="relatedItems" :view="relatedView" removable @remove="unlinkRelated" />
                 </section>
             </div>
+
+            <!-- Battery tracking panel (level, forecast, reminder, chart).
+                 Self-hides until the item has battery history. Sits after the
+                 collections and before maintenance: what the item *is* and what
+                 it holds comes first, then its state, then the things to do
+                 about it. -->
+            <BatterySection :item="item" :battery="battery" class="mt-8" />
 
             <!-- Maintenance schedules, full width — the actionable block.
                  Below it the two audit trails (maintenance history and

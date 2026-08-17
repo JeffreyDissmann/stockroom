@@ -156,6 +156,23 @@ it('edits a task through the dialog with hydrated fields', function () {
     expect(MaintenanceTask::sole()->title)->toBe('New title');
 });
 
+it('shows the location before the item, outermost first', function () {
+    // A breadcrumb reads outermost to innermost everywhere else in the app, so
+    // the row must say "Garage / Toolbox > Boiler", not the item first.
+    $room = Item::factory()->create(['name' => 'Garage', 'type' => 'room']);
+    $box = Item::factory()->create(['name' => 'Toolbox', 'parent_id' => $room->id, 'type' => 'container']);
+    $item = Item::factory()->create(['name' => 'Boiler', 'parent_id' => $box->id]);
+    MaintenanceTask::factory()->for($item)->overdue(4)->create(['title' => 'Annual service']);
+
+    $trail = visit('/maintenance')
+        ->assertNoJavaScriptErrors()
+        ->script("document.querySelector('.mnt-item-link').innerText.replace(/\\s+/g, ' ').trim()");
+
+    expect($trail)->toContain('Garage / Toolbox')
+        ->and($trail)->toContain('Boiler')
+        ->and(strpos($trail, 'Garage'))->toBeLessThan(strpos($trail, 'Boiler'));
+});
+
 it('renders the global maintenance page with filters, rows and nav entry', function () {
     $item = Item::factory()->create(['name' => 'Boiler']);
     MaintenanceTask::factory()->for($item)->overdue(4)->create(['title' => 'Annual service']);
