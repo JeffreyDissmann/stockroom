@@ -295,3 +295,7 @@ it('drops extracted items at top level when no Paperless parent is configured', 
     $widget = Item::query()->where('name', 'Standalone widget')->firstOrFail();
     expect($widget->parent_id)->toBeNull();
 });
+
+it('picks the chat model itself rather than relying on the caller', function () {
+    expect((new DocumentExtractor)->model())->toBe(config('ai.chat_model'));
+});

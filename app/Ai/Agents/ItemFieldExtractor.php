@@ -34,6 +34,15 @@ class ItemFieldExtractor implements Agent, HasStructuredOutput
         private readonly string $language = 'English',
     ) {}
 
+    /**
+     * OCR text, not an image, so the chat model. Declared here rather than left
+     * to the caller: the agent knows which kind of model it needs.
+     */
+    public function model(): string
+    {
+        return (string) config('ai.chat_model');
+    }
+
     public function instructions(): string
     {
         return <<<PROMPT

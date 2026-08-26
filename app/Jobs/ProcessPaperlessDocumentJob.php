@@ -124,7 +124,6 @@ class ProcessPaperlessDocumentJob implements ShouldBeEncrypted, ShouldQueue
         try {
             $result = (new DocumentExtractor($language))->prompt(
                 $prompt,
-                model: config('ai.chat_model'),
             );
         } catch (Throwable $e) {
             Log::warning('paperless.intake.extraction_failed', [

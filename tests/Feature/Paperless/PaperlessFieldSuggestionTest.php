@@ -121,3 +121,9 @@ it('is gated by the Paperless and AI feature flags', function () {
     $this->postJson("/items/{$this->item->id}/paperless-links/447/suggest-fields")
         ->assertStatus(503);
 });
+
+it('picks the chat model itself rather than relying on the caller', function () {
+    // OCR text, not an image. Declared on the agent so a caller cannot hand it
+    // the vision model and only find out at inference time.
+    expect((new ItemFieldExtractor('Drill'))->model())->toBe(config('ai.chat_model'));
+});
