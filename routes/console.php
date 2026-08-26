@@ -21,3 +21,16 @@ Schedule::command('maintenance:send-digest')->dailyAt('07:00');
 // renames in Paperless surface in Stockroom on their own. Metadata-only:
 // no tag/backlink writes back to Paperless — the full relink stays manual.
 Schedule::command('paperless:relink --metadata-only')->dailyAt('04:30');
+
+// Look at item photos nobody has reviewed and record catalogue proposals.
+//
+// 02:30 because vision inference is the heaviest thing this app asks of its
+// hardware, and it shares that hardware with whatever else the household runs.
+// withoutOverlapping guards a run that outlives the hour — twenty items with
+// several photos each takes a while at fifteen seconds a photo — and the
+// command itself stands down if the queue is busy. runInBackground keeps a slow
+// run from delaying the digest at 07:00.
+Schedule::command('items:review-photos --limit=20')
+    ->dailyAt('02:30')
+    ->withoutOverlapping(120)
+    ->runInBackground();
