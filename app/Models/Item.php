@@ -165,6 +165,15 @@ class Item extends Model
      * Battery cycles (one per physical battery), newest install first. The
      * open one is the current battery; the rest are history.
      */
+    /**
+     * AI review suggestions for this item, newest first. Pending ones drive
+     * the review queue; accepted/rejected stay as an audit trail.
+     */
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(ItemProposal::class)->latest();
+    }
+
     public function batteryCycles(): HasMany
     {
         return $this->hasMany(BatteryCycle::class)->orderByDesc('installed_at');

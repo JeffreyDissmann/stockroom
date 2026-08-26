@@ -27,4 +27,17 @@ return [
         'months' => 'Months',
         'years' => 'Years',
     ],
+
+    'proposal_status' => [
+        'pending' => 'Awaiting review',
+        'accepted' => 'Accepted',
+        'rejected' => 'Rejected',
+    ],
+
+    'proposal_field' => [
+        'description' => 'Description',
+        'manufacturer' => 'Manufacturer',
+        'model_number' => 'Model number',
+        'serial_number' => 'Serial number',
+    ],
 ];

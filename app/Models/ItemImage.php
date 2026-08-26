@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\ItemImageFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 class ItemImage extends Model
 {
+    /** @use HasFactory<ItemImageFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'item_id',
         'extension',
@@ -19,10 +24,12 @@ class ItemImage extends Model
         'size_bytes_original',
         'sort_order',
         'is_primary',
+        'analyzed_at',
     ];
 
     protected $casts = [
         'is_primary' => 'bool',
+        'analyzed_at' => 'datetime',
         'sort_order' => 'int',
         'width_original' => 'int',
         'height_original' => 'int',
