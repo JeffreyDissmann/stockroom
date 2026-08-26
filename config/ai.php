@@ -35,7 +35,7 @@ return [
     */
 
     'enabled' => env('AI_ENABLED', true),
-    'vision_model' => env('AI_VISION_MODEL', 'qwen3-vl:4b'),
+    'vision_model' => env('AI_VISION_MODEL', 'ministral-3:8b'),
     // Chat/assistant model — must support tool (function) calling. Ministral is a
     // small, tool-capable model; change to any tool-capable Ollama model you've pulled
     // (e.g. qwen2.5:7b-instruct, llama3.1:8b). Use the exact tag from `ollama list`.

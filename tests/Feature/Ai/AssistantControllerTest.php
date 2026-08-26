@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Ai;
 
 use App\Ai\Agents\InventoryAssistant;
-use App\Ai\Agents\ItemPhotoAnalyzer;
+use App\Ai\Agents\NewItemDraftFromPhoto;
 use App\Models\Item;
 use App\Models\MaintenanceTask;
 use App\Models\User;
@@ -194,7 +194,7 @@ class AssistantControllerTest extends TestCase
     {
         Storage::fake('local');
         InventoryAssistant::fake(['I could not read details — describe it and I will add it.']);
-        ItemPhotoAnalyzer::fake([[]]); // vision returns nothing usable
+        NewItemDraftFromPhoto::fake([[]]); // vision returns nothing usable
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
@@ -302,7 +302,7 @@ class AssistantControllerTest extends TestCase
     {
         Storage::fake('local');
         InventoryAssistant::fake(['I found a DeWalt drill in the photo. Shall I add it?']);
-        ItemPhotoAnalyzer::fake([['name' => 'DeWalt Drill', 'manufacturer' => 'DeWalt']]);
+        NewItemDraftFromPhoto::fake([['name' => 'DeWalt Drill', 'manufacturer' => 'DeWalt']]);
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
@@ -325,7 +325,7 @@ class AssistantControllerTest extends TestCase
     {
         Storage::fake('local');
         InventoryAssistant::fake(['ok']);
-        ItemPhotoAnalyzer::fake([['name' => 'Mug']]);
+        NewItemDraftFromPhoto::fake([['name' => 'Mug']]);
 
         $this->actingAs(User::factory()->create())
             ->post('/assistant/messages', ['image' => UploadedFile::fake()->image('mug.jpg', 200, 200)], ['Accept' => 'application/json'])

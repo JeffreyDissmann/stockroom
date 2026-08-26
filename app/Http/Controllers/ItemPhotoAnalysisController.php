@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Ai\Agents\ItemPhotoAnalyzer;
+use App\Ai\Agents\NewItemDraftFromPhoto;
 use App\Http\Middleware\EnsureAiEnabled;
 use App\Http\Requests\Item\AnalyzeItemPhotoRequest;
 use App\Services\ItemImageProcessor;
@@ -45,7 +45,7 @@ class ItemPhotoAnalysisController extends Controller
         $language = config('app.supported_locales.'.app()->getLocale().'.ai', 'English');
 
         try {
-            $response = (new ItemPhotoAnalyzer($language))->prompt(
+            $response = (new NewItemDraftFromPhoto($language))->prompt(
                 'Catalogue the main item shown in this photo.',
                 attachments: [$this->downscaledImage($request->file('photo'))],
                 model: config('ai.vision_model'),
