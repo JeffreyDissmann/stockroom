@@ -38,8 +38,7 @@ function seePhoto(string $item, string $fixture): array
 {
     return (new ExistingItemPhotoReviewer($item, 'English'))
         ->prompt('Describe what this photo shows.',
-            attachments: [fixtureImage($fixture)],
-            model: config('ai.vision_model'))
+            attachments: [fixtureImage($fixture)], )
         ->toArray();
 }
 
@@ -47,8 +46,7 @@ function seePhoto(string $item, string $fixture): array
 function mergeFindings(string $item, ?string $existing, array $findings): array
 {
     return (new ItemPhotoFindingsMerger($item, $existing, 'English'))
-        ->prompt("Observations, one per photo:\n".json_encode($findings, JSON_UNESCAPED_UNICODE),
-            model: config('ai.chat_model'))
+        ->prompt("Observations, one per photo:\n".json_encode($findings, JSON_UNESCAPED_UNICODE))
         ->toArray();
 }
 

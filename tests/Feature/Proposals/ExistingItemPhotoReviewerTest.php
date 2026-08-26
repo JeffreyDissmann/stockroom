@@ -62,3 +62,7 @@ it('reads back a single-object result', function () {
         ->and($result['manufacturer'])->toBe('DeWalt')
         ->and($result['contents'])->toBe([]);
 });
+
+it('picks the vision model itself', function () {
+    expect((new ExistingItemPhotoReviewer('Drill'))->model())->toBe(config('ai.vision_model'));
+});

@@ -90,3 +90,11 @@ it('records when an image was last reviewed', function () {
 
     expect($image->fresh()->analyzed_at)->not->toBeNull();
 });
+
+it('lists only the photos never looked at', function () {
+    $item = Item::factory()->create();
+    ItemImage::factory()->for($item)->count(2)->create();
+    ItemImage::factory()->for($item)->analyzed()->create();
+
+    expect(ItemImage::unreviewed()->count())->toBe(2);
+});

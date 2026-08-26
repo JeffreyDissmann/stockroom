@@ -48,3 +48,10 @@ it('reads back a merged result', function () {
     expect($result['contents'])->toHaveCount(2)
         ->and($result['description'])->toContain('2019');
 });
+
+it('picks the chat model itself, since the vision work is already done', function () {
+    // Declared on the agent rather than passed by callers: it knows which kind
+    // of model it needs, and a caller handing it the vision model would only
+    // fail at inference time with an error that says nothing about the cause.
+    expect((new ItemPhotoFindingsMerger('Drill'))->model())->toBe(config('ai.chat_model'));
+});

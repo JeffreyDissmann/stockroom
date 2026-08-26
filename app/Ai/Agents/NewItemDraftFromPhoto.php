@@ -28,6 +28,15 @@ class NewItemDraftFromPhoto implements Agent, HasStructuredOutput
      */
     public function __construct(private readonly string $language = 'English') {}
 
+    /**
+     * Reading a photograph, so the vision model. See ExistingItemPhotoReviewer:
+     * the agent, not the caller, knows which kind of model it needs.
+     */
+    public function model(): string
+    {
+        return (string) config('ai.vision_model');
+    }
+
     public function instructions(): string
     {
         $identifiers = $this->identifierHonestyRule();

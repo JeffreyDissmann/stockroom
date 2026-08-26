@@ -48,6 +48,17 @@ class ExistingItemPhotoReviewer implements Agent, HasStructuredOutput
         private readonly string $language = 'English',
     ) {}
 
+    /**
+     * Reading a photograph, so the vision model. Declared here rather than left
+     * to each caller: the agent knows what kind of model it needs, and a caller
+     * passing the chat model by mistake fails at inference time with an error
+     * that says nothing about the cause.
+     */
+    public function model(): string
+    {
+        return (string) config('ai.vision_model');
+    }
+
     public function instructions(): string
     {
         $identifiers = $this->identifierHonestyRule();

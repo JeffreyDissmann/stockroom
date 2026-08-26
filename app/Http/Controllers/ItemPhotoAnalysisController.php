@@ -48,7 +48,6 @@ class ItemPhotoAnalysisController extends Controller
             $response = (new NewItemDraftFromPhoto($language))->prompt(
                 'Catalogue the main item shown in this photo.',
                 attachments: [$this->downscaledImage($request->file('photo'))],
-                model: config('ai.vision_model'),
                 timeout: 120,
             );
         } catch (Throwable) {

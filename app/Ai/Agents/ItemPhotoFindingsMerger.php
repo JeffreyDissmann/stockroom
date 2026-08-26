@@ -43,6 +43,15 @@ class ItemPhotoFindingsMerger implements Agent, HasStructuredOutput
         private readonly string $language = 'English',
     ) {}
 
+    /**
+     * Text only — the vision work is already done — so this runs on the chat
+     * model. Roughly a second against fifteen for a vision call.
+     */
+    public function model(): string
+    {
+        return (string) config('ai.chat_model');
+    }
+
     public function instructions(): string
     {
         $existing = filled($this->currentDescription)
