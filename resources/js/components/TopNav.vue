@@ -9,7 +9,7 @@ import { maintenance } from '@/routes';
 import proposalRoutes from '@/routes/proposals';
 import type { SharedData, User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Activity as ActivityIcon, Boxes, LayoutGrid, Lightbulb, Search, Sparkles, Tag as TagIcon, Warehouse, Wrench } from '@lucide/vue';
+import { Boxes, LayoutGrid, Lightbulb, Search, Sparkles, Tag as TagIcon, Wrench } from '@lucide/vue';
 import { computed } from 'vue';
 
 const { open } = useCommandPalette();
@@ -29,11 +29,13 @@ const primary: NavLink[] = [
     { label: trans('nav.tags'), href: '/tags', icon: TagIcon, matches: (u) => u.startsWith('/tags') },
 ];
 
+// Activity and Household live in the avatar menu instead. The bar had eight
+// destinations plus search and the assistant, and these two are the ones you
+// consult occasionally rather than act on — Household is settings by another
+// name, and Activity is a log you read after the fact.
 const secondary: NavLink[] = [
     { label: trans('nav.maintenance'), href: maintenance().url, icon: Wrench, matches: (u) => u.startsWith('/maintenance') },
     { label: trans('nav.proposals'), href: proposalRoutes.index().url, icon: Lightbulb, matches: (u) => u.startsWith('/proposals') },
-    { label: trans('nav.activity'), href: '/activity', icon: ActivityIcon, matches: (u) => u.startsWith('/activity') },
-    { label: trans('nav.household'), href: '/household/custom-fields', icon: Warehouse, matches: (u) => u.startsWith('/household') },
 ];
 
 const page = usePage<SharedData>();

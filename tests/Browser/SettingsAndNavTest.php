@@ -169,3 +169,30 @@ it('keeps a reset thread empty after a page reload', function () {
         ->assertDontSee('where is the cordless drill')
         ->assertNoJavaScriptErrors();
 });
+
+it('reaches activity and household from the avatar menu', function () {
+    // Both moved out of the top bar. The mobile "More" menu once lost its
+    // Proposals link this way — unreachable, with every test still green — so
+    // the new home gets an assertion rather than trust.
+    $page = visit('/dashboard');
+
+    $page->click('@user-menu')
+        ->click('Activity')
+        ->assertPathIs('/activity')
+        ->assertNoJavaScriptErrors();
+
+    $page->navigate('/dashboard')
+        ->click('@user-menu')
+        ->click('Household')
+        ->assertPathBeginsWith('/household')
+        ->assertNoJavaScriptErrors();
+});
+
+it('keeps the top bar down to what you act on', function () {
+    $page = visit('/dashboard');
+
+    // Still there: the destinations with work waiting in them.
+    $page->assertSee('Maintenance')
+        ->assertSee('Suggestions')
+        ->assertNoJavaScriptErrors();
+});
