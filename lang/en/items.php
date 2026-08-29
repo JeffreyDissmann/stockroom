@@ -84,7 +84,7 @@ return [
         'section_purchase' => 'Purchase & identification',
         'manufacturer' => 'Manufacturer',
         'manufacturer_placeholder' => 'e.g. DeWalt',
-        'model_number' => 'Model number',
+        'model_number' => 'Model',
         'serial_number' => 'Serial number',
         'tag_locked' => 'Auto-assigned — managed by the system',
         'battery_type' => 'Battery type',

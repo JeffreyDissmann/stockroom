@@ -37,7 +37,7 @@ return [
     'proposal_field' => [
         'description' => 'Description',
         'manufacturer' => 'Manufacturer',
-        'model_number' => 'Model number',
+        'model_number' => 'Model',
         'serial_number' => 'Serial number',
     ],
 ];
