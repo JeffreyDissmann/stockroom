@@ -21,13 +21,17 @@ class InventoryStatistics
      * Item counts keyed by ItemType value, zero-filled for every case. A few
      * indexed COUNTs over the small, fixed enum — no raw grouped query.
      *
+     * Counts what is owned, matching ownedValue(). The two sit next to each
+     * other on the dashboard and used to disagree: the value wrote sold items
+     * off while the count still included them.
+     *
      * @return Collection<string, int>
      */
     public function countsByType(): Collection
     {
         return collect(ItemType::cases())
             ->mapWithKeys(fn (ItemType $type): array => [
-                $type->value => Item::query()->where('type', $type)->count(),
+                $type->value => Item::query()->owned()->where('type', $type)->count(),
             ]);
     }
 
@@ -36,7 +40,7 @@ class InventoryStatistics
      */
     public function ownedValue(): float
     {
-        return (float) Item::query()->whereNull('sold_date')->sum('purchase_price');
+        return (float) Item::query()->owned()->sum('purchase_price');
     }
 
     /**
@@ -48,7 +52,7 @@ class InventoryStatistics
     public function tagsWithItemCounts(?int $limit = null): Collection
     {
         return Tag::query()
-            ->withCount('items')
+            ->withCount(['items' => fn ($query) => $query->owned()])
             ->orderByDesc('items_count')
             ->orderBy('name')
             ->when($limit !== null, fn ($q) => $q->limit($limit))
@@ -64,7 +68,7 @@ class InventoryStatistics
     {
         return Item::query()
             ->where('type', ItemType::Room)
-            ->withCount('children')
+            ->withCount(['children' => fn ($query) => $query->owned()])
             ->orderByDesc('children_count')
             ->orderBy('name')
             ->when($limit !== null, fn ($q) => $q->limit($limit))

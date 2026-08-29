@@ -167,13 +167,48 @@ class Item extends Model
      * open one is the current battery; the rest are history.
      */
     /**
+     * Everything still in the household — what "the inventory" means.
+     *
+     * Sold is an archive, not a status: the record is kept so you can answer
+     * what a thing went for and when, but it is not yours any more and so has
+     * no business in a count, a reminder, or a list of what you own. Defined
+     * once here because `whereNull('sold_date')` had been copied to three
+     * call sites and forgotten at a dozen others — the value on the dashboard
+     * excluded sold items while the count beside it did not.
+     *
+     * The item keeps its parent: which room it was in when it went is a fact
+     * about the past worth keeping, and clearing it would throw away
+     * information a mistaken sale could never get back.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeOwned(Builder $query): void
+    {
+        $query->whereNull('sold_date');
+    }
+
+    /**
+     * The archive: things that were yours.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeSold(Builder $query): void
+    {
+        $query->whereNotNull('sold_date');
+    }
+
+    /**
      * Items with at least one photo the review agent has never looked at.
+     *
+     * Sold items are skipped: a photo costs real inference time, and spending
+     * it to describe something you no longer own is waste twice over — the
+     * suggestion would only ever be declined.
      *
      * @param  Builder<$this>  $query
      */
     public function scopeAwaitingPhotoReview(Builder $query): void
     {
-        $query->whereHas('images', fn (Builder $images) => $images->unreviewed());
+        $query->owned()->whereHas('images', fn (Builder $images) => $images->unreviewed());
     }
 
     /**

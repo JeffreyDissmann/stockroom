@@ -217,11 +217,14 @@ class BatteryService
      * could be weeks. So the preference screen calls this on save.
      *
      * Items without an open cycle are skipped: there is no current battery to
-     * project, so there is nothing for a refresh to recompute.
+     * project, so there is nothing for a refresh to recompute. Sold items are
+     * skipped for the same reason a sold item gets no maintenance reminder —
+     * its battery is somebody else's problem now.
      */
     public function refreshAllForecasts(): int
     {
         $itemIds = Item::query()
+            ->owned()
             ->whereHas('currentBatteryCycle')
             ->pluck('id');
 

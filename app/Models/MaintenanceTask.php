@@ -118,6 +118,10 @@ class MaintenanceTask extends Model
             ->active()
             ->whereNotNull('next_due_at')
             ->where('next_due_at', '<=', today()->addDays($maxLead))
+            // Nothing to service on something you sold. A reminder for an item
+            // that left the house is the kind of noise that teaches people to
+            // ignore the whole feature.
+            ->whereHas('item', fn ($item) => $item->owned())
             ->with('item')
             ->orderBy('next_due_at')
             ->get()
