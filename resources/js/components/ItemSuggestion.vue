@@ -27,7 +27,11 @@ function decide(verb: 'accept' | 'reject') {
     const url = proposalRoutes[verb](props.id).url;
     const options = { preserveScroll: true, onFinish: () => (deciding.value = false) };
 
-    verb === 'accept' ? router.patch(url, {}, options) : router.delete(url, options);
+    if (verb === 'accept') {
+        router.patch(url, {}, options);
+    } else {
+        router.delete(url, options);
+    }
 }
 </script>
 
