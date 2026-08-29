@@ -33,8 +33,14 @@ about it.
   supports).
 - **AI assistant** — multi-turn chat with read/write tools that can find,
   create, update, move, tag and delete items. Backed by a local Ollama
-  endpoint that *you* control; nothing leaves your network unless you point
+  endpoint that _you_ control; nothing leaves your network unless you point
   it elsewhere.
+- **Photo review** — Stockroom reads the photos on your items and suggests
+  what their entries are missing: a manufacturer, model or serial number where
+  one is legible, or a written-out list of what is inside a box, which is what
+  makes the contents searchable. It runs overnight or on demand, and _nothing
+  it produces is applied on its own_ — every suggestion waits for you to accept
+  it, and what you have already written is never reworded or dropped.
 - **Activity log** — every change is attributed to a user.
 - **Localization** — English and German; per-user locale.
 - **Installable** — ships a PWA manifest + service worker. Add to homescreen
@@ -98,6 +104,7 @@ see backups, plus all env inline so you can paste into the UI. Use
 For orientation; the authoritative file is
 [`docker-compose.prod.yml`](./docker-compose.prod.yml) in this repo:
 
+<!-- prettier-ignore -->
 ```yaml
 services:
     app:          # Stockroom (FrankenPHP), listens on :8080
@@ -136,9 +143,10 @@ keeps working but **the search box returns a 500**. Restart the
 
 ### Optional: AI assistant
 
-The AI assistant needs an external Ollama (or any provider the Laravel AI
-SDK supports). Stockroom itself works without it — set `AI_ENABLED=false`
-to hide the chat surface entirely.
+The AI features — the chat assistant, creating an item from a photo, and the
+photo review that suggests what an entry is missing — need an external Ollama
+(or any provider the Laravel AI SDK supports). Stockroom itself works without
+them; set `AI_ENABLED=false` to hide every AI surface.
 
 To enable it, point `OLLAMA_URL` at an Ollama endpoint you operate
 (another container, a LAN machine, a separate GPU box):
@@ -148,6 +156,7 @@ AI_ENABLED=true
 AI_PROVIDER=ollama
 OLLAMA_URL=http://192.168.x.x:11434
 AI_CHAT_MODEL=ministral-3:8b      # any tool-calling model from `ollama list`
+AI_VISION_MODEL=ministral-3:8b    # reads photos; needs the `vision` capability
 AI_EMBEDDINGS_MODEL=bge-m3:567m
 AI_EMBEDDINGS_DIMENSIONS=768
 ```
@@ -158,6 +167,10 @@ Pull the models on the Ollama host:
 ollama pull ministral-3:8b
 ollama pull bge-m3:567m
 ```
+
+If you point `AI_VISION_MODEL` at a different tag, pull that too. Avoid models
+with a thinking mode: they can spend the whole token budget reasoning and
+return an empty structured response.
 
 The Stockroom image deliberately does **not** bundle Ollama — model
 weights are multi-gigabyte and most self-hosters either already run
@@ -202,14 +215,14 @@ occasional resync if you're running both side-by-side.
 
 **What gets imported**
 
-| HomeBox concept | Stockroom equivalent |
-|---|---|
-| Location | Item of type `room` (or `container` if nested) |
-| Item | Item of type `item` |
-| Item attachments (`photo` only) | ItemImage with thumb / large / original |
-| Labels | Tags |
-| Custom fields | Stockroom custom fields, attached per item |
-| HomeBox UUID | Stored in the `homebox_id` custom field for re-run matching |
+| HomeBox concept                 | Stockroom equivalent                                        |
+| ------------------------------- | ----------------------------------------------------------- |
+| Location                        | Item of type `room` (or `container` if nested)              |
+| Item                            | Item of type `item`                                         |
+| Item attachments (`photo` only) | ItemImage with thumb / large / original                     |
+| Labels                          | Tags                                                        |
+| Custom fields                   | Stockroom custom fields, attached per item                  |
+| HomeBox UUID                    | Stored in the `homebox_id` custom field for re-run matching |
 
 **Limitations**
 
@@ -222,28 +235,43 @@ occasional resync if you're running both side-by-side.
 
 ## Configuration reference
 
-| Variable | Default | Notes |
-|---|---|---|
-| `APP_URL` | `http://localhost` | Public URL (include scheme + port if non-standard). |
-| `APP_LOCALE` | `en` | Default UI language; users can override per-account. |
-| `CURRENCY` | `EUR` | ISO 4217 code; applied household-wide. |
-| `CURRENCY_LOCALE` | `de-DE` | Formatting locale (e.g. `en-US`). |
-| `STOCKROOM_ADMIN_EMAIL` | — | First-boot admin seed; ignored once users exist. |
-| `STOCKROOM_ADMIN_PASSWORD` | — | First-boot admin seed; ignored once users exist. |
-| `DB_*` | Postgres in compose | Standard Laravel DB env. |
-| `SCOUT_DRIVER` | `meilisearch` | Set blank to fall back to in-process search (not recommended). |
-| `MEILISEARCH_HOST` | — | Required when scout driver is `meilisearch`. |
-| `MEILISEARCH_KEY` | — | Required when scout driver is `meilisearch`. |
-| `AI_ENABLED` | `true` | Master switch for the assistant; set `false` to hide every AI surface. |
-| `OLLAMA_URL` | — | URL of an Ollama endpoint you operate. |
-| `AI_CHAT_MODEL` | `ministral-3:8b` | Must support tool calling. |
-| `AI_CHAT_RETENTION_DAYS` | `3` | Older conversations are deleted daily. |
-| `BRAVE_SEARCH_KEY` | — | Enables image search; blank disables it. |
-| `PAPERLESS_URL` | — | Base URL of your Paperless-ngx instance; blank disables the integration end-to-end. |
-| `PAPERLESS_TOKEN` | — | Personal API token from Paperless's user menu. |
-| `PAPERLESS_WEBHOOK_SECRET` | auto | Seeded by `paperless:install`; sent as `X-Stockroom-Secret`. Rotate with `--force-secret`. |
+| Variable                      | Default              | Notes                                                                                                             |
+| ----------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `APP_URL`                     | `http://localhost`   | Public URL (include scheme + port if non-standard).                                                               |
+| `APP_LOCALE`                  | `en`                 | Default UI language; users can override per-account.                                                              |
+| `CURRENCY`                    | `EUR`                | ISO 4217 code; applied household-wide.                                                                            |
+| `CURRENCY_LOCALE`             | `de-DE`              | Formatting locale (e.g. `en-US`).                                                                                 |
+| `STOCKROOM_ADMIN_EMAIL`       | —                    | First-boot admin seed; ignored once users exist.                                                                  |
+| `STOCKROOM_ADMIN_PASSWORD`    | —                    | First-boot admin seed; ignored once users exist.                                                                  |
+| `DB_*`                        | Postgres in compose  | Standard Laravel DB env.                                                                                          |
+| `SCOUT_DRIVER`                | `meilisearch`        | Set blank to fall back to in-process search (not recommended).                                                    |
+| `MEILISEARCH_HOST`            | —                    | Required when scout driver is `meilisearch`.                                                                      |
+| `MEILISEARCH_KEY`             | —                    | Required when scout driver is `meilisearch`.                                                                      |
+| `AI_ENABLED`                  | `true`               | Master switch; set `false` to hide every AI surface.                                                              |
+| `AI_PROVIDER`                 | `ollama`             | Any provider the Laravel AI SDK supports (e.g. `openai`), with that provider's key.                               |
+| `OLLAMA_URL`                  | —                    | URL of an Ollama endpoint you operate.                                                                            |
+| `OLLAMA_API_KEY`              | —                    | Only if your endpoint requires one.                                                                               |
+| `AI_CHAT_MODEL`               | `ministral-3:8b`     | Must support tool calling.                                                                                        |
+| `AI_VISION_MODEL`             | `ministral-3:8b`     | Reads item photos. Needs the `vision` capability; avoid thinking models, which return empty structured responses. |
+| `AI_AGENT_TIMEOUT`            | `180`                | Seconds per agent call. The SDK default of 60 is too tight for vision on self-hosted hardware.                    |
+| `AI_CHAT_RESET_AFTER_HOURS`   | `3`                  | Resume the latest thread only if active within this window; `0` always resumes.                                   |
+| `AI_CHAT_RETENTION_DAYS`      | `3`                  | Older conversations are deleted daily; `0` keeps them forever.                                                    |
+| `AI_EMBEDDINGS_MODEL`         | `bge-m3:567m`        | Embedding model for semantic search.                                                                              |
+| `AI_EMBEDDINGS_DIMENSIONS`    | `768`                | Must match the embedding model; changing it needs a reindex.                                                      |
+| `SCOUT_HYBRID_EMBEDDER`       | —                    | Blank means keyword-only search. Needs `SCOUT_DRIVER=meilisearch`.                                                |
+| `SCOUT_HYBRID_SEMANTIC_RATIO` | `0.5`                | Balance between keyword and semantic matching.                                                                    |
+| `BRAVE_SEARCH_KEY`            | —                    | Enables image search; blank disables it.                                                                          |
+| `PAPERLESS_URL`               | —                    | Base URL of your Paperless-ngx instance; blank disables the integration end-to-end.                               |
+| `PAPERLESS_TOKEN`             | —                    | Personal API token from Paperless's user menu.                                                                    |
+| `PAPERLESS_WEBHOOK_SECRET`    | auto                 | Seeded by `paperless:install`; sent as `X-Stockroom-Secret`. Rotate with `--force-secret`.                        |
+| `PAPERLESS_TRIGGER_TAG`       | `add to stockbox`    | Tagging a document with this hands it to Stockroom.                                                               |
+| `PAPERLESS_LINKED_TAG`        | `stockbox`           | Applied to a document once it has been processed.                                                                 |
+| `PAPERLESS_LINK_CUSTOM_FIELD` | `stockroom_item_ids` | Paperless custom field holding the linked item IDs.                                                               |
 
-The complete list with comments lives in [`.env.example`](./.env.example).
+Standard Laravel variables (`APP_*`, `LOG_*`, `MAIL_*`, `SESSION_*`, `REDIS_*`,
+`AWS_*`) behave as they do in any Laravel app and are not repeated here — note
+that mail must be configured for invitation emails to send. The complete list
+with comments lives in [`.env.example`](./.env.example).
 
 ## Develop locally (Sail)
 
