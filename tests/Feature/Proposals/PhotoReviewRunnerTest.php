@@ -8,6 +8,7 @@ use App\Enums\ProposalField;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\ItemProposal;
+use App\Services\Proposals\Exceptions\PhotoReviewFailed;
 use App\Services\Proposals\PhotoReviewRunner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -198,8 +199,10 @@ it('leaves the photos unreviewed when every one of them fails', function () {
         new RuntimeException('vision endpoint refused'),
     ]);
 
-    expect(app(PhotoReviewRunner::class)->review($item))->toBeEmpty()
-        ->and(ItemImage::unreviewed()->count())->toBe(2);
+    expect(fn () => app(PhotoReviewRunner::class)->review($item))
+        ->toThrow(PhotoReviewFailed::class);
+
+    expect(ItemImage::unreviewed()->count())->toBe(2);
 });
 
 it('leaves the photos unreviewed when the merge fails', function () {
@@ -209,6 +212,8 @@ it('leaves the photos unreviewed when the merge fails', function () {
     ExistingItemPhotoReviewer::fake([['kind' => 'single', 'description' => 'A drill.']]);
     ItemPhotoFindingsMerger::fake([new RuntimeException('chat endpoint refused')]);
 
-    expect(app(PhotoReviewRunner::class)->review($item))->toBeEmpty()
-        ->and(ItemImage::unreviewed()->count())->toBe(1);
+    expect(fn () => app(PhotoReviewRunner::class)->review($item))
+        ->toThrow(PhotoReviewFailed::class);
+
+    expect(ItemImage::unreviewed()->count())->toBe(1);
 });

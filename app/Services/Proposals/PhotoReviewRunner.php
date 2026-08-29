@@ -10,6 +10,7 @@ use App\Enums\ProposalField;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\ItemProposal;
+use App\Services\Proposals\Exceptions\PhotoReviewFailed;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +33,9 @@ class PhotoReviewRunner
      * Review every photo of $item that has not been looked at yet.
      *
      * @return Collection<int, ItemProposal> the proposals recorded, possibly empty
+     *
+     * @throws PhotoReviewFailed when the model could not be reached at all, so a
+     *                           caller can report a failure rather than silence
      */
     public function review(Item $item): Collection
     {
@@ -43,10 +47,11 @@ class PhotoReviewRunner
 
         $findings = $this->describeEach($item, $images);
 
-        // Every photo failed. Leaving analyzed_at null lets the next run retry
-        // rather than silently writing the item off as reviewed.
+        // Every photo failed. Reported rather than returned empty: "no suggestions"
+        // and "the model was unreachable" look identical to a caller otherwise, and
+        // a whole run of timeouts once read as a clean bill of health.
         if ($findings === []) {
-            return collect();
+            throw new PhotoReviewFailed("Every photo of \"{$item->name}\" failed to be read.");
         }
 
         $merged = $this->reconcile($item, $findings);
@@ -55,7 +60,7 @@ class PhotoReviewRunner
         // repeat of the vision work; marking them would write the item off as
         // reviewed when nothing was ever concluded about it.
         if ($merged === null) {
-            return collect();
+            throw new PhotoReviewFailed("Merging the findings for \"{$item->name}\" failed.");
         }
 
         $proposals = $this->record($item, $merged, $images->pluck('id')->all());

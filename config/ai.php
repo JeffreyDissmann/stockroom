@@ -36,6 +36,14 @@ return [
 
     'enabled' => env('AI_ENABLED', true),
     'vision_model' => env('AI_VISION_MODEL', 'ministral-3:8b'),
+
+    /*
+    | How long a batch agent call may take. The SDK defaults to 60 seconds,
+    | which is fine for a person waiting on a reply and far too tight for the
+    | overnight photo review: vision inference on self-hosted hardware runs to
+    | tens of seconds and longer when the machine is busy.
+    */
+    'agent_timeout' => (int) env('AI_AGENT_TIMEOUT', 180),
     // Chat/assistant model — must support tool (function) calling. Ministral is a
     // small, tool-capable model; change to any tool-capable Ollama model you've pulled
     // (e.g. qwen2.5:7b-instruct, llama3.1:8b). Use the exact tag from `ollama list`.
