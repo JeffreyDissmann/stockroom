@@ -64,6 +64,40 @@ class ItemProposal extends Model
     }
 
     /**
+     * Record that this suggestion was taken. Applying it to the item is the
+     * caller's job — that goes through ItemWriter so the change is normalised,
+     * re-indexed and audited like any other edit.
+     */
+    public function markAccepted(User $reviewer): void
+    {
+        $this->markReviewed(ProposalStatus::Accepted, $reviewer);
+    }
+
+    /**
+     * Record that it was turned down. Kept rather than deleted: knowing a
+     * suggestion was already rejected is the only way to tell a fresh idea from
+     * one that has been dismissed before.
+     */
+    public function markRejected(User $reviewer): void
+    {
+        $this->markReviewed(ProposalStatus::Rejected, $reviewer);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === ProposalStatus::Pending;
+    }
+
+    private function markReviewed(ProposalStatus $status, User $reviewer): void
+    {
+        $this->update([
+            'status' => $status,
+            'reviewed_at' => now(),
+            'reviewed_by' => $reviewer->id,
+        ]);
+    }
+
+    /**
      * Whether the item still holds the value this was proposed against.
      *
      * A proposal can sit in the queue for days while someone edits the item by

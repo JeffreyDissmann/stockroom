@@ -20,6 +20,7 @@ use App\Http\Controllers\Items\PaperlessLinkController;
 use App\Http\Controllers\Items\RelatedItemController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PaperlessWebhookController;
+use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
 use App\Http\Middleware\EnsurePaperlessEnabled;
@@ -47,6 +48,13 @@ Route::middleware('auth')->group(function () {
     // Household-wide maintenance overview (per-item maintenance CRUD lives
     // in the items/{item}/maintenance-* routes below).
     Route::get('maintenance', MaintenanceController::class)->name('maintenance');
+
+    // The AI review queue, top level rather than buried in Household: it is a
+    // recurring task with a changing count, not a setting you configure once.
+    // Not admin-gated — accepting a suggestion is an ordinary item edit.
+    Route::get('proposals', [ProposalController::class, 'index'])->name('proposals.index');
+    Route::patch('proposals/{proposal}', [ProposalController::class, 'accept'])->name('proposals.accept');
+    Route::delete('proposals/{proposal}', [ProposalController::class, 'reject'])->name('proposals.reject');
 
     Route::get('items/{item}/move-targets', [ItemController::class, 'moveTargets'])->name('items.move-targets');
     Route::patch('items/{item}/move', [ItemController::class, 'move'])->name('items.move');
