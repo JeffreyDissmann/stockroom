@@ -7,6 +7,58 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.08.04] — 2026-08-29
+
+### Added
+
+- **Stockroom reads your item photos and suggests what an entry is missing.**
+  It picks out a manufacturer, model or serial number where one is legible, and
+  for a box of many things it writes out what is inside — which is what makes
+  the contents findable by search. Nothing is ever applied on its own: every
+  suggestion waits for you to accept it.
+
+  Suggestions appear on the item's own page, beside the values they would
+  change, and in a queue under **Suggestions** in the top bar. The queue groups
+  one card per item and shows every photo it read, because judging a suggestion
+  about a photo you cannot see is just rubber-stamping. Accepting one is an
+  ordinary edit: it is audited and re-indexed exactly as if you had typed it.
+
+  What you have already written always comes first and is never reworded or
+  dropped — you know things a photo cannot show, like where something came from
+  or what it cost. The photos only add to it.
+
+- **A button to review photos now** rather than waiting for the nightly pass,
+  with progress as it works. Looking at a single photo takes around fifteen
+  seconds, so a batch is genuinely minutes of work.
+
+- **The dashboard says when there is something to review** — suggestions
+  waiting on your decision, or photos nobody has looked at yet. It stays out of
+  the way when there is neither.
+
+### Changed
+
+- **The top bar is shorter.** Activity and Household moved into the avatar
+  menu; the bar keeps the places with work waiting in them.
+- **"Model" everywhere.** The same field was labelled "Model" on an item's page
+  and "Model number" on its form and in suggestions.
+
+### Fixed
+
+- A failed photo review is now reported as a failure. Previously a run where
+  every model call timed out looked exactly like "the photos add nothing", and
+  a whole night of timeouts once read as a clean bill of health.
+- The mobile menu was missing its **Suggestions** link, leaving the queue
+  unreachable from a phone.
+
+### Internal
+
+- **Pint no longer reformats the dependencies.** It excludes `vendor` by
+  default, but this project's real directory is `vendor.nosync` and `vendor` is
+  only a symlink to it, so the exclusion never matched. A full run rewrote 1703
+  files inside the dependencies — including Mockery's own source, which broke
+  every test that mocks anything. A full check now takes about two seconds
+  rather than long enough to look like a hang.
+
 ## [2026.08.03] — 2026-08-17
 
 ### Fixed
@@ -667,7 +719,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.03...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.04...HEAD
+[2026.08.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.03...2026.08.04
 [2026.08.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.02...2026.08.03
 [2026.08.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.01...2026.08.02
 [2026.08.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.06.08...2026.08.01
