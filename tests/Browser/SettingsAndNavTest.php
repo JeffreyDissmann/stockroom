@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Ai\Agents\InventoryAssistant;
+use App\Models\Item;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Ai\Models\Conversation;
@@ -90,7 +91,7 @@ it('shows a floating assistant button on mobile and opens the panel from it', fu
 
 it('hides the FAB while scrolling down and shows it again scrolling up', function () {
     // Needs a tall, scrollable page so the scroll handler fires.
-    App\Models\Item::factory()->count(24)->create();
+    Item::factory()->count(24)->create();
 
     $page = visit('/items')->on()->iPhone14Pro();
     $page->assertPresent('@open-assistant-fab');
@@ -109,7 +110,7 @@ it('hides the FAB while scrolling down and shows it again scrolling up', functio
     // Scrolling back up shows it again.
     expect($page->script(
         "(async()=>{const el=document.querySelector('.main-scroll');el.scrollTop=500;el.dispatchEvent(new Event('scroll'));"
-        . "el.scrollTop=0;el.dispatchEvent(new Event('scroll'));{$flush}return {$fab};})()"
+        ."el.scrollTop=0;el.dispatchEvent(new Event('scroll'));{$flush}return {$fab};})()"
     ))->toBeFalse();
 
     $page->assertNoJavaScriptErrors();
