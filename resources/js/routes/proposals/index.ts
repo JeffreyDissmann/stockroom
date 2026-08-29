@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\ProposalController::accept
-* @see app/Http/Controllers/ProposalController.php:44
+* @see app/Http/Controllers/ProposalController.php:53
 * @route '/proposals/{proposal}'
 */
 export const accept = (args: { proposal: number | { id: number } } | [proposal: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -60,7 +60,7 @@ accept.definition = {
 
 /**
 * @see \App\Http\Controllers\ProposalController::accept
-* @see app/Http/Controllers/ProposalController.php:44
+* @see app/Http/Controllers/ProposalController.php:53
 * @route '/proposals/{proposal}'
 */
 accept.url = (args: { proposal: number | { id: number } } | [proposal: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -93,7 +93,7 @@ accept.url = (args: { proposal: number | { id: number } } | [proposal: number | 
 
 /**
 * @see \App\Http\Controllers\ProposalController::accept
-* @see app/Http/Controllers/ProposalController.php:44
+* @see app/Http/Controllers/ProposalController.php:53
 * @route '/proposals/{proposal}'
 */
 accept.patch = (args: { proposal: number | { id: number } } | [proposal: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -103,7 +103,7 @@ accept.patch = (args: { proposal: number | { id: number } } | [proposal: number 
 
 /**
 * @see \App\Http\Controllers\ProposalController::reject
-* @see app/Http/Controllers/ProposalController.php:63
+* @see app/Http/Controllers/ProposalController.php:72
 * @route '/proposals/{proposal}'
 */
 export const reject = (args: { proposal: number | { id: number } } | [proposal: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -118,7 +118,7 @@ reject.definition = {
 
 /**
 * @see \App\Http\Controllers\ProposalController::reject
-* @see app/Http/Controllers/ProposalController.php:63
+* @see app/Http/Controllers/ProposalController.php:72
 * @route '/proposals/{proposal}'
 */
 reject.url = (args: { proposal: number | { id: number } } | [proposal: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -151,7 +151,7 @@ reject.url = (args: { proposal: number | { id: number } } | [proposal: number | 
 
 /**
 * @see \App\Http\Controllers\ProposalController::reject
-* @see app/Http/Controllers/ProposalController.php:63
+* @see app/Http/Controllers/ProposalController.php:72
 * @route '/proposals/{proposal}'
 */
 reject.delete = (args: { proposal: number | { id: number } } | [proposal: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
