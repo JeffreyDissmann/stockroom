@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Ai\Agents\InventoryAssistant;
-use App\Ai\Agents\ItemPhotoAnalyzer;
+use App\Ai\Agents\NewItemDraftFromPhoto;
 use App\Ai\AssistantContext;
 use App\Ai\ReplyPresenter;
 use App\Http\Middleware\EnsureAiEnabled;
@@ -82,7 +82,7 @@ class AssistantController extends Controller
         }
 
         try {
-            $response = $agent->prompt($message, model: config('ai.chat_model'), timeout: 120);
+            $response = $agent->prompt($message, timeout: 120);
         } catch (Throwable $e) {
             report($e);
             abort(502, 'The assistant is unavailable right now. Please try again.');
@@ -157,10 +157,9 @@ class AssistantController extends Controller
         $detected = [];
 
         try {
-            $analysis = (new ItemPhotoAnalyzer($language))->prompt(
+            $analysis = (new NewItemDraftFromPhoto($language))->prompt(
                 'Catalogue the main item shown in this photo.',
                 attachments: [Image::fromBase64(base64_encode($jpeg), 'image/jpeg')],
-                model: config('ai.vision_model'),
                 timeout: 120,
             );
 

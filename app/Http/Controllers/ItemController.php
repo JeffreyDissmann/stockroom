@@ -24,6 +24,7 @@ use App\Services\Battery\BatteryPresenter;
 use App\Services\ItemImageProcessor;
 use App\Services\Items\ItemWriter;
 use App\Services\Maintenance\MaintenancePresenter;
+use App\Services\Proposals\ProposalPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,6 +42,7 @@ class ItemController extends Controller
         private readonly ItemWriter $writer,
         private readonly MaintenancePresenter $maintenancePresenter,
         private readonly BatteryPresenter $batteryPresenter,
+        private readonly ProposalPresenter $proposals,
     ) {}
 
     public function index(Request $request): Response
@@ -164,6 +166,18 @@ class ItemController extends Controller
                 'summary' => $this->batteryPresenter->summary($item),
                 'cycles' => $this->batteryPresenter->cycles($item),
             ],
+            // Pending AI suggestions, shown beside the field each would change so
+            // the photos that produced them are in view while deciding.
+            'suggestions' => $item->proposals()
+                ->pending()
+                ->get()
+                // The presenter needs the item for the stale check. We already
+                // have it, so hand it over rather than let each proposal fetch
+                // its own — which under Model::shouldBeStrict() is not an N+1
+                // but a hard LazyLoadingViolationException.
+                ->each(fn ($proposal) => $proposal->setRelation('item', $item))
+                ->map($this->proposals->present(...))
+                ->keyBy('field'),
             'activities' => $activities,
             // For the bulk-tag dialog launched from the Contents section's
             // Select mode. Sent unconditionally (tag count is small) so

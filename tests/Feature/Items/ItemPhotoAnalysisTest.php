@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Items;
 
-use App\Ai\Agents\ItemPhotoAnalyzer;
+use App\Ai\Agents\NewItemDraftFromPhoto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -43,7 +43,7 @@ class ItemPhotoAnalysisTest extends TestCase
 
     public function test_it_returns_extracted_fields_from_the_vision_agent(): void
     {
-        ItemPhotoAnalyzer::fake([[
+        NewItemDraftFromPhoto::fake([[
             'name' => 'DeWalt 20V Drill',
             'manufacturer' => 'DeWalt',
             'model_number' => 'DCD777',
@@ -62,34 +62,34 @@ class ItemPhotoAnalysisTest extends TestCase
                 'description' => 'A cordless power drill.',
             ]]);
 
-        ItemPhotoAnalyzer::assertPrompted(fn () => true);
+        NewItemDraftFromPhoto::assertPrompted(fn () => true);
     }
 
     public function test_it_prompts_for_name_and_description_in_the_users_language(): void
     {
-        ItemPhotoAnalyzer::fake([['name' => 'Bohrmaschine', 'description' => 'Eine Akku-Bohrmaschine.']]);
+        NewItemDraftFromPhoto::fake([['name' => 'Bohrmaschine', 'description' => 'Eine Akku-Bohrmaschine.']]);
 
         $this->actingAs(User::factory()->create(['locale' => 'de']))
             ->analyze(['photo' => $this->photo()])
             ->assertOk();
 
-        ItemPhotoAnalyzer::assertPrompted(fn ($prompt) => str_contains($prompt->agent->instructions(), 'in German'));
+        NewItemDraftFromPhoto::assertPrompted(fn ($prompt) => str_contains($prompt->agent->instructions(), 'in German'));
     }
 
     public function test_it_defaults_to_english_for_an_english_user(): void
     {
-        ItemPhotoAnalyzer::fake([['name' => 'Drill']]);
+        NewItemDraftFromPhoto::fake([['name' => 'Drill']]);
 
         $this->actingAs(User::factory()->create(['locale' => 'en']))
             ->analyze(['photo' => $this->photo()])
             ->assertOk();
 
-        ItemPhotoAnalyzer::assertPrompted(fn ($prompt) => str_contains($prompt->agent->instructions(), 'in English'));
+        NewItemDraftFromPhoto::assertPrompted(fn ($prompt) => str_contains($prompt->agent->instructions(), 'in English'));
     }
 
     public function test_it_trims_values_blanks_to_null_and_only_returns_known_keys(): void
     {
-        ItemPhotoAnalyzer::fake([[
+        NewItemDraftFromPhoto::fake([[
             'name' => '  Gold Bar  ',
             'manufacturer' => '',
             'description' => 'A 1kg bar.',
@@ -131,12 +131,12 @@ class ItemPhotoAnalysisTest extends TestCase
     {
         config(['ai.enabled' => false]);
 
-        ItemPhotoAnalyzer::fake([['name' => 'Should never run']]);
+        NewItemDraftFromPhoto::fake([['name' => 'Should never run']]);
 
         $this->actingAs(User::factory()->create())
             ->analyze(['photo' => $this->photo()])
             ->assertStatus(503);
 
-        ItemPhotoAnalyzer::assertNeverPrompted();
+        NewItemDraftFromPhoto::assertNeverPrompted();
     }
 }

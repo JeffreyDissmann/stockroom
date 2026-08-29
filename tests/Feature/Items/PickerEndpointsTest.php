@@ -22,7 +22,6 @@ uses(RefreshDatabase::class);
  * Meilisearch-specific concerns (filterableAttributes config, filter DSL
  * syntax) stay covered by manual browser smoke-tests in dev.
  */
-
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
 });

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Ai\Agents\InventoryAssistant;
+use App\Models\Item;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Ai\Models\Conversation;
@@ -90,7 +91,7 @@ it('shows a floating assistant button on mobile and opens the panel from it', fu
 
 it('hides the FAB while scrolling down and shows it again scrolling up', function () {
     // Needs a tall, scrollable page so the scroll handler fires.
-    App\Models\Item::factory()->count(24)->create();
+    Item::factory()->count(24)->create();
 
     $page = visit('/items')->on()->iPhone14Pro();
     $page->assertPresent('@open-assistant-fab');
@@ -109,7 +110,7 @@ it('hides the FAB while scrolling down and shows it again scrolling up', functio
     // Scrolling back up shows it again.
     expect($page->script(
         "(async()=>{const el=document.querySelector('.main-scroll');el.scrollTop=500;el.dispatchEvent(new Event('scroll'));"
-        . "el.scrollTop=0;el.dispatchEvent(new Event('scroll'));{$flush}return {$fab};})()"
+        ."el.scrollTop=0;el.dispatchEvent(new Event('scroll'));{$flush}return {$fab};})()"
     ))->toBeFalse();
 
     $page->assertNoJavaScriptErrors();
@@ -167,5 +168,32 @@ it('keeps a reset thread empty after a page reload', function () {
     $page->click('@open-assistant')
         ->assertSee('Ask me where something is') // empty state instead
         ->assertDontSee('where is the cordless drill')
+        ->assertNoJavaScriptErrors();
+});
+
+it('reaches activity and household from the avatar menu', function () {
+    // Both moved out of the top bar. The mobile "More" menu once lost its
+    // Proposals link this way — unreachable, with every test still green — so
+    // the new home gets an assertion rather than trust.
+    $page = visit('/dashboard');
+
+    $page->click('@user-menu')
+        ->click('Activity')
+        ->assertPathIs('/activity')
+        ->assertNoJavaScriptErrors();
+
+    $page->navigate('/dashboard')
+        ->click('@user-menu')
+        ->click('Household')
+        ->assertPathBeginsWith('/household')
+        ->assertNoJavaScriptErrors();
+});
+
+it('keeps the top bar down to what you act on', function () {
+    $page = visit('/dashboard');
+
+    // Still there: the destinations with work waiting in them.
+    $page->assertSee('Maintenance')
+        ->assertSee('Suggestions')
         ->assertNoJavaScriptErrors();
 });

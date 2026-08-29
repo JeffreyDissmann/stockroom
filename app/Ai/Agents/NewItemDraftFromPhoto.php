@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\ReadsItemPhotos;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Laravel\Ai\Contracts\Agent;
@@ -16,9 +17,10 @@ use Laravel\Ai\Promptable;
  * not pinned here — the caller passes the configured vision model so the SDK's
  * provider abstraction (and config('ai.vision_model')) stays in control.
  */
-class ItemPhotoAnalyzer implements Agent, HasStructuredOutput
+class NewItemDraftFromPhoto implements Agent, HasStructuredOutput
 {
     use Promptable;
+    use ReadsItemPhotos;
 
     /**
      * @param  string  $language  Language for the human-readable fields (name, description),
@@ -26,21 +28,33 @@ class ItemPhotoAnalyzer implements Agent, HasStructuredOutput
      */
     public function __construct(private readonly string $language = 'English') {}
 
+    /**
+     * Reading a photograph, so the vision model. See ExistingItemPhotoReviewer:
+     * the agent, not the caller, knows which kind of model it needs.
+     */
+    public function model(): string
+    {
+        return (string) config('ai.vision_model');
+    }
+
     public function instructions(): string
     {
+        $identifiers = $this->identifierHonestyRule();
+        $clutter = $this->ignoreClutterRule();
+        $language = $this->languageRule($this->language);
+
         return <<<PROMPT
         You catalogue household belongings for a home-inventory app from a single product photo.
 
         Identify the main object in the photo and extract concise, factual fields for it:
         - "name": a short human label, ideally "Brand Product" (e.g. "DeWalt 20V Drill"). Always provide one.
-        - "manufacturer", "model_number", "serial_number": report a value ONLY if it is clearly
-          legible in the image. If it is not visible, return null. Never guess or invent identifiers.
         - "description": one or two neutral, factual sentences describing the item.
 
-        Write "name" and "description" in {$this->language}. Keep brand names as printed, and report
-        "manufacturer", "model_number" and "serial_number" exactly as shown on the item — never translate identifiers.
+        {$identifiers}
 
-        Ignore the background, hands, packaging clutter, price tags, and watermarks.
+        {$clutter}
+
+        {$language}
         PROMPT;
     }
 

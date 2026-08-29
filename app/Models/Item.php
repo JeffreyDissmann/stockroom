@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\ItemType;
 use App\Search\ItemEmbedder;
 use Database\Factories\ItemFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -165,6 +166,25 @@ class Item extends Model
      * Battery cycles (one per physical battery), newest install first. The
      * open one is the current battery; the rest are history.
      */
+    /**
+     * Items with at least one photo the review agent has never looked at.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeAwaitingPhotoReview(Builder $query): void
+    {
+        $query->whereHas('images', fn (Builder $images) => $images->unreviewed());
+    }
+
+    /**
+     * AI review suggestions for this item, newest first. Pending ones drive
+     * the review queue; accepted/rejected stay as an audit trail.
+     */
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(ItemProposal::class)->latest();
+    }
+
     public function batteryCycles(): HasMany
     {
         return $this->hasMany(BatteryCycle::class)->orderByDesc('installed_at');

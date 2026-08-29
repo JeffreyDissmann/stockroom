@@ -23,6 +23,10 @@ return [
     'recently_added' => 'Recently added',
     'recent_activity' => 'Recent activity',
     'maintenance_due' => 'Maintenance due (:count)',
+    'suggestions_to_review' => 'Photos to review',
+    'suggestions_waiting' => 'Suggestion waiting (:count)|Suggestions waiting (:count)',
+    'suggestions_unreviewed' => 'Stockroom has not looked at the photos of :count item yet.|Stockroom has not looked at the photos of :count items yet.',
+    'suggestions_for_item' => ':count suggestion|:count suggestions',
     'view_all' => 'View all',
 
     'col_item' => 'Item',

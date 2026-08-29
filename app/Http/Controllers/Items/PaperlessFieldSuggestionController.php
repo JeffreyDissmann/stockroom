@@ -57,7 +57,6 @@ class PaperlessFieldSuggestionController extends Controller
         try {
             $response = (new ItemFieldExtractor($item->name, $language))->prompt(
                 "Extract this item's catalogue fields from the document.\n\nOCR TEXT:\n{$ocr}",
-                model: config('ai.chat_model'),
                 timeout: 120,
             );
         } catch (Throwable) {

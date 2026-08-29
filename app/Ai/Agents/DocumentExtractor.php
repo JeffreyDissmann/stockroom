@@ -32,6 +32,15 @@ class DocumentExtractor implements Agent, HasStructuredOutput
      */
     public function __construct(private readonly string $language = 'English') {}
 
+    /**
+     * OCR text, not an image, so the chat model — and it must be one that copes
+     * with structured output, since a receipt yields a list of items in one call.
+     */
+    public function model(): string
+    {
+        return (string) config('ai.chat_model');
+    }
+
     public function instructions(): string
     {
         return <<<PROMPT

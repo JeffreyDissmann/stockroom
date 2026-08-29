@@ -7,11 +7,12 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { itemIconMap } from '@/lib/itemIcons';
 // Aliased: `maintenance` would clash with the prop of the same name.
 import { activity as activityRoute, maintenance as maintenanceRoute, search } from '@/routes';
+import proposalRoutes from '@/routes/proposals';
 import itemRoutes from '@/routes/items';
 import tagRoutes from '@/routes/tags';
 import type { ActivityRow, BreadcrumbItemType, ItemSummary, MaintenanceTaskRow, SharedData, TagSummary } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ChevronRight, Plus, Wrench } from '@lucide/vue';
+import { ChevronRight, Lightbulb, Plus, Wrench } from '@lucide/vue';
 import { computed } from 'vue';
 
 interface RecentItem {
@@ -45,6 +46,11 @@ const props = defineProps<{
     tags: DashboardTag[];
     rooms: RoomRow[];
     activity: ActivityRow[];
+    proposals: {
+        pending: number;
+        unreviewed: number;
+        items: { id: number; name: string; count: number }[];
+    };
     maintenance: { count: number; tasks: DueTaskRow[] };
 }>();
 
@@ -134,6 +140,38 @@ const valueLabel = computed(() =>
                         >{{ $t('common.more') }} <ChevronRight :size="12"
                     /></Link>
                 </div>
+            </section>
+
+            <!-- Suggestions waiting on a decision, and photos not yet looked
+                 at. Absent when neither applies, for the same reason the
+                 maintenance card is: an all-clear is dashboard noise.
+
+                 The heading follows whichever of the two is actually the
+                 news. With nothing pending it must not say "Suggestions
+                 waiting (0)" over a card that exists to report unread photos. -->
+            <section v-if="proposals.pending > 0 || proposals.unreviewed > 0" class="card mb-4" data-test="dashboard-proposals-card">
+                <div class="card-head">
+                    <h3 class="flex items-center gap-2">
+                        <Lightbulb class="text-fg-muted" :size="14" />
+                        {{
+                            proposals.pending > 0
+                                ? $tChoice('dashboard.suggestions_waiting', proposals.pending)
+                                : $t('dashboard.suggestions_to_review')
+                        }}
+                    </h3>
+                    <Link :href="proposalRoutes.index().url" class="meta dash-link">{{ $t('dashboard.view_all') }} <ChevronRight :size="12" /></Link>
+                </div>
+                <ul v-if="proposals.items.length" class="dash-mnt">
+                    <li v-for="row in proposals.items" :key="row.id">
+                        <Link :href="itemRoutes.show(row.id).url" class="dash-mnt-row" data-test="dashboard-proposals-row">
+                            <span class="mnt-badge is-due-soon">{{ $tChoice('dashboard.suggestions_for_item', row.count) }}</span>
+                            <span class="dash-mnt-title">{{ row.name }}</span>
+                        </Link>
+                    </li>
+                </ul>
+                <p v-if="proposals.unreviewed > 0" class="card-pad m-0 text-13 text-fg-muted">
+                    {{ $tChoice('dashboard.suggestions_unreviewed', proposals.unreviewed) }}
+                </p>
             </section>
 
             <!-- Maintenance needing attention (overdue or inside its

@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\ItemImageFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 class ItemImage extends Model
 {
+    /** @use HasFactory<ItemImageFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'item_id',
         'extension',
@@ -19,10 +25,12 @@ class ItemImage extends Model
         'size_bytes_original',
         'sort_order',
         'is_primary',
+        'analyzed_at',
     ];
 
     protected $casts = [
         'is_primary' => 'bool',
+        'analyzed_at' => 'datetime',
         'sort_order' => 'int',
         'width_original' => 'int',
         'height_original' => 'int',
@@ -79,6 +87,19 @@ class ItemImage extends Model
     public function largeUrl(): string
     {
         return Storage::disk('public')->url($this->largePath());
+    }
+
+    /**
+     * Photos the review agent has never looked at.
+     *
+     * The flag lives here rather than on the item so that adding a photo to an
+     * item reviewed months ago puts it back in the queue on its own.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeUnreviewed(Builder $query): void
+    {
+        $query->whereNull('analyzed_at');
     }
 
     public function originalUrl(): string

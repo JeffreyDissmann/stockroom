@@ -5,6 +5,7 @@ import BulkActionBar from '@/components/BulkActionBar.vue';
 import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
 import CreateBoxDialog from '@/components/CreateBoxDialog.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
+import ItemSuggestion from '@/components/ItemSuggestion.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import LinkRelatedItemDialog from '@/components/LinkRelatedItemDialog.vue';
@@ -47,6 +48,8 @@ const props = defineProps<{
     maintenance: MaintenanceData;
     battery: BatteryData;
     activities: ActivityRow[];
+    // Pending AI suggestions, keyed by the field each would change.
+    suggestions: Record<string, Suggestion>;
     // For the bulk-tag dialog launched from the Contents section.
     tags?: TagSummary[];
 }>();
@@ -106,6 +109,17 @@ interface DetailRow {
     label: string;
     value: string;
     mono?: boolean;
+    // Set when a suggestion targets this field, so the row can carry its chip.
+    field?: string;
+}
+
+interface Suggestion {
+    id: number;
+    field: string;
+    field_label: string;
+    current_value: string | null;
+    proposed_value: string;
+    is_stale: boolean;
 }
 
 const detailRows = computed<DetailRow[]>(() => {
@@ -113,9 +127,9 @@ const detailRows = computed<DetailRow[]>(() => {
     const rows: DetailRow[] = [];
     if (i.type.details === false) return rows; // rooms carry no detail fields
     if (i.quantity != null) rows.push({ label: trans('items.show.labels.quantity'), value: String(i.quantity) });
-    if (i.manufacturer) rows.push({ label: trans('items.show.labels.manufacturer'), value: i.manufacturer });
-    if (i.model_number) rows.push({ label: trans('items.show.labels.model'), value: i.model_number });
-    if (i.serial_number) rows.push({ label: trans('items.show.labels.serial'), value: i.serial_number, mono: true });
+    if (i.manufacturer) rows.push({ label: trans('items.show.labels.manufacturer'), value: i.manufacturer, field: 'manufacturer' });
+    if (i.model_number) rows.push({ label: trans('items.show.labels.model'), value: i.model_number, field: 'model_number' });
+    if (i.serial_number) rows.push({ label: trans('items.show.labels.serial'), value: i.serial_number, mono: true, field: 'serial_number' });
     if (i.purchased_from) rows.push({ label: trans('items.show.labels.purchased_from'), value: i.purchased_from });
     if (i.purchase_date) rows.push({ label: trans('items.show.labels.purchased'), value: i.purchase_date });
     const paid = fmtMoney(i.purchase_price);
@@ -124,6 +138,23 @@ const detailRows = computed<DetailRow[]>(() => {
     else if (i.warranty_expires) rows.push({ label: trans('items.show.labels.warranty_until'), value: i.warranty_expires });
     return rows;
 });
+
+// detailRows only lists fields that hold a value, so a suggested manufacturer
+// on an empty field would have nowhere to appear. These are the rows that exist
+// solely to carry a suggestion.
+// Labelled from items.show.labels, not the proposal's own field_label, so a
+// suggested row reads the same as a filled one ("Serial", not "Serial number").
+const suggestedOnlyLabels = {
+    manufacturer: 'items.show.labels.manufacturer',
+    model_number: 'items.show.labels.model',
+    serial_number: 'items.show.labels.serial',
+} as const;
+
+const suggestedOnlyRows = computed<DetailRow[]>(() =>
+    (['manufacturer', 'model_number', 'serial_number'] as const)
+        .filter((field) => props.suggestions[field] && !props.item[field])
+        .map((field) => ({ label: trans(suggestedOnlyLabels[field]), value: '', field })),
+);
 
 const isSold = computed(() => {
     const i = props.item;
@@ -294,6 +325,16 @@ function destroyItem() {
                         <p class="section-label">{{ item.type.label }}</p>
                         <h1 class="m-0 mt-1 text-26 font-semibold tracking-display-lg">{{ item.name }}</h1>
                         <p class="m-0 mt-3 text-sm text-fg-muted" v-if="item.description">{{ item.description }}</p>
+                        <!-- Without this the chip would have nothing to sit under on an
+                             item that has no description yet — the commonest case for a
+                             suggestion to exist at all. -->
+                        <ItemSuggestion
+                            v-if="suggestions.description"
+                            class="mt-3"
+                            :id="suggestions.description.id"
+                            :proposed-value="suggestions.description.proposed_value"
+                            :is-stale="suggestions.description.is_stale"
+                        />
                         <div v-if="item.tags?.length" class="mt-3 flex flex-wrap gap-1">
                             <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />
                         </div>
@@ -319,15 +360,25 @@ function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="detailRows.length" class="card">
+                    <div v-if="detailRows.length || suggestedOnlyRows.length" class="card">
                         <div class="card-head">
                             <h3>{{ $t('items.show.details') }}</h3>
                         </div>
                         <div class="card-pad">
                             <dl class="kv">
-                                <template v-for="row in detailRows" :key="row.label">
+                                <template v-for="row in [...detailRows, ...suggestedOnlyRows]" :key="row.label">
                                     <dt>{{ row.label }}</dt>
-                                    <dd :class="{ mono: row.mono }">{{ row.value }}</dd>
+                                    <dd :class="{ mono: row.mono }">
+                                        <span v-if="row.value">{{ row.value }}</span>
+                                        <span v-else class="text-fg-subtle">{{ $t('proposals.empty_field') }}</span>
+                                        <ItemSuggestion
+                                            v-if="row.field && suggestions[row.field]"
+                                            class="mt-2"
+                                            :id="suggestions[row.field].id"
+                                            :proposed-value="suggestions[row.field].proposed_value"
+                                            :is-stale="suggestions[row.field].is_stale"
+                                        />
+                                    </dd>
                                 </template>
                             </dl>
                             <p class="m-0 mt-3 text-13 text-fg-muted" v-if="item.warranty_details">

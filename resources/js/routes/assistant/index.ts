@@ -35,7 +35,7 @@ messages.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:200
+* @see app/Http/Controllers/AssistantController.php:199
 * @route '/assistant/conversation'
 */
 export const conversation = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -50,7 +50,7 @@ conversation.definition = {
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:200
+* @see app/Http/Controllers/AssistantController.php:199
 * @route '/assistant/conversation'
 */
 conversation.url = (options?: RouteQueryOptions) => {
@@ -59,7 +59,7 @@ conversation.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:200
+* @see app/Http/Controllers/AssistantController.php:199
 * @route '/assistant/conversation'
 */
 conversation.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -69,7 +69,7 @@ conversation.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:200
+* @see app/Http/Controllers/AssistantController.php:199
 * @route '/assistant/conversation'
 */
 conversation.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

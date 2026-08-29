@@ -4,6 +4,7 @@ import DashboardController from './DashboardController'
 import SearchController from './SearchController'
 import ActivityController from './ActivityController'
 import MaintenanceController from './MaintenanceController'
+import ProposalController from './ProposalController'
 import ItemController from './ItemController'
 import ItemPhotoAnalysisController from './ItemPhotoAnalysisController'
 import AssistantController from './AssistantController'
@@ -22,6 +23,7 @@ const Controllers = {
     SearchController: Object.assign(SearchController, SearchController),
     ActivityController: Object.assign(ActivityController, ActivityController),
     MaintenanceController: Object.assign(MaintenanceController, MaintenanceController),
+    ProposalController: Object.assign(ProposalController, ProposalController),
     ItemController: Object.assign(ItemController, ItemController),
     ItemPhotoAnalysisController: Object.assign(ItemPhotoAnalysisController, ItemPhotoAnalysisController),
     AssistantController: Object.assign(AssistantController, AssistantController),

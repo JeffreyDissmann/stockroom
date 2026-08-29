@@ -1,5 +1,9 @@
 {
     "preset": "laravel",
+    "exclude": [
+        "vendor.nosync",
+        "node_modules.nosync"
+    ],
     "rules": {
         "declare_strict_types": true
     }
