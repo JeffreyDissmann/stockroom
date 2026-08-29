@@ -16,6 +16,7 @@ import members from '@/routes/household/members';
 import householdPreferences from '@/routes/household/preferences';
 import searchIndex from '@/routes/household/search-index';
 import items from '@/routes/items';
+import proposalRoutes from '@/routes/proposals';
 import profile from '@/routes/profile';
 import tags from '@/routes/tags';
 import type { SharedData } from '@/types';
@@ -25,6 +26,7 @@ import {
     Boxes,
     Database,
     LayoutGrid,
+    Lightbulb,
     LogOut,
     MoreHorizontal,
     Plus,
@@ -100,6 +102,12 @@ const moreActive = computed(() => /^\/(tags|activity|maintenance|household|setti
                     <Link class="flex w-full items-center" :href="maintenance().url">
                         <Wrench class="mr-2 h-4 w-4" />
                         {{ $t('nav.maintenance') }}
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem as-child>
+                    <Link class="flex w-full items-center" :href="proposalRoutes.index().url">
+                        <Lightbulb class="mr-2 h-4 w-4" />
+                        {{ $t('nav.proposals') }}
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem as-child>

@@ -9,6 +9,7 @@ return [
     'search' => 'Suche',
     'tags' => 'Schlagwörter',
     'activity' => 'Aktivität',
+    'proposals' => 'Vorschläge',
     'maintenance' => 'Wartung',
     'household' => 'Haushalt',
     'settings' => 'Einstellungen',
