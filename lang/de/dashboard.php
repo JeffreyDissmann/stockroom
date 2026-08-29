@@ -23,6 +23,10 @@ return [
     'recently_added' => 'Zuletzt hinzugefügt',
     'recent_activity' => 'Letzte Aktivität',
     'maintenance_due' => 'Wartung fällig (:count)',
+    'suggestions_to_review' => 'Fotos auszuwerten',
+    'suggestions_waiting' => 'Vorschlag wartet (:count)|Vorschläge warten (:count)',
+    'suggestions_unreviewed' => 'Stockroom hat die Fotos von :count Objekt noch nicht angesehen.|Stockroom hat die Fotos von :count Objekten noch nicht angesehen.',
+    'suggestions_for_item' => ':count Vorschlag|:count Vorschläge',
     'view_all' => 'Alle anzeigen',
 
     'col_item' => 'Gegenstand',

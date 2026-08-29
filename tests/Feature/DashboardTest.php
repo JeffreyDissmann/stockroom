@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Item;
+use App\Models\ItemImage;
+use App\Models\ItemProposal;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
@@ -50,5 +52,46 @@ class DashboardTest extends TestCase
                 ->has('activity')
                 ->has('recent')
                 ->has('tags'));
+    }
+
+    public function test_it_reports_suggestions_waiting_on_a_decision()
+    {
+        $this->actingAs(User::factory()->create());
+
+        $box = Item::factory()->create(['name' => 'Moving box']);
+        ItemProposal::factory()->count(2)->for($box)->create();
+        ItemProposal::factory()->accepted()->create();
+
+        $this->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('proposals.pending', 2)
+                ->has('proposals.items', 1)
+                ->where('proposals.items.0.name', 'Moving box')
+                ->where('proposals.items.0.count', 2));
+    }
+
+    public function test_it_reports_photos_nobody_has_looked_at()
+    {
+        $this->actingAs(User::factory()->create());
+
+        ItemImage::factory()->for(Item::factory()->create())->create(['analyzed_at' => null]);
+        ItemImage::factory()->for(Item::factory()->create())->create(['analyzed_at' => now()]);
+
+        $this->get('/dashboard')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('proposals.unreviewed', 1));
+    }
+
+    public function test_it_does_not_nag_about_unreviewed_photos_while_ai_is_off()
+    {
+        $this->actingAs(User::factory()->create());
+        config(['ai.enabled' => false]);
+
+        ItemImage::factory()->for(Item::factory()->create())->create(['analyzed_at' => null]);
+
+        // Nothing is going to review them, so counting them would only be a
+        // reproach the user cannot act on.
+        $this->get('/dashboard')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('proposals.unreviewed', 0));
     }
 }
