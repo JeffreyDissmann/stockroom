@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Item;
+use App\Models\ItemImage;
 use App\Models\ItemProposal;
 use App\Models\User;
 
@@ -29,5 +30,15 @@ it('says so plainly when the queue is empty', function () {
     $page = visit('/proposals');
 
     $page->assertPresent('@proposals-empty')
+        ->assertNoJavaScriptErrors();
+});
+
+it('offers a button to review photos without waiting for tonight', function () {
+    $item = Item::factory()->create(['name' => 'Moving box']);
+    ItemImage::factory()->for($item)->create(['analyzed_at' => null]);
+
+    $page = visit('/proposals');
+
+    $page->assertPresent('@proposals-run')
         ->assertNoJavaScriptErrors();
 });

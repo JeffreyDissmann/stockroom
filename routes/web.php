@@ -23,6 +23,7 @@ use App\Http\Controllers\PaperlessWebhookController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
+use App\Http\Middleware\EnsureAiEnabled;
 use App\Http\Middleware\EnsurePaperlessEnabled;
 use App\Http\Middleware\VerifyPaperlessSignature;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,9 @@ Route::middleware('auth')->group(function () {
     // recurring task with a changing count, not a setting you configure once.
     // Not admin-gated — accepting a suggestion is an ordinary item edit.
     Route::get('proposals', [ProposalController::class, 'index'])->name('proposals.index');
+    Route::post('proposals/run', [ProposalController::class, 'run'])
+        ->middleware(EnsureAiEnabled::class)
+        ->name('proposals.run');
     Route::patch('proposals/{proposal}', [ProposalController::class, 'accept'])->name('proposals.accept');
     Route::delete('proposals/{proposal}', [ProposalController::class, 'reject'])->name('proposals.reject');
 

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 use App\Enums\ProposalField;
 use App\Enums\ProposalStatus;
+use App\Jobs\ReviewItemPhotosJob;
 use App\Models\Item;
 use App\Models\ItemImage;
 use App\Models\ItemProposal;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
@@ -193,4 +196,35 @@ it('loads an item with suggestions without tripping the lazy-loading guard', fun
     ItemProposal::factory()->for($item)->count(3)->create(['current_value' => null]);
 
     $this->get("/items/{$item->id}")->assertOk();
+});
+
+it('starts a review run on demand', function () {
+    Queue::fake();
+    Cache::forget(ReviewItemPhotosJob::STATUS_KEY);
+
+    $this->post('/proposals/run')->assertRedirect();
+
+    Queue::assertPushed(ReviewItemPhotosJob::class);
+
+    // Written before dispatch, so the button is already disabled on the
+    // redirect rather than a poll or two later.
+    expect(Cache::get(ReviewItemPhotosJob::STATUS_KEY))->toMatchArray(['state' => 'running']);
+});
+
+it('refuses to start a run while AI is switched off', function () {
+    Queue::fake();
+    config(['ai.enabled' => false]);
+
+    $this->post('/proposals/run')->assertStatus(503);
+
+    Queue::assertNothingPushed();
+});
+
+it('tells the page how much is left to review', function () {
+    $item = Item::factory()->create();
+    ItemImage::factory()->for($item)->create(['analyzed_at' => null]);
+    ItemImage::factory()->for(Item::factory()->create())->create(['analyzed_at' => now()]);
+
+    $this->get('/proposals')
+        ->assertInertia(fn ($page) => $page->where('unreviewed', 1));
 });

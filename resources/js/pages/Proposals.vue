@@ -4,9 +4,10 @@ import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import proposalRoutes from '@/routes/proposals';
-import type { BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
-import { ImageOff } from '@lucide/vue';
+import type { BreadcrumbItem, SharedData } from '@/types';
+import { Head, Link, useForm, usePage, usePoll } from '@inertiajs/vue3';
+import { ImageOff, Sparkles } from '@lucide/vue';
+import { computed, watch } from 'vue';
 
 interface Suggestion {
     id: number;
@@ -29,7 +30,30 @@ interface Row {
     suggestions: Suggestion[];
 }
 
-defineProps<{ proposals: Row[] }>();
+interface RunStatus {
+    state: 'running' | 'done' | 'failed';
+    done?: number;
+    total?: number;
+    proposed?: number;
+    failed?: number;
+    error?: string;
+}
+
+const props = defineProps<{ proposals: Row[]; status: RunStatus | null; unreviewed: number }>();
+
+const aiEnabled = usePage<SharedData>().props.features.ai;
+const form = useForm({});
+const running = computed(() => props.status?.state === 'running');
+
+// Poll only while a run is going. A photo costs roughly fifteen seconds of
+// vision inference, so 3s is frequent enough to feel live without hammering
+// a machine that is already busy doing the actual work.
+const { start, stop } = usePoll(3000, { only: ['status', 'proposals', 'unreviewed'] }, { autoStart: false });
+watch(running, (isRunning) => (isRunning ? start() : stop()), { immediate: true });
+
+function run() {
+    form.post(proposalRoutes.run().url, { preserveScroll: true });
+}
 
 const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('nav.proposals'), href: proposalRoutes.index().url }];
 </script>
@@ -41,6 +65,42 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('nav.proposals'), href
         <div class="page">
             <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('proposals.title') }}</h2>
             <p class="m-0 mb-5 text-13 text-fg-muted">{{ $t('proposals.description') }}</p>
+
+            <div v-if="aiEnabled" class="run-bar">
+                <button
+                    type="button"
+                    class="btn-primary"
+                    :disabled="form.processing || running || unreviewed === 0"
+                    data-test="proposals-run"
+                    @click="run"
+                >
+                    <Sparkles :size="14" />
+                    {{ $t('proposals.run') }}
+                </button>
+                <span class="text-13 text-fg-muted">
+                    {{ unreviewed === 0 ? $t('proposals.run_none') : $tChoice('proposals.run_pending', unreviewed) }}
+                </span>
+            </div>
+
+            <div v-if="status" class="run-status" data-test="proposals-run-status">
+                <template v-if="status.state === 'running'">
+                    <p class="m-0 mb-2 text-13">
+                        {{ $t('proposals.running', { done: status.done ?? 0, total: status.total ?? 0 }) }}
+                    </p>
+                    <div class="run-track">
+                        <div class="run-fill" :style="{ width: `${status.total ? Math.round(((status.done ?? 0) / status.total) * 100) : 0}%` }" />
+                    </div>
+                </template>
+                <template v-else-if="status.state === 'done'">
+                    <p class="m-0 text-13">
+                        {{ $tChoice('proposals.run_done', status.proposed ?? 0, { total: status.total ?? 0 }) }}
+                    </p>
+                    <p v-if="status.failed" class="m-0 mt-1 text-13 text-neg">
+                        {{ $tChoice('proposals.run_failed_some', status.failed) }}
+                    </p>
+                </template>
+                <p v-else class="m-0 text-13 text-neg">{{ $t('proposals.run_failed', { error: status.error ?? '' }) }}</p>
+            </div>
 
             <p v-if="proposals.length === 0" class="text-13 text-fg-muted" data-test="proposals-empty">
                 {{ $t('proposals.empty') }}
@@ -79,7 +139,7 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('nav.proposals'), href
                             <div class="queue-meta">
                                 <span class="queue-field">{{ suggestion.field_label }}</span>
                                 <span class="grow"></span>
-                                <span>{{ $t('proposals.from_model', { count: suggestion.photo_count, model: suggestion.model }) }}</span>
+                                <span>{{ $tChoice('proposals.from_model', suggestion.photo_count, { model: suggestion.model }) }}</span>
                                 <span>·</span>
                                 <span>{{ suggestion.created_at_human }}</span>
                             </div>
@@ -99,6 +159,31 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('nav.proposals'), href
 </template>
 
 <style scoped>
+.run-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.run-status {
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    padding: 12px 14px;
+}
+.run-track {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--bg-sunken);
+}
+.run-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+}
 .queue {
     display: flex;
     flex-direction: column;

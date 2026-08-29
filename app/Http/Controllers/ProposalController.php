@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ReviewItemPhotosJob;
+use App\Models\Item;
 use App\Models\ItemProposal;
 use App\Services\Items\ItemWriter;
 use App\Services\Proposals\ProposalPresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,7 +50,31 @@ class ProposalController extends Controller
 
         return Inertia::render('Proposals', [
             'proposals' => $proposals,
+            'status' => Cache::get(ReviewItemPhotosJob::STATUS_KEY),
+            'unreviewed' => Item::awaitingPhotoReview()->count(),
         ]);
+    }
+
+    /**
+     * Review the photos nobody has looked at yet, now rather than tonight.
+     *
+     * Only this endpoint is AI-gated: the queue itself stays readable, and
+     * accepting a suggestion already recorded is an ordinary item edit.
+     */
+    public function run(): RedirectResponse
+    {
+        // Written before dispatching so the button disables on the redirect
+        // rather than a poll or two later, which otherwise invites a second
+        // press and a second run over the same items.
+        Cache::put(
+            ReviewItemPhotosJob::STATUS_KEY,
+            ['state' => 'running', 'done' => 0, 'total' => Item::awaitingPhotoReview()->count()],
+            now()->addHour(),
+        );
+
+        ReviewItemPhotosJob::dispatch();
+
+        return back();
     }
 
     public function accept(Request $request, ItemProposal $proposal, ItemWriter $writer): RedirectResponse
