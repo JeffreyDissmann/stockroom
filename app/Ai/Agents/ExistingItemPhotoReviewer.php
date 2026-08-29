@@ -59,6 +59,18 @@ class ExistingItemPhotoReviewer implements Agent, HasStructuredOutput
         return (string) config('ai.vision_model');
     }
 
+    /**
+     * Vision inference on self-hosted hardware runs to tens of seconds, and longer
+     * when the machine is doing anything else. The SDK's 60s default silently
+     * turned a whole nightly run into "nothing to add": every call timed out, each
+     * was caught and logged, and the report looked like the model simply had no
+     * suggestions. Nobody waits on this job, so it can afford to be patient.
+     */
+    public function timeout(): int
+    {
+        return (int) config('ai.agent_timeout', 180);
+    }
+
     public function instructions(): string
     {
         $identifiers = $this->identifierHonestyRule();
@@ -86,7 +98,9 @@ class ExistingItemPhotoReviewer implements Agent, HasStructuredOutput
         Leave "contents" empty.
 
         Then write "description": one or two factual sentences about what THIS photo
-        shows. Do not hedge about what might be out of frame.
+        shows. Plain prose — no markdown or ** bold **. Describe the object, not the
+        photograph: "a black soundbar with a fabric grille", never "the image shows"
+        or "no serial number is visible".
 
         {$identifiers}
         Never list contents you cannot actually see either.

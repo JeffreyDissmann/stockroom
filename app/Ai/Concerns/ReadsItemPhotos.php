@@ -40,7 +40,14 @@ trait ReadsItemPhotos
     protected function ignoreClutterRule(): string
     {
         return 'Ignore anything that is not the item itself: backgrounds, floors, hands, '
-            .'the surface it rests on, price tags, watermarks, and packaging it merely sits in.';
+            .'the surface it rests on, price tags, watermarks, and packaging it merely sits in. '
+            .'Never place the item in its setting: write "a set of hand tools", not "a set of '
+            .'hand tools on a wooden surface" — where it happened to lie when it was '
+            .'photographed tells a later reader nothing about the item. '
+            .'This governs what you DESCRIBE, not what you READ: a box, label or '
+            .'sticker is usually where the manufacturer, model number and serial '
+            .'number are actually printed, and rotated or sideways text counts. '
+            .'Read every such marking, then describe the item rather than its box.';
     }
 
     /**

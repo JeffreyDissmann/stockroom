@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ai\Agents;
 
+use App\Ai\Concerns\ReadsItemPhotos;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Laravel\Ai\Contracts\Agent;
@@ -30,6 +31,7 @@ use Laravel\Ai\Promptable;
 class ItemPhotoFindingsMerger implements Agent, HasStructuredOutput
 {
     use Promptable;
+    use ReadsItemPhotos;
 
     /**
      * @param  string  $itemName  The subject all findings describe.
@@ -52,8 +54,20 @@ class ItemPhotoFindingsMerger implements Agent, HasStructuredOutput
         return (string) config('ai.chat_model');
     }
 
+    /**
+     * Text-only and normally a second or two, but it queues behind the vision calls
+     * on the same endpoint. Generous for the same reason as the reviewer: a timeout
+     * here throws away every vision call that produced the findings.
+     */
+    public function timeout(): int
+    {
+        return (int) config('ai.agent_timeout', 120);
+    }
+
     public function instructions(): string
     {
+        $clutter = $this->ignoreClutterRule();
+
         $existing = filled($this->currentDescription)
             ? "The owner has already written this description:\n\"{$this->currentDescription}\""
             : 'The item has no description yet.';
@@ -75,11 +89,21 @@ class ItemPhotoFindingsMerger implements Agent, HasStructuredOutput
         they know things a photo cannot show — where it came from, what it cost, who
         it belongs to.
 
-        Return null for "description" ONLY when there is an existing description AND
-        the photos reveal nothing it does not already say — a suggestion that merely
-        rephrases what is there costs someone a decision and gains them nothing. When
-        the item has no description yet, always write one: there is nothing for it to
-        be redundant with.
+        ALWAYS write the best combined description you can. Do not decide for
+        yourself whether it is worth proposing and return null instead — something
+        after you compares your text with what is already recorded and drops it if it
+        adds nothing. Staying quiet here only loses good work.
+
+        Write plain prose. No markdown, no ** bold **, no bullet points — this text
+        goes straight into a description field and asterisks would be shown literally.
+
+        Describe the item, never the photograph or your own certainty. "Contains
+        orange and blue track pieces" is useful; "the photo shows no further details"
+        and "no model number is visible" describe your search rather than the object,
+        and are worth nothing to someone reading the entry later. If you have nothing
+        to add beyond what is already written, simply repeat what is already written.
+
+        {$clutter}
 
         Merge "contents" into one deduplicated list across all photos.
 
