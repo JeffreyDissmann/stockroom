@@ -8,8 +8,11 @@
     "nightwatch": false,
     "sail": true,
     "skills": [
+        "infer-conventions",
+        "ai-sdk-development",
         "laravel-best-practices",
         "scout-development",
+        "wayfinder-development",
         "pest-testing",
         "inertia-vue-development",
         "tailwindcss-development"
