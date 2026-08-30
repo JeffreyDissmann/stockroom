@@ -7,6 +7,8 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.08.05] — 2026-08-30
+
 ### Changed
 
 - **Selling something now takes it out of the inventory.** Marking an item sold
@@ -767,7 +769,8 @@ First public release.
 - **Typed frontend routes** — Laravel Wayfinder generates a TypeScript route
   tree; CI guards against drift.
 
-[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.04...HEAD
+[Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.05...HEAD
+[2026.08.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.04...2026.08.05
 [2026.08.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.03...2026.08.04
 [2026.08.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.02...2026.08.03
 [2026.08.02]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.01...2026.08.02
