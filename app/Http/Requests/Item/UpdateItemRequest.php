@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Item;
 
 use App\Enums\ItemType;
+use App\Enums\SaleDisposition;
 use App\Http\Requests\Item\Concerns\HasCustomFieldRules;
 use App\Http\Requests\Item\Concerns\HasItemDetailRules;
 use App\Models\Item;
@@ -39,7 +40,7 @@ class UpdateItemRequest extends FormRequest
                 // nothing to decide. Without `nullable` the in: rule still
                 // judges that empty value and rejects an ordinary sale.
                 'nullable',
-                Rule::in(['sold', 'kept']),
+                Rule::enum(SaleDisposition::class),
             ],
         ];
     }

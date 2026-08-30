@@ -139,7 +139,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:20
+* @see app/Http/Controllers/SearchController.php:21
 * @route '/search'
 */
 export const search = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -154,7 +154,7 @@ search.definition = {
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:20
+* @see app/Http/Controllers/SearchController.php:21
 * @route '/search'
 */
 search.url = (options?: RouteQueryOptions) => {
@@ -163,7 +163,7 @@ search.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:20
+* @see app/Http/Controllers/SearchController.php:21
 * @route '/search'
 */
 search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -173,7 +173,7 @@ search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:20
+* @see app/Http/Controllers/SearchController.php:21
 * @route '/search'
 */
 search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

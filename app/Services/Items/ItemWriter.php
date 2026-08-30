@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Items;
 
 use App\Enums\ItemType;
+use App\Enums\SaleDisposition;
 use App\Models\Item;
 
 /**
@@ -103,12 +104,11 @@ class ItemWriter
      * toolbox, or the toolbox went and the tools stayed — and each is quietly
      * wrong for months if assumed. So the caller must say which.
      *
-     * @param  'sold'|'kept'  $disposition
-     * @return int Items affected, for telling the user what just happened.
+     * @return int Items affected, so the caller can say what just happened.
      */
-    public function applySaleToContents(Item $item, string $disposition): int
+    public function applySaleToContents(Item $item, SaleDisposition $disposition): int
     {
-        if ($disposition === 'kept') {
+        if ($disposition === SaleDisposition::Kept) {
             // Same shape as deleting the container: the contents move up to
             // where it stood, rather than being orphaned at the top level.
             $children = $item->children()->get();

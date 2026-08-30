@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Enums\BatteryType;
 use App\Enums\ItemType;
 use App\Enums\MaintenanceScheduleType;
+use App\Enums\SaleDisposition;
 use App\Http\Requests\Item\MoveItemRequest;
 use App\Http\Requests\Item\StoreItemRequest;
 use App\Http\Requests\Item\UpdateItemRequest;
@@ -384,7 +385,16 @@ class ItemController extends Controller
         $this->writer->update($item, $data, $tagIds);
 
         if ($becomingSold && $disposition !== null) {
-            $this->writer->applySaleToContents($item, $disposition);
+            $affected = $this->writer->applySaleToContents($item, SaleDisposition::from($disposition));
+
+            // One checkbox can retire a whole subtree, so say how much of one
+            // it just moved rather than leaving the user to go and count.
+            if ($affected > 0) {
+                session()->flash('sale_contents', [
+                    'disposition' => $disposition,
+                    'count' => $affected,
+                ]);
+            }
         }
         $this->syncCustomFields($item, $customFields);
         // Re-index now that custom fields are attached.

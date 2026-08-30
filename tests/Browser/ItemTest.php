@@ -367,3 +367,23 @@ it('offers the archive only where there is one', function () {
         ->assertSee('Old mower')
         ->assertNoJavaScriptErrors();
 });
+
+it('tells sold rows apart from owned ones in the archive', function () {
+    // The backend sent is_sold from the start and a feature test asserted the
+    // prop, but nothing rendered it — so the archive looked identical to the
+    // inventory. Assert the badge on the page, not the payload.
+    $garage = Item::factory()->room()->create(['name' => 'Garage']);
+    Item::factory()->create(['parent_id' => $garage->id, 'name' => 'Drill']);
+    Item::factory()->create(['parent_id' => $garage->id, 'name' => 'Old mower', 'sold_date' => now()]);
+
+    $page = visit("/items?parent={$garage->id}&sold=1");
+
+    $page->assertSee('Old mower')
+        ->assertPresent('@sold-badge')
+        ->assertNoJavaScriptErrors();
+
+    // Exactly one row carries it — the drill is still yours.
+    $badges = $page->script("document.querySelectorAll('[data-test=sold-badge]').length");
+
+    expect($badges)->toBe(1);
+});

@@ -77,6 +77,10 @@ const bulk = useBulkSelection(() => props.children.map((c) => c.id));
 // the box was made for. The banner is dismissible and disappears on the
 // next navigation regardless.
 const boxCreatedFor = computed(() => page.props.flash?.box_created_for ?? null);
+
+// Selling a container can retire a whole subtree or empty it upwards; say how
+// many it touched rather than leaving the user to go and count.
+const saleContents = computed(() => page.props.flash?.sale_contents ?? null);
 const boxBannerDismissed = ref(false);
 
 // Ref into the box dialog component so the mobile More-menu item can open
@@ -294,6 +298,14 @@ function destroyItem() {
                     <strong>{{ $t('items.show.sold_banner') }}</strong> {{ soldSummary }}
                 </p>
             </div>
+
+            <p v-if="saleContents" class="sale-contents-note" data-test="sale-contents-note">
+                {{
+                    saleContents.disposition === 'sold'
+                        ? $tChoice('items.show.sold_with_contents', saleContents.count)
+                        : $tChoice('items.show.kept_contents', saleContents.count)
+                }}
+            </p>
 
             <!-- One-shot banner after creating this record via "Create a box
                  for <item>". Names the source item so the success message
@@ -588,6 +600,11 @@ function destroyItem() {
 
 <style scoped>
 /* Muted rather than alarming: a sold item is not an error, it is history. */
+.sale-contents-note {
+    margin: -8px 0 16px;
+    font-size: 13px;
+    color: var(--fg-muted);
+}
 .sold-banner {
     display: flex;
     align-items: center;

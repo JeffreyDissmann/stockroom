@@ -30,6 +30,8 @@ return [
         'details' => 'Details',
         'custom_fields' => 'Custom fields',
         'sold' => 'Sold',
+        'sold_with_contents' => ':count item inside was sold with it.|:count items inside were sold with it.',
+        'kept_contents' => ':count item moved up a level.|:count items moved up a level.',
         'sold_banner' => 'You sold this.',
         'sold_banner_on' => 'On :date.',
         'sold_banner_to' => 'To :buyer.',

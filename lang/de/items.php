@@ -30,6 +30,8 @@ return [
         'details' => 'Details',
         'custom_fields' => 'Eigene Felder',
         'sold' => 'Verkauft',
+        'sold_with_contents' => ':count Objekt darin wurde mitverkauft.|:count Objekte darin wurden mitverkauft.',
+        'kept_contents' => ':count Objekt wurde eine Ebene nach oben verschoben.|:count Objekte wurden eine Ebene nach oben verschoben.',
         'sold_banner' => 'Das hast du verkauft.',
         'sold_banner_on' => 'Am :date.',
         'sold_banner_to' => 'An :buyer.',

@@ -117,7 +117,10 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
                     <div class="row-name">
                         <span class="row-thumb"><ItemThumbnail :item="item" size="sm" /></span>
                         <div class="row-name-body">
-                            <div class="nm">{{ item.name }}</div>
+                            <div class="nm">
+                                {{ item.name }}
+                                <span v-if="item.is_sold" class="sold-badge" data-test="sold-badge">{{ $t('items.show.sold') }}</span>
+                            </div>
                             <!-- Inline tag row, mobile-only. Desktop keeps
                                  the dedicated Tags column for sortable
                                  visual alignment; on mobile that column
@@ -204,7 +207,10 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
                     <ItemThumbnail v-else :item="item" size="md" />
                 </div>
                 <div class="info">
-                    <div class="nm">{{ item.name }}</div>
+                    <div class="nm">
+                        {{ item.name }}
+                        <span v-if="item.is_sold" class="sold-badge" data-test="sold-badge">{{ $t('items.show.sold') }}</span>
+                    </div>
                     <div v-if="item.location_path" class="meta row-location">
                         <MapPin :size="11" />
                         <span class="truncate">{{ item.location_path }}</span>
@@ -233,6 +239,19 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
 </template>
 
 <style scoped>
+/* Quiet: a sold row is history, not a warning. It only ever appears when the
+   archive is open, where the point is telling it from what you still own. */
+.sold-badge {
+    display: inline-block;
+    margin-left: 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0 6px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--fg-muted);
+    vertical-align: middle;
+}
 /* Wrapper around each card needed so we can absolutely-position the
    remove button without disturbing the Link's clickable area. Flex
    column + height:100% so cards stretch to the grid-row height — the

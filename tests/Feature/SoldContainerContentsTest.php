@@ -144,3 +144,27 @@ it('still rejects a nonsense disposition', function () {
         'contents_disposition' => 'incinerated',
     ])->assertSessionHasErrors('contents_disposition');
 });
+
+it('says how many items the sale took with it', function () {
+    // The writer returns a count; before this it was discarded, so a checkbox
+    // could retire a whole subtree and say nothing about it.
+    $box = Item::factory()->container()->create();
+    Item::factory()->count(3)->for($box, 'parent')->create();
+
+    sellContainer($box, ['contents_disposition' => 'sold'])
+        ->assertSessionHas('sale_contents', ['disposition' => 'sold', 'count' => 3]);
+});
+
+it('says how many items moved up when the contents were kept', function () {
+    $box = Item::factory()->container()->create();
+    Item::factory()->count(2)->for($box, 'parent')->create();
+
+    sellContainer($box, ['contents_disposition' => 'kept'])
+        ->assertSessionHas('sale_contents', ['disposition' => 'kept', 'count' => 2]);
+});
+
+it('stays quiet when an empty container is sold', function () {
+    $box = Item::factory()->container()->create();
+
+    sellContainer($box, ['contents_disposition' => 'sold'])->assertSessionMissing('sale_contents');
+});

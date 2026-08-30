@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\ItemType;
+use App\Enums\SoldVisibility;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Services\InventorySearch;
@@ -77,12 +78,9 @@ class SearchController extends Controller
         // Meilisearch's order). Null falls back to each sort's natural default.
         $dir = in_array($request->query('dir'), ['asc', 'desc'], true) ? $request->query('dir') : null;
 
-        // Three states, not two. "Include" widens the search; "only" is a
-        // different question — what did I sell, and for how much — and the
-        // archive is the whole answer rather than a fringe of it.
-        $sold = in_array($request->query('sold'), ['include', 'only'], true)
-            ? $request->query('sold')
-            : null;
+        // tryFrom, so an unrecognised value falls back to the inventory
+        // rather than quietly widening the search to everything.
+        $sold = SoldVisibility::tryFrom((string) $request->query('sold', ''));
 
         // Paperless backlink filter (#7): scopes the result to items linked
         // to a given Paperless document. Set as a URL custom field on the
@@ -102,7 +100,7 @@ class SearchController extends Controller
             // can come back slightly short when sold items matched. Worth it
             // to avoid a second filterable attribute and an index resync.
             ->when($sold === null, fn ($q) => $q->owned())
-            ->when($sold === 'only', fn ($q) => $q->sold())
+            ->when($sold === SoldVisibility::Only, fn ($q) => $q->sold())
             ->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))
             ->when($type !== null, fn ($q) => $q->where('type', $type))
             ->when($tagIds !== [], fn ($q) => $q->whereHas('tags', fn ($t) => $t->whereKey($tagIds)))
@@ -145,7 +143,7 @@ class SearchController extends Controller
                 'sort' => $sort,
                 'dir' => $dir,
                 'paperless_document' => $paperlessDocumentId,
-                'sold' => $sold,
+                'sold' => $sold?->value,
             ],
             'items' => $items,
             'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
