@@ -20,13 +20,22 @@ class InvitationController extends Controller
 {
     public function index(Request $request): Response
     {
+        // Pending invites carry a live registration URL — a working credential,
+        // not just a label — so they stay with admins even though the roster
+        // below is deliberately household-wide. Members.vue already hides the
+        // section for members, but a template guard alone still shipped every
+        // token in the page props for anyone who opened devtools.
+        $isAdmin = (bool) $request->user()?->can('admin');
+
         return Inertia::render('household/Members', [
-            'invitations' => Invitation::pending()
-                ->with('creator:id,name')
-                ->latest()
-                ->get()
-                ->map(fn (Invitation $invitation): array => $this->presentInvitation($invitation))
-                ->values(),
+            'invitations' => $isAdmin
+                ? Invitation::pending()
+                    ->with('creator:id,name')
+                    ->latest()
+                    ->get()
+                    ->map(fn (Invitation $invitation): array => $this->presentInvitation($invitation))
+                    ->values()
+                : collect(),
             'members' => User::query()
                 ->oldest()
                 ->get(['id', 'name', 'email', 'created_at', 'is_admin'])
