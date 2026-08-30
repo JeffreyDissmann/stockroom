@@ -86,6 +86,10 @@ class HandleInertiaRequests extends Middleware
                 // 'sent' | 'failed' | null — one-shot feedback after
                 // emailing an invite from the Members page.
                 'invitation_mail' => $request->session()->get('invitation_mail'),
+                // How many items went with a sold container, or moved up a
+                // level when its contents were kept. One-shot, on the item's
+                // own page right after the sale.
+                'sale_contents' => $request->session()->get('sale_contents'),
             ],
             'locale' => app()->getLocale(),
             'translations' => $this->translations(),

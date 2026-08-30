@@ -37,7 +37,12 @@ export interface SharedData extends PageProps {
     auth: Auth;
     currency: CurrencyConfig;
     features: { imageSearch: boolean; ai: boolean; paperless: boolean };
-    flash: { backup: BackupResult | null; box_created_for: string | null; invitation_mail: 'sent' | 'failed' | null };
+    flash: {
+        backup: BackupResult | null;
+        box_created_for: string | null;
+        invitation_mail: 'sent' | 'failed' | null;
+        sale_contents: { disposition: 'sold' | 'kept'; count: number } | null;
+    };
     locale: string;
     translations: Record<string, string>;
     version: { tag: string | null; sha: string | null };
@@ -140,6 +145,9 @@ export interface ItemSummary {
     sold_to?: string | null;
     sold_price?: string | null;
     sold_date?: string | null;
+    // Server-computed from sold_date. Sold items are hidden by default, so
+    // wherever one does appear it has to be tellable from what you still own.
+    is_sold?: boolean;
     sold_notes?: string | null;
     // Filled custom field values (present on show/edit payloads).
     custom_fields?: ItemCustomFieldValue[];

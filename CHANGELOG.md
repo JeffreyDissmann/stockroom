@@ -7,6 +7,54 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+### Changed
+
+- **Selling something now takes it out of the inventory.** Marking an item sold
+  used to do one thing only: leave it out of the estimated value. It still
+  counted towards your item totals, still sat in its room, still turned up in
+  search, and still asked to be maintained — so the dashboard reported a count
+  and a value that quietly disagreed with each other, and you could be reminded
+  to service a lawnmower you sold last spring.
+
+  Sold items are now an archive rather than a status. They are left out of the
+  inventory list, a room's contents, search, the command palette, "recently
+  added", tag and room counts, maintenance reminders, battery forecasts and the
+  photo review. Where an archive exists, a small **Show sold** control opens it;
+  search goes further with an **Owned / Include sold / Sold only** filter,
+  because "what did I sell, and for how much" is a different question and
+  deserves the archive as the whole answer.
+
+  Two deliberate exceptions. **Related items still list what was sold** — a
+  link between two things does not stop being true because one of them went.
+  And a sold item **keeps the room it was in**: that is a fact about the past
+  worth having, and clearing it would throw away something a mistaken sale
+  could never get back. The room simply stops counting it.
+
+  Opening a sold item now says so at the top of the page, rather than leaving
+  you to notice a card further down while everything above reads as though you
+  still own the thing.
+
+### Added
+
+- **Selling a container asks what became of its contents**, with no default:
+  the contents went with it, or you kept them and they move up a level.
+  Answering matters more than it sounds — browsing is a walk down through
+  rooms and boxes, so a sold container with things left inside it would leave
+  them findable by search but impossible to navigate to. "Sold with it" applies
+  all the way down; the sale price is not copied onto each item, and anything
+  already sold keeps its own date.
+
+### Fixed
+
+- The **"Inside" picker no longer offers sold containers**. Filing an item into
+  one made it vanish the moment you saved.
+
+### Internal
+
+- **BREAKING:** `/api/v1/statistics` no longer counts sold items in `total` or
+  `by_type` (`value` already excluded them). A Home Assistant sensor tracking
+  item counts will step down once, by however many sold items you have.
+
 ## [2026.08.04] — 2026-08-29
 
 ### Added

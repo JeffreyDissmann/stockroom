@@ -31,18 +31,20 @@ class ApiStatisticsTest extends TestCase
         $drill = Item::factory()->create(['type' => ItemType::Item, 'parent_id' => $garage->id, 'purchase_price' => 100]);
         $drill->tags()->attach($tag);
 
-        // A sold item is excluded from the owned value.
+        // Sold items count for nothing here: not the total, not the breakdown,
+        // not the value. This used to report a total of 4 against a value that
+        // had already written the sold item off, so the two disagreed.
         Item::factory()->create(['type' => ItemType::Item, 'purchase_price' => 50, 'sold_date' => now()]);
 
         Sanctum::actingAs(User::factory()->create(), ['read']);
 
         $this->getJson('/api/v1/statistics')
             ->assertOk()
-            ->assertJsonPath('total', 4)
+            ->assertJsonPath('total', 3)
             ->assertJsonPath('value', 100)
             ->assertJsonPath('by_type.room', 1)
             ->assertJsonPath('by_type.container', 1)
-            ->assertJsonPath('by_type.item', 2)
+            ->assertJsonPath('by_type.item', 1)
             ->assertJsonPath('by_tag.0.name', 'Powertools')
             ->assertJsonPath('by_tag.0.items_count', 1)
             ->assertJsonPath('by_room.0.name', 'Garage')

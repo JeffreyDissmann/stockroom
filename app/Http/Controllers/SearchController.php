@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\ItemType;
+use App\Enums\SoldVisibility;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Services\InventorySearch;
@@ -35,8 +36,12 @@ class SearchController extends Controller
             return response()->json(['results' => []]);
         }
 
+        // Meilisearch is only asked for ids; the rows come from the database,
+        // so `owned()` is enough and no index filter is needed. The palette is
+        // for jumping to something — there is nowhere to jump to for a thing
+        // that left the house, and no filter here to turn them back on.
         $items = $this->search->search($query, fn ($builder) => $builder
-            ->query(fn ($q) => $q->with('primaryImage'))
+            ->query(fn ($q) => $q->owned()->with('primaryImage'))
             ->take(20)
             ->get());
 
@@ -73,6 +78,10 @@ class SearchController extends Controller
         // Meilisearch's order). Null falls back to each sort's natural default.
         $dir = in_array($request->query('dir'), ['asc', 'desc'], true) ? $request->query('dir') : null;
 
+        // tryFrom, so an unrecognised value falls back to the inventory
+        // rather than quietly widening the search to everything.
+        $sold = SoldVisibility::tryFrom((string) $request->query('sold', ''));
+
         // Paperless backlink filter (#7): scopes the result to items linked
         // to a given Paperless document. Set as a URL custom field on the
         // doc by ProcessPaperlessDocumentJob, so clicking it in Paperless
@@ -87,6 +96,11 @@ class SearchController extends Controller
         $items = Item::query()
             ->with(['primaryImage', 'tags'])
             ->withCount('children')
+            // Applied after Meili has returned its ids, so a page of results
+            // can come back slightly short when sold items matched. Worth it
+            // to avoid a second filterable attribute and an index resync.
+            ->when($sold === null, fn ($q) => $q->owned())
+            ->when($sold === SoldVisibility::Only, fn ($q) => $q->sold())
             ->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))
             ->when($type !== null, fn ($q) => $q->where('type', $type))
             ->when($tagIds !== [], fn ($q) => $q->whereHas('tags', fn ($t) => $t->whereKey($tagIds)))
@@ -129,6 +143,7 @@ class SearchController extends Controller
                 'sort' => $sort,
                 'dir' => $dir,
                 'paperless_document' => $paperlessDocumentId,
+                'sold' => $sold?->value,
             ],
             'items' => $items,
             'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),

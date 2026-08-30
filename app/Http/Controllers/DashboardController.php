@@ -31,6 +31,7 @@ class DashboardController extends Controller
         $value = $this->stats->ownedValue();
 
         $recent = Item::query()
+            ->owned()
             ->with(['parent:id,name,type', 'primaryImage'])
             ->orderByDesc('created_at')
             ->limit(6)

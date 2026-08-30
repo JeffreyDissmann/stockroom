@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Items;
 
 use App\Enums\ItemType;
+use App\Enums\SaleDisposition;
 use App\Models\Item;
 
 /**
@@ -91,6 +92,53 @@ class ItemWriter
     public function delete(Item $item): void
     {
         $item->delete();
+    }
+
+    /**
+     * Settle what happened to a sold container's contents.
+     *
+     * Selling a container leaves its contents somewhere they cannot be reached:
+     * browsing is a walk down parent_id, and a sold container is not listed, so
+     * whatever is inside it can still be searched for but never navigated to.
+     * There is no safe guess between the two cases — the tools went with the
+     * toolbox, or the toolbox went and the tools stayed — and each is quietly
+     * wrong for months if assumed. So the caller must say which.
+     *
+     * @return int Items affected, so the caller can say what just happened.
+     */
+    public function applySaleToContents(Item $item, SaleDisposition $disposition): int
+    {
+        if ($disposition === SaleDisposition::Kept) {
+            // Same shape as deleting the container: the contents move up to
+            // where it stood, rather than being orphaned at the top level.
+            $children = $item->children()->get();
+
+            foreach ($children as $child) {
+                $this->move($child, $item->parent_id);
+            }
+
+            return $children->count();
+        }
+
+        // Sold with it: the whole subtree left the house. Already-sold
+        // descendants keep their own date — that sale is a separate event.
+        $ids = $item->descendantIds();
+
+        if ($ids === []) {
+            return 0;
+        }
+
+        $descendants = Item::query()->whereKey($ids)->owned()->get();
+
+        foreach ($descendants as $descendant) {
+            // No sale price: the container's price covers the lot, and copying
+            // it down would count the same money once per item.
+            $descendant->update(['sold_date' => $item->sold_date, 'sold_to' => $item->sold_to]);
+        }
+
+        $descendants->searchable();
+
+        return $descendants->count();
     }
 
     /**

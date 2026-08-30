@@ -75,6 +75,9 @@ const form = useForm({
     sold_price: props.item?.sold_price ?? '',
     sold_date: props.item?.sold_date ?? '',
     sold_notes: props.item?.sold_notes ?? '',
+    // Only sent when a container full of things is being sold; the server
+    // requires it in exactly that case and ignores it otherwise.
+    contents_disposition: '' as '' | 'sold' | 'kept',
     custom_fields: Object.fromEntries((props.item?.custom_fields ?? []).map((f) => [f.custom_field_id, f.value])) as Record<
         number,
         string | number | boolean | null
@@ -82,6 +85,20 @@ const form = useForm({
 });
 
 const isPlace = computed(() => form.type === 'room' || form.type === 'container');
+
+// Selling a container hides it from the tree, and browsing is a walk down
+// parent_id — so without an answer here its contents become searchable but
+// unreachable. Asked only at the moment of sale: a plain item, an empty
+// container, or a correction to an old sale all save silently, because asking
+// every time is how a question gets clicked past.
+const mustDecideContents = computed(
+    () =>
+        props.mode === 'edit' &&
+        form.type === 'container' &&
+        (props.item?.children_count ?? 0) > 0 &&
+        !props.item?.sold_date &&
+        Boolean(form.sold_date),
+);
 
 // Battery type: a curated Select with a "Custom…" escape that reveals a text
 // input, so the free-string column still accepts an unusual cell. Sentinels
@@ -833,6 +850,22 @@ function submit() {
                     <InputError :message="form.errors.sold_date" />
                 </div>
             </div>
+            <div v-if="mustDecideContents" class="contents-decision" data-test="contents-disposition">
+                <p class="m-0 mb-1 text-13 font-medium">{{ $t('items.form.contents_question') }}</p>
+                <p class="m-0 mb-3 text-13 text-fg-muted">
+                    {{ $tChoice('items.form.contents_hint', props.item?.children_count ?? 0) }}
+                </p>
+                <label class="contents-option">
+                    <input v-model="form.contents_disposition" type="radio" value="sold" data-test="contents-sold" />
+                    <span>{{ $t('items.form.contents_sold') }}</span>
+                </label>
+                <label class="contents-option">
+                    <input v-model="form.contents_disposition" type="radio" value="kept" data-test="contents-kept" />
+                    <span>{{ $t('items.form.contents_kept') }}</span>
+                </label>
+                <InputError :message="form.errors.contents_disposition" />
+            </div>
+
             <div class="form-row">
                 <label for="sold_notes">{{ $t('items.form.sold_notes') }}</label>
                 <textarea id="sold_notes" v-model="form.sold_notes" rows="2" class="field" />
@@ -850,6 +883,20 @@ function submit() {
 </template>
 
 <style scoped>
+.contents-decision {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-sunken);
+    padding: 12px 14px;
+}
+.contents-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 3px 0;
+    cursor: pointer;
+}
 .ai-fill {
     display: flex;
     flex-wrap: wrap;

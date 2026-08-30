@@ -53,3 +53,19 @@ it('creates a box via the dialog and shows the success banner on the new box pag
     // The DB now has a child Container for the phone.
     expect(Item::query()->where('parent_id', $phone->id)->count())->toBe(1);
 });
+
+it('asks what became of the contents when a full container is sold', function () {
+    $garage = Item::factory()->room()->create(['name' => 'Garage']);
+    $box = Item::factory()->container()->for($garage, 'parent')->create(['name' => 'Toolbox']);
+    Item::factory()->for($box, 'parent')->create(['name' => 'Hammer']);
+
+    $page = visit("/items/{$box->id}/edit");
+
+    // Nothing to answer until it is actually being sold.
+    $page->assertMissing('@contents-disposition')
+        ->fill('#sold_date', '2026-08-29')
+        ->assertPresent('@contents-disposition')
+        ->assertPresent('@contents-sold')
+        ->assertPresent('@contents-kept')
+        ->assertNoJavaScriptErrors();
+});
