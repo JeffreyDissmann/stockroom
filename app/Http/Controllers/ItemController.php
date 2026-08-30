@@ -281,7 +281,9 @@ class ItemController extends Controller
         $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks', 'homeAssistantLink']);
 
         return Inertia::render('items/Edit', [
-            'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
+            // children_count so the form can ask what became of the contents
+            // when a container full of things is marked sold.
+            'item' => $this->presentItem($item, withChildrenCount: true, withTags: true, withImages: true, withDetails: true),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
@@ -349,9 +351,18 @@ class ItemController extends Controller
         $data = $request->validated();
         $tagIds = $data['tags'] ?? [];
         $customFields = $data['custom_fields'] ?? [];
-        unset($data['tags'], $data['custom_fields']);
+        $disposition = $data['contents_disposition'] ?? null;
+        unset($data['tags'], $data['custom_fields'], $data['contents_disposition']);
+
+        // Read before the write: afterwards the item is sold either way, and
+        // there is no telling an edit to an old sale from the sale itself.
+        $becomingSold = blank($item->sold_date) && filled($data['sold_date'] ?? null);
 
         $this->writer->update($item, $data, $tagIds);
+
+        if ($becomingSold && $disposition !== null) {
+            $this->writer->applySaleToContents($item, $disposition);
+        }
         $this->syncCustomFields($item, $customFields);
         // Re-index now that custom fields are attached.
         $item->searchable();
