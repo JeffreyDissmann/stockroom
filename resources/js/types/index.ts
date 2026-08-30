@@ -28,6 +28,19 @@ export interface BackupResult {
     images: number;
 }
 
+/**
+ * Outcome of a bulk operation, flashed by BulkController. `previous` maps
+ * each moved item to the parent it came from, which is what the Undo toast
+ * in BulkActionBar replays.
+ */
+export interface BulkResult {
+    action: 'delete' | 'move' | 'attach-tag' | 'detach-tag';
+    count: number;
+    parent_id?: number | null;
+    previous?: Record<number, number | null>;
+    tag_id?: number;
+}
+
 // Extends Inertia's PageProps (an `[key: string]: unknown` index signature) so
 // `usePage<SharedData>()` type-checks. Inertia v3 constrains that generic to
 // PageProps; without this every one of the ~23 call sites reports "Type
@@ -40,7 +53,9 @@ export interface SharedData extends PageProps {
     flash: {
         backup: BackupResult | null;
         box_created_for: string | null;
+        bulk_result: BulkResult | null;
         invitation_mail: 'sent' | 'failed' | null;
+        paperless_relink_count: number | null;
         sale_contents: { disposition: 'sold' | 'kept'; count: number } | null;
     };
     locale: string;

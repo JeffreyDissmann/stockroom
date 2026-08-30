@@ -17,7 +17,7 @@ import BulkMoveDialog from '@/components/BulkMoveDialog.vue';
 import BulkTagDialog from '@/components/BulkTagDialog.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
-import type { SharedData, TagSummary } from '@/types';
+import type { BulkResult, SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { ArrowLeftRight, Tag, Trash2, X } from '@lucide/vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
@@ -25,15 +25,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 defineProps<{ tags: TagSummary[] }>();
 
 const bulk = useBulkSelection();
-const page = usePage<SharedData & { flash: { bulk_result?: BulkResult } }>();
-
-interface BulkResult {
-    action: 'delete' | 'move' | 'attach-tag' | 'detach-tag';
-    count: number;
-    parent_id?: number | null;
-    previous?: Record<number, number | null>;
-    tag_id?: number;
-}
+const page = usePage<SharedData>();
 
 const moveOpen = ref(false);
 const tagOpen = ref<null | 'attach' | 'detach'>(null);

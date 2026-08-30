@@ -256,6 +256,44 @@ class SearchTest extends TestCase
                 ->where('items.data.1.name', 'In Zellar'));
     }
 
+    /**
+     * The sold badge on the result card is driven by `is_sold`, and this page
+     * is the one place that deliberately lists sold items. Without the flag
+     * every archived item reads as though it were still owned.
+     */
+    public function test_sold_results_are_marked_as_sold(): void
+    {
+        Item::factory()->create(['name' => 'Kept Drill']);
+        Item::factory()->create(['name' => 'Gone Mower', 'sold_date' => now()]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sold=include&sort=name')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data', function ($items) {
+                    $rows = collect($items);
+
+                    return $rows->firstWhere('name', 'Gone Mower')['is_sold'] === true
+                        && $rows->firstWhere('name', 'Kept Drill')['is_sold'] === false;
+                }));
+    }
+
+    /**
+     * The same card component renders search results and the inventory list,
+     * and the inventory counts owned children only. A bare withCount here made
+     * one box read "2 inside" on this page and "1 inside" on the other.
+     */
+    public function test_child_counts_exclude_sold_children_as_the_inventory_list_does(): void
+    {
+        $box = Item::factory()->create(['type' => ItemType::Container, 'name' => 'Spare Parts']);
+        Item::factory()->create(['parent_id' => $box->id]);
+        Item::factory()->create(['parent_id' => $box->id, 'sold_date' => now()]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/search?sort=name&type=container')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data', fn ($items) => collect($items)->firstWhere('name', 'Spare Parts')['children_count'] === 1));
+    }
+
     public function test_search_results_include_the_location_path(): void
     {
         $room = Item::factory()->create(['type' => ItemType::Room, 'name' => 'Garage']);

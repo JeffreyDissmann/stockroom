@@ -41,6 +41,39 @@ class HandleInertiaRequests extends Middleware
     ];
 
     /**
+     * Session keys forwarded to the client as the `flash` prop.
+     *
+     * Inertia does not share session flash automatically, so a key a
+     * controller flashes but that is missing here silently never reaches the
+     * page. That is exactly how the bulk-move Undo toast became dead code:
+     * BulkController flashed `bulk_result` from four places and the watcher
+     * in BulkActionBar.vue never once fired. FlashContractTest asserts this
+     * list stays in step with what the controllers actually flash.
+     *
+     * `status` is deliberately absent — the auth controllers pass it as an
+     * explicit page prop (Breeze convention) rather than through here.
+     *
+     * @var list<string>
+     */
+    private const FLASH_KEYS = [
+        // Item/tag/image counts written by a backup import.
+        'backup',
+        // The source item's name, for the one-shot banner on the new box's
+        // Show page.
+        'box_created_for',
+        // Action, count and the previous parent map that powers the 6s Undo
+        // toast after a bulk move.
+        'bulk_result',
+        // 'sent' | 'failed' — feedback after emailing an invite.
+        'invitation_mail',
+        // How many Paperless documents the relink-all run covered.
+        'paperless_relink_count',
+        // How many items went with a sold container, or moved up a level when
+        // its contents were kept.
+        'sale_contents',
+    ];
+
+    /**
      * Determines the current asset version.
      *
      * @see https://inertiajs.com/asset-versioning
@@ -77,20 +110,7 @@ class HandleInertiaRequests extends Middleware
                 // via EnsurePaperlessEnabled (404).
                 'paperless' => filled(config('paperless.url')) && filled(config('paperless.token')),
             ],
-            'flash' => [
-                'backup' => $request->session()->get('backup'),
-                // Surfaced as a one-shot banner on the new box's Show page —
-                // the value is the source item's name (or null if not
-                // arriving from a fresh box creation).
-                'box_created_for' => $request->session()->get('box_created_for'),
-                // 'sent' | 'failed' | null — one-shot feedback after
-                // emailing an invite from the Members page.
-                'invitation_mail' => $request->session()->get('invitation_mail'),
-                // How many items went with a sold container, or moved up a
-                // level when its contents were kept. One-shot, on the item's
-                // own page right after the sale.
-                'sale_contents' => $request->session()->get('sale_contents'),
-            ],
+            'flash' => $this->flash($request),
             'locale' => app()->getLocale(),
             'translations' => $this->translations(),
             // Build info for the login-page context panel + future "about"
@@ -99,6 +119,21 @@ class HandleInertiaRequests extends Middleware
             // the chip rather than rendering "unknown".
             'version' => AppVersion::current(),
         ]);
+    }
+
+    /**
+     * One-shot session values for the current request, keyed by FLASH_KEYS.
+     * Absent keys come through as null so the client can watch a stable shape.
+     *
+     * @return array<string, mixed>
+     */
+    private function flash(Request $request): array
+    {
+        $session = $request->session();
+
+        return collect(self::FLASH_KEYS)
+            ->mapWithKeys(fn (string $key): array => [$key => $session->get($key)])
+            ->all();
     }
 
     /**

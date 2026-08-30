@@ -95,7 +95,10 @@ class SearchController extends Controller
 
         $items = Item::query()
             ->with(['primaryImage', 'tags'])
-            ->withCount('children')
+            // Owned-only, matching ItemController::index — the same card component
+            // renders both lists, so a bare count would make a box read "12 inside"
+            // here and "9 inside" in the inventory.
+            ->withCount(['children' => fn ($q) => $q->owned()])
             // Applied after Meili has returned its ids, so a page of results
             // can come back slightly short when sold items matched. Worth it
             // to avoid a second filterable attribute and an index resync.
@@ -163,6 +166,9 @@ class SearchController extends Controller
             'name' => $item->name,
             'description' => $item->description,
             'location_path' => $locationPath,
+            // This page can list sold items (the Include sold / Sold only
+            // filter), so it has to say which ones they are.
+            'is_sold' => $item->sold_date !== null,
             'type' => [
                 'value' => $item->type->value,
                 'label' => $item->type->label(),
