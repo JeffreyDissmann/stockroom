@@ -18,6 +18,8 @@ return [
         'shown' => ':count angezeigt',
         'empty' => 'Hier ist noch nichts.',
         'add_first' => 'Ersten Gegenstand hinzufügen',
+        'show_sold' => ':count verkauftes anzeigen|:count verkaufte anzeigen',
+        'hide_sold' => 'Verkaufte ausblenden',
         'no_match' => 'Keine Gegenstände passen zu deiner Suche.',
     ],
 
@@ -28,6 +30,9 @@ return [
         'details' => 'Details',
         'custom_fields' => 'Eigene Felder',
         'sold' => 'Verkauft',
+        'sold_banner' => 'Das hast du verkauft.',
+        'sold_banner_on' => 'Am :date.',
+        'sold_banner_to' => 'An :buyer.',
         'contents' => 'Inhalt',
         'empty_contents' => 'In diesem :type ist noch nichts.',
         'delete_confirm' => '":name" löschen? Enthaltene Gegenstände werden auf die oberste Ebene verschoben.',

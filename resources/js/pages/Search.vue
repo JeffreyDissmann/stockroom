@@ -29,6 +29,7 @@ const props = defineProps<{
         sort: 'relevance' | 'name' | 'location' | 'added' | 'edited' | 'count';
         dir: 'asc' | 'desc' | null;
         paperless_document: number | null;
+        sold: 'include' | 'only' | null;
     };
     items: Paginated<ItemSummary>;
     tags: TagSummary[];
@@ -51,6 +52,7 @@ function apply(overrides: Record<string, string | number | number[] | null>) {
         sort: props.filters.sort,
         dir: props.filters.dir,
         paperless_document: props.filters.paperless_document,
+        sold: props.filters.sold,
         ...overrides,
     };
     for (const [key, value] of Object.entries(merged)) {
@@ -169,6 +171,18 @@ function clearFilters() {
                     <option value="count">{{ $t('search.sort.count') }}</option>
                     <option value="added">{{ $t('search.sort.added') }}</option>
                     <option value="edited">{{ $t('search.sort.edited') }}</option>
+                </select>
+
+                <select
+                    class="chip"
+                    :class="filters.sold ? 'bg-bg-sunken text-fg' : ''"
+                    data-test="search-sold-filter"
+                    :value="filters.sold ?? ''"
+                    @change="apply({ sold: ($event.target as HTMLSelectElement).value || null })"
+                >
+                    <option value="">{{ $t('search.sold.owned') }}</option>
+                    <option value="include">{{ $t('search.sold.include') }}</option>
+                    <option value="only">{{ $t('search.sold.only') }}</option>
                 </select>
 
                 <button

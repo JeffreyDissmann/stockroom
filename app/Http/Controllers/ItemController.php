@@ -50,9 +50,14 @@ class ItemController extends Controller
         $parentId = $request->integer('parent') ?: null;
         $parent = $parentId ? Item::findOrFail($parentId) : null;
 
+        // Sold items are an archive, not inventory. `?sold=1` browses it —
+        // the contents of a room as it was, rather than as it is.
+        $includeSold = $request->boolean('sold');
+
         $items = Item::query()
             ->where('parent_id', $parentId)
-            ->withCount('children')
+            ->when(! $includeSold, fn ($q) => $q->owned())
+            ->withCount(['children' => fn ($q) => $q->owned()])
             ->with(['tags', 'images'])
             ->orderBy('name')
             ->get();
@@ -72,6 +77,10 @@ class ItemController extends Controller
             // lazy-loaded — tags are small (typically <100 rows) and the
             // round-trip when entering Select mode would feel sluggish.
             'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
+            'includeSold' => $includeSold,
+            // Only offer the archive where one exists, so the toggle does not
+            // sit on every empty shelf in the house.
+            'soldCount' => Item::query()->sold()->where('parent_id', $parentId)->count(),
         ]);
     }
 
@@ -82,7 +91,9 @@ class ItemController extends Controller
 
         return Inertia::render('items/Create', [
             'parent' => $parent ? $this->presentItem($parent) : null,
-            'items' => Item::query()->with('primaryImage')->orderBy('name')->get()->map(fn (Item $i) => $this->presentItem($i))->values(),
+            // Sold containers are not somewhere you can put anything: the new
+            // item would vanish from the tree the moment it was saved.
+            'items' => Item::query()->owned()->with('primaryImage')->orderBy('name')->get()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
@@ -111,10 +122,19 @@ class ItemController extends Controller
         return to_route('items.show', $item);
     }
 
-    public function show(Item $item): Response
+    public function show(Request $request, Item $item): Response
     {
         $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks', 'homeAssistantLink']);
-        $children = $item->children()->withCount('children')->with(['tags', 'images'])->get();
+
+        // Contents is the other way to browse the tree, and it needs the same
+        // rule as the inventory list: a room holds what you still own.
+        $includeSold = $request->boolean('sold');
+
+        $children = $item->children()
+            ->when(! $includeSold, fn ($query) => $query->owned())
+            ->withCount(['children' => fn ($query) => $query->owned()])
+            ->with(['tags', 'images'])
+            ->get();
         // Related items survive moves around the tree, so they're a separate
         // edge from `children`. Eager-load enough for the same card layout
         // the Contents section uses.
@@ -134,6 +154,8 @@ class ItemController extends Controller
             'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
             'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
             'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            'includeSold' => $includeSold,
+            'soldCount' => $item->children()->sold()->count(),
             'relatedItems' => $relatedItems->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
             // Paperless-ngx documents the user linked this item to (#7).
             // Each entry is a click-through to the Paperless UI; the URL is
@@ -202,6 +224,7 @@ class ItemController extends Controller
         // Scout's relevance ordering doesn't apply without a search term.
         if ($query === '') {
             $rows = Item::query()
+                ->owned()
                 ->when(! $includeItems, fn ($builder) => $builder->whereIn('type', [ItemType::Room->value, ItemType::Container->value]))
                 ->whereNotIn('id', $excluded)
                 ->orderBy('name')
@@ -497,6 +520,10 @@ class ItemController extends Controller
             'name' => $item->name,
             'description' => $item->description,
             'parent_id' => $item->parent_id,
+            // Sold items are hidden by default, so wherever one does appear —
+            // the archive filter, related items, a direct link — it has to say
+            // plainly that it is not yours any more.
+            'is_sold' => $item->sold_date !== null,
             'type' => [
                 'value' => $item->type->value,
                 'label' => $item->type->label(),
@@ -508,7 +535,7 @@ class ItemController extends Controller
         ];
 
         if ($withChildrenCount) {
-            $payload['children_count'] = $item->children_count ?? $item->children()->count();
+            $payload['children_count'] = $item->children_count ?? $item->children()->owned()->count();
         }
 
         if ($withDetails) {

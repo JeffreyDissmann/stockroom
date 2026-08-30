@@ -18,6 +18,8 @@ return [
         'shown' => ':count shown',
         'empty' => 'Nothing here yet.',
         'add_first' => 'Add the first item',
+        'show_sold' => 'Show :count sold|Show :count sold',
+        'hide_sold' => 'Hide sold',
         'no_match' => 'No items match your search.',
     ],
 
@@ -28,6 +30,9 @@ return [
         'details' => 'Details',
         'custom_fields' => 'Custom fields',
         'sold' => 'Sold',
+        'sold_banner' => 'You sold this.',
+        'sold_banner_on' => 'On :date.',
+        'sold_banner_to' => 'To :buyer.',
         'contents' => 'Contents',
         'empty_contents' => 'Nothing inside this :type yet.',
         'delete_confirm' => 'Delete ":name"? Any items inside will become top-level.',

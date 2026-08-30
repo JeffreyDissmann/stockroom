@@ -6,9 +6,10 @@ import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
+import itemRoutes from '@/routes/items';
 import type { BreadcrumbItemType, ItemSummary, ItemViewMode, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { Pencil, Plus, Search } from '@lucide/vue';
+import { Archive, Pencil, Plus, Search } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -18,6 +19,10 @@ const props = defineProps<{
     // Tags are sent for the bulk-tag dialog. Controller passes the full
     // list since the picker shows them all (paginating tags is overkill).
     tags?: TagSummary[];
+    includeSold: boolean;
+    // How many sold items sit at this level. The toggle only appears where
+    // there is an archive to open, rather than on every empty shelf.
+    soldCount: number;
 }>();
 
 const bulk = useBulkSelection(() => props.items.map((i) => i.id));
@@ -102,7 +107,19 @@ watch(
                     <Search :size="14" />
                     <input v-model="search" type="search" :placeholder="$tChoice('items.index.search', items.length)" />
                 </div>
-                <span class="section-label ml-auto">{{ $t('items.index.shown', { count: filtered.length }) }}</span>
+                <Link
+                    v-if="soldCount > 0 || includeSold"
+                    :href="itemRoutes.index({ query: { parent: parent?.id ?? undefined, sold: includeSold ? undefined : 1 } }).url"
+                    class="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-0.5 text-xs hover:text-fg"
+                    :class="includeSold ? 'bg-bg-sunken text-fg' : 'text-fg-muted'"
+                    data-test="toggle-sold"
+                >
+                    <Archive :size="13" />
+                    {{ includeSold ? $t('items.index.hide_sold') : $tChoice('items.index.show_sold', soldCount) }}
+                </Link>
+                <span class="section-label" :class="soldCount > 0 || includeSold ? 'ml-3' : 'ml-auto'">{{
+                    $t('items.index.shown', { count: filtered.length })
+                }}</span>
             </div>
 
             <div v-if="filtered.length === 0" class="card card-pad text-center text-fg-muted">

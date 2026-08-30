@@ -332,3 +332,38 @@ it('keeps the item-page action row inside the viewport on a narrow phone', funct
     );
     expect($overflow)->toBeLessThanOrEqual(1);
 });
+
+it('says plainly on the page that an item was sold', function () {
+    $item = Item::factory()->create(['name' => 'Old bicycle', 'sold_date' => '2026-08-01', 'sold_to' => 'Anna']);
+
+    $page = visit("/items/{$item->id}");
+
+    $page->assertPresent('@item-sold-banner')
+        ->assertSee('You sold this.')
+        ->assertSee('Anna')
+        ->assertNoJavaScriptErrors();
+
+    // The clauses are separate elements, so they read as one sentence only if
+    // something puts a gap between them. Vue condenses literal whitespace away
+    // and it rendered "You sold this.On 2026-08-01." until a flex gap replaced it.
+    $text = $page->script("document.querySelector('[data-test=item-sold-banner]').innerText");
+
+    expect($text)->toContain('You sold this. On 2026-08-01. To Anna.');
+});
+
+it('offers the archive only where there is one', function () {
+    $garage = Item::factory()->room()->create(['name' => 'Garage']);
+    Item::factory()->create(['parent_id' => $garage->id, 'name' => 'Drill']);
+
+    $page = visit("/items?parent={$garage->id}");
+    $page->assertMissing('@toggle-sold')->assertNoJavaScriptErrors();
+
+    Item::factory()->create(['parent_id' => $garage->id, 'name' => 'Old mower', 'sold_date' => now()]);
+
+    $page = visit("/items?parent={$garage->id}");
+    $page->assertPresent('@toggle-sold')
+        ->assertDontSee('Old mower')
+        ->click('@toggle-sold')
+        ->assertSee('Old mower')
+        ->assertNoJavaScriptErrors();
+});

@@ -35,13 +35,17 @@ import type {
     TagSummary,
 } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from '@lucide/vue';
+import { Archive, CheckCircle2, ChevronRight, FileText, House, MoreVertical, PackageOpen, Pencil, Plus, Trash2, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     item: ItemSummary;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
+    includeSold: boolean;
+    // Sold children at this level; the toggle only appears where there is an
+    // archive to open.
+    soldCount: number;
     relatedItems: ItemSummary[];
     paperlessLinks: PaperlessLinkSummary[];
     homeAssistantLink: HomeAssistantLinkSummary | null;
@@ -161,6 +165,19 @@ const isSold = computed(() => {
     return Boolean(i.sold_to || i.sold_price || i.sold_date || i.sold_notes);
 });
 
+// Joined here rather than laid out as sibling elements in the template. Vue
+// condenses whitespace between nodes, which ran the clauses together as "You
+// sold this.On 2026-08-29."; a flex gap fixed the look but left three separate
+// boxes, so the banner still read as three lines to anything but an eye.
+const soldSummary = computed(() => {
+    const i = props.item;
+    const parts: string[] = [];
+    if (i.sold_date) parts.push(trans('items.show.sold_banner_on', { date: i.sold_date }));
+    if (i.sold_to) parts.push(trans('items.show.sold_banner_to', { buyer: i.sold_to }));
+
+    return parts.join(' ');
+});
+
 const soldRows = computed<DetailRow[]>(() => {
     const i = props.item;
     const rows: DetailRow[] = [];
@@ -266,6 +283,18 @@ function destroyItem() {
         </template>
 
         <div class="page">
+            <!-- Sold items are hidden from lists and search, so the only way
+                 to arrive at one is deliberately — a direct link, the archive
+                 filter, a related item. Say so at the top rather than leaving
+                 it to a card far down the page: everything else here still
+                 reads as though you own the thing. -->
+            <div v-if="isSold" class="sold-banner" data-test="item-sold-banner">
+                <Archive :size="16" class="shrink-0" />
+                <p class="m-0 text-13">
+                    <strong>{{ $t('items.show.sold_banner') }}</strong> {{ soldSummary }}
+                </p>
+            </div>
+
             <!-- One-shot banner after creating this record via "Create a box
                  for <item>". Names the source item so the success message
                  reads like a sentence. Dismissible; gone on next nav. -->
@@ -480,6 +509,16 @@ function destroyItem() {
                     <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                         <h3 class="section-label m-0">{{ $t('items.show.contents') }}</h3>
                         <div class="flex flex-wrap items-center justify-end gap-2">
+                            <Link
+                                v-if="soldCount > 0 || includeSold"
+                                :href="itemRoutes.show(item.id, { query: { sold: includeSold ? undefined : 1 } }).url"
+                                class="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-0.5 text-xs hover:text-fg"
+                                :class="includeSold ? 'bg-bg-sunken text-fg' : 'text-fg-muted'"
+                                data-test="toggle-sold-contents"
+                            >
+                                <Archive :size="13" />
+                                {{ includeSold ? $t('items.index.hide_sold') : $tChoice('items.index.show_sold', soldCount) }}
+                            </Link>
                             <BulkSelectToggle v-if="children.length" />
                             <ItemViewToggle v-if="children.length" v-model="contentsView" />
                             <Link :href="itemRoutes.create({ query: { parent: item.id } }).url" class="btn-pill">
@@ -548,6 +587,18 @@ function destroyItem() {
 </template>
 
 <style scoped>
+/* Muted rather than alarming: a sold item is not an error, it is history. */
+.sold-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-sunken);
+    color: var(--fg-muted);
+}
 /* Contents | Related two-up on wide screens (the app's single 880px
    breakpoint); stacked below it. align-items: start keeps a short list
    from stretching to its neighbour's height. */
