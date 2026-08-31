@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import household from '@/routes/household';
 import { useForm } from '@inertiajs/vue3';
@@ -14,14 +15,14 @@ const form = useForm<{ include_tags: boolean; include_custom_fields: boolean; in
     include_activity: false,
 });
 
-function wipe() {
+async function wipe() {
     const extras: string[] = [];
     if (form.include_tags) extras.push(trans('household.danger.extra_tags'));
     if (form.include_custom_fields) extras.push(trans('household.danger.extra_custom_fields'));
     if (form.include_activity) extras.push(trans('household.danger.extra_activity'));
     const and = trans('household.danger.and');
     const tail = extras.length ? ` ${and} ${extras.join(` ${and} `)}` : '';
-    if (!confirm(trans('household.danger.confirm', { tail }))) return;
+    if (!(await confirm({ message: trans('household.danger.confirm', { tail }), confirmLabel: trans('household.danger.wipe') }))) return;
     form.post(household.reset().url, { preserveScroll: true });
 }
 </script>

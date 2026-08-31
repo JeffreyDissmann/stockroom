@@ -16,6 +16,7 @@
 import BulkMoveDialog from '@/components/BulkMoveDialog.vue';
 import BulkTagDialog from '@/components/BulkTagDialog.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import type { SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
@@ -53,8 +54,8 @@ onBeforeUnmount(() => clearTimeout(undoTimer));
 
 const count = computed(() => bulk.count.value);
 
-function confirmDelete() {
-    if (!confirm(trans('items.bulk.delete_confirm', { count: count.value }))) return;
+async function confirmDelete() {
+    if (!(await confirm({ message: trans('items.bulk.delete_confirm', { count: count.value }), confirmLabel: trans('common.delete') }))) return;
     router.post(
         '/items/bulk',
         { action: 'delete', ids: bulk.ids.value },
@@ -66,7 +67,6 @@ function confirmDelete() {
 }
 
 function applyMove(parentId: number | null) {
-    if (!confirm(trans('items.bulk.move_confirm', { count: count.value }))) return;
     router.post(
         '/items/bulk',
         { action: 'move', ids: bulk.ids.value, parent_id: parentId },

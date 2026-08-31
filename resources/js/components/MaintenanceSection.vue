@@ -3,6 +3,7 @@ import MaintenanceTaskDialog from '@/components/MaintenanceTaskDialog.vue';
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import maintenanceTaskRoutes from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
@@ -51,8 +52,8 @@ function skipTask(task: MaintenanceTaskRow) {
     router.post(maintenanceTaskRoutes.skip([props.item.id, task.id]).url, {}, { preserveScroll: true });
 }
 
-function deleteTask(task: MaintenanceTaskRow) {
-    if (!confirm(trans('maintenance.delete_task_confirm', { title: task.title }))) return;
+async function deleteTask(task: MaintenanceTaskRow) {
+    if (!(await confirm({ message: trans('maintenance.delete_task_confirm', { title: task.title }), confirmLabel: trans('common.delete') }))) return;
     router.delete(maintenanceTaskRoutes.destroy([props.item.id, task.id]).url, { preserveScroll: true });
 }
 </script>

@@ -2,6 +2,7 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -154,8 +155,8 @@ const relinkDoneKey = computed(() =>
     props.relinkStatus?.mode === 'metadata' ? 'household.preferences.paperless_metadata_done' : 'household.preferences.paperless_relink_done',
 );
 
-function relinkAllPaperless() {
-    if (!confirm(trans('household.preferences.paperless_relink_confirm'))) {
+async function relinkAllPaperless() {
+    if (!(await confirm({ message: trans('household.preferences.paperless_relink_confirm'), destructive: false }))) {
         return;
     }
     runRelink(householdPreferences.paperless.relinkAll().url);

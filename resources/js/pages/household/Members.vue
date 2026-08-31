@@ -2,6 +2,7 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -77,8 +78,8 @@ async function copyLink(invitation: InvitationRow) {
     }
 }
 
-function revoke(invitation: InvitationRow) {
-    if (!confirm(trans('members.revoke_confirm'))) return;
+async function revoke(invitation: InvitationRow) {
+    if (!(await confirm({ message: trans('members.revoke_confirm'), confirmLabel: trans('common.remove') }))) return;
     router.delete(invitationRoutes.destroy(invitation.id).url, { preserveScroll: true });
 }
 
@@ -86,8 +87,8 @@ function toggleAdmin(member: MemberRow) {
     router.patch(memberRoutes.update(member.id).url, { is_admin: !member.is_admin }, { preserveScroll: true });
 }
 
-function removeMember(member: MemberRow) {
-    if (!confirm(trans('members.remove_confirm', { name: member.name }))) return;
+async function removeMember(member: MemberRow) {
+    if (!(await confirm({ message: trans('members.remove_confirm', { name: member.name }), confirmLabel: trans('common.remove') }))) return;
     router.delete(memberRoutes.destroy(member.id).url, { preserveScroll: true });
 }
 </script>

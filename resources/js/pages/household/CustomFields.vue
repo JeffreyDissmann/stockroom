@@ -2,6 +2,7 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
@@ -42,8 +43,9 @@ function startEdit(field: CustomFieldDefinition) {
 function saveEdit(id: number) {
     editForm.put(customFields.update(id).url, { preserveScroll: true, onSuccess: () => (editingId.value = null) });
 }
-function destroy(field: CustomFieldDefinition) {
-    if (!confirm(trans('household.custom_fields.delete_confirm', { name: field.name }))) return;
+async function destroy(field: CustomFieldDefinition) {
+    if (!(await confirm({ message: trans('household.custom_fields.delete_confirm', { name: field.name }), confirmLabel: trans('common.delete') })))
+        return;
     router.delete(customFields.destroy(field.id).url, { preserveScroll: true });
 }
 function typeLabel(type: CustomFieldTypeValue) {

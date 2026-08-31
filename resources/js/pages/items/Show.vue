@@ -16,6 +16,7 @@ import TagBadge from '@/components/TagBadge.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { useCurrency } from '@/composables/useCurrency';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { itemIconMap } from '@/lib/itemIcons';
@@ -198,8 +199,8 @@ const relatedView = ref<ItemViewMode>('grid');
 
 // "Related items" section actions. Unlink uses Inertia router so the page
 // refreshes the relatedItems prop on success — no manual list pruning here.
-function unlinkRelated(related: ItemSummary) {
-    if (!confirm(trans('items.related.unlink_confirm', { name: related.name }))) return;
+async function unlinkRelated(related: ItemSummary) {
+    if (!(await confirm({ message: trans('items.related.unlink_confirm', { name: related.name }), confirmLabel: trans('common.remove') }))) return;
     router.delete(relatedItemsRoutes.destroy([props.item.id, related.id]).url, { preserveScroll: true });
 }
 
@@ -210,8 +211,8 @@ const hasConnections = computed(() => hasPaperlessLinks.value || props.homeAssis
 
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
-function destroyItem() {
-    if (!confirm(trans('items.show.delete_confirm', { name: props.item.name }))) return;
+async function destroyItem() {
+    if (!(await confirm({ message: trans('items.show.delete_confirm', { name: props.item.name }), confirmLabel: trans('common.delete') }))) return;
     router.delete(itemRoutes.destroy(props.item.id).url);
 }
 </script>
@@ -240,7 +241,7 @@ function destroyItem() {
                  hide. The `!` adds !important which wins regardless of
                  stylesheet order. -->
             <CreateBoxDialog ref="createBoxDialog" :item="item" trigger-class="!hidden xl:!inline-flex" />
-            <button class="btn-pill btn-danger !hidden xl:!inline-flex" type="button" @click="destroyItem">
+            <button class="btn-pill btn-danger !hidden xl:!inline-flex" type="button" data-test="item-delete" @click="destroyItem">
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
             </button>

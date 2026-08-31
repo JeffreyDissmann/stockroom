@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans, transChoice } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
@@ -73,8 +74,9 @@ function submitEdit() {
 // preference is most useful as a real link to /household/preferences.
 const deleteError = ref<string | null>(null);
 
-function destroyTag(tag: TagRow) {
-    if (!confirm(trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }))) return;
+async function destroyTag(tag: TagRow) {
+    if (!(await confirm({ message: trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }), confirmLabel: trans('common.delete') })))
+        return;
     router.delete(tagRoutes.destroy(tag.id).url, {
         preserveScroll: true,
         onSuccess: () => (deleteError.value = null),
@@ -188,7 +190,13 @@ function destroyTag(tag: TagRow) {
                             <button class="btn-ghost" type="button" @click="startEdit(tag)">
                                 <Pencil :size="14" />
                             </button>
-                            <button v-if="!isProtected(tag)" class="btn-ghost btn-danger" type="button" @click="destroyTag(tag)">
+                            <button
+                                v-if="!isProtected(tag)"
+                                class="btn-ghost btn-danger"
+                                type="button"
+                                data-test="tag-delete"
+                                @click="destroyTag(tag)"
+                            >
                                 <Trash2 :size="14" />
                             </button>
                             <span v-else class="px-1 text-fg-subtle" :title="$t('tags.protected_hint')">

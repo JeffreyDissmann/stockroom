@@ -234,7 +234,6 @@ return [
         'move' => 'Move',
         'move_title' => 'Move selected items',
         'move_description' => 'Move :count item into a room or container.|Move :count items into a room or container.',
-        'move_confirm' => 'Move :count item to the selected location?|Move :count items to the selected location?',
         'moved_count' => 'Moved :count item.|Moved :count items.',
         'undo' => 'Undo',
         'attach_tag' => 'Add tag',
