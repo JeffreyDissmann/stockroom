@@ -44,7 +44,7 @@ class ItemDetailResource extends ItemResource
             'sold_price' => $this->sold_price,
             'sold_date' => $this->sold_date?->toDateString(),
             'sold_notes' => $this->sold_notes,
-            'images' => ItemImageResource::collection($this->whenLoaded('images')),
+            'images' => $this->whenLoaded('images', fn () => ItemImageResource::collection($this->images)->resolve($request)),
             // System fields are import-managed and never edited by hand, so the
             // form never sees them. A value whose definition has been deleted is
             // dropped rather than rendered as a nameless row.

@@ -62,7 +62,13 @@ class ItemResource extends JsonResource
             'icon' => $this->icon,
             'thumb_url' => $this->thumbnailUrl(),
             'children_count' => $this->whenCounted('children'),
-            'tags' => TagResource::collection($this->whenLoaded('tags')),
+            // resolve() on the nested collection, not just TagResource::collection():
+            // the outer resource is resolved by hand for Inertia, and that does
+            // not walk into nested resources. Left unresolved, this serialises
+            // as {"data": [...]} instead of a plain array — which silently
+            // rendered no tags on the cards and bailed Vue out of the whole item
+            // page, where the list is iterated directly.
+            'tags' => $this->whenLoaded('tags', fn () => TagResource::collection($this->tags)->resolve($request)),
             // Lightweight thumbnail list (primary first) for the card carousel.
             'image_thumbs' => $this->when(
                 $this->resource->relationLoaded('images'),

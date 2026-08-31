@@ -51,6 +51,38 @@ it('sends the same card keys on the inventory list and inside a container', func
     expect(cardKeys($inRoom))->toBe(cardKeys($topLevel));
 });
 
+/**
+ * Nested resources are not resolved by the outer resolve() call, so a bare
+ * TagResource::collection(...) serialises as {"data": [...]}. The cards then
+ * render no tags at all, and the item page — which iterates the list directly —
+ * bails Vue out of the entire page. Key-shape assertions cannot see this,
+ * because the key is present either way; only the value type gives it away.
+ */
+it('sends tags and images as plain arrays, not wrapped in a data key', function () {
+    // Top level, so it is the one row the inventory list renders.
+    $tag = Tag::factory()->create(['name' => 'Power Tools']);
+    $item = Item::factory()->create(['name' => 'Cordless Drill']);
+    $item->tags()->attach($tag);
+
+    // Addressing tags.0 is the assertion that matters: wrapped, the name would
+    // sit at tags.data.0 and this path would not resolve.
+    $this->get("/items/{$item->id}")->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('item.tags.0.name', 'Power Tools')
+        ->missing('item.tags.data')
+        ->missing('item.images.data'),
+    );
+
+    $this->get('/items')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('items.0.tags.0.name', 'Power Tools')
+        ->missing('items.0.tags.data'),
+    );
+
+    $this->get('/search?sort=name')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('items.data.0.tags.0.name', 'Power Tools')
+        ->missing('items.data.0.tags.data'),
+    );
+});
+
 it('marks a sold item as sold wherever it surfaces', function () {
     $room = Item::factory()->room()->create();
     Item::factory()->create(['name' => 'Old Mower', 'parent_id' => $room->id, 'sold_date' => now()]);
