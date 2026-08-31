@@ -17,7 +17,7 @@ import BulkMoveDialog from '@/components/BulkMoveDialog.vue';
 import BulkTagDialog from '@/components/BulkTagDialog.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
-import type { BulkResult, SharedData, TagSummary } from '@/types';
+import type { SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { ArrowLeftRight, Tag, Trash2, X } from '@lucide/vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';

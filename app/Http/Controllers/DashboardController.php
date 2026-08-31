@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\ItemType;
+use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use App\Models\ItemProposal;
 use App\Models\MaintenanceTask;
@@ -30,12 +31,16 @@ class DashboardController extends Controller
         $byType = $this->stats->countsByType();
         $value = $this->stats->ownedValue();
 
+        // Full rows rather than a column list: ItemResource reads sold_date and
+        // description, and under Model::shouldBeStrict() a column left out of
+        // the select is a hard error rather than a null. Six rows, so the
+        // narrower select bought nothing.
         $recent = Item::query()
             ->owned()
-            ->with(['parent:id,name,type', 'primaryImage'])
+            ->with(['parent', 'primaryImage'])
             ->orderByDesc('created_at')
             ->limit(6)
-            ->get(['id', 'parent_id', 'type', 'name', 'icon', 'created_at']);
+            ->get();
 
         // Top 20 tags, most-used first — drives the clickable dashboard tag strip.
         $tags = $this->stats->tagsWithItemCounts(20);
@@ -81,26 +86,9 @@ class DashboardController extends Controller
                 'containers' => (int) ($byType[ItemType::Container->value] ?? 0),
                 'items' => (int) ($byType[ItemType::Item->value] ?? 0),
             ],
-            'recent' => $recent->map(fn (Item $i): array => [
-                'id' => $i->id,
-                'name' => $i->name,
-                'created_at_human' => $i->created_at?->diffForHumans(),
-                'type' => [
-                    'value' => $i->type->value,
-                    'label' => $i->type->label(),
-                    'icon' => $i->type->icon(),
-                ],
-                'thumb_url' => $i->primaryImage?->thumbUrl(),
-                'icon' => $i->icon,
-                'parent' => $i->parent ? [
-                    'id' => $i->parent->id,
-                    'name' => $i->parent->name,
-                    'type' => [
-                        'value' => $i->parent->type->value,
-                        'label' => $i->parent->type->label(),
-                        'icon' => $i->parent->type->icon(),
-                    ],
-                ] : null,
+            'recent' => $recent->map(fn (Item $item): array => [
+                ...ItemResource::make($item)->resolve(),
+                'created_at_human' => $item->created_at?->diffForHumans(),
             ]),
             'tags' => $tags,
             'rooms' => $rooms,

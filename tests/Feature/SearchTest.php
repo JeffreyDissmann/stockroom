@@ -43,7 +43,8 @@ class SearchTest extends TestCase
             ->assertJsonCount(1, 'results');
 
         $response->assertJsonPath('results.0.name', 'Cordless Drill');
-        $response->assertJsonPath('results.0.path', 'Garage');
+        // Renamed from `path` when the palette moved onto the shared ItemResource.
+        $response->assertJsonPath('results.0.location_path', 'Garage');
         $response->assertJsonPath('results.0.type.value', 'item');
     }
 

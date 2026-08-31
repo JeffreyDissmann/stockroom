@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ItemType;
 use App\Enums\SoldVisibility;
+use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Services\InventorySearch;
@@ -45,14 +46,14 @@ class SearchController extends Controller
             ->take(20)
             ->get());
 
+        // One batched ancestor walk for all 20 hits rather than a
+        // locationPath() query per row.
+        $paths = Item::locationPathsFor($items);
+
         return response()->json([
-            'results' => $items->map(fn (Item $item): array => [
-                'id' => $item->id,
-                'name' => $item->name,
-                'type' => ['value' => $item->type->value, 'label' => $item->type->label()],
-                'path' => $item->locationPath(),
-                'thumb_url' => $item->primaryImage?->thumbUrl(),
-            ])->all(),
+            'results' => $items
+                ->map(fn (Item $item) => ItemResource::make($item)->withLocationPath($paths[$item->id] ?? '')->resolve())
+                ->all(),
         ]);
     }
 
@@ -136,7 +137,7 @@ class SearchController extends Controller
         // (not a per-row locationPath() N+1) — search spans the whole tree, so
         // each card shows where the item lives.
         $paths = Item::locationPathsFor($items->getCollection());
-        $items->through(fn (Item $item): array => $this->present($item, $paths[$item->id] ?? ''));
+        $items->through(fn (Item $item): array => ItemResource::make($item)->withLocationPath($paths[$item->id] ?? '')->resolve());
 
         return Inertia::render('Search', [
             'query' => $query,
@@ -151,39 +152,8 @@ class SearchController extends Controller
             'items' => $items,
             'tags' => Tag::query()->orderBy('name')->get(['id', 'name', 'color']),
             'types' => collect(ItemType::cases())
-                ->map(fn (ItemType $t): array => ['value' => $t->value, 'label' => $t->label()])
+                ->map(fn (ItemType $type): array => $type->descriptor())
                 ->all(),
         ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function present(Item $item, string $locationPath = ''): array
-    {
-        return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'description' => $item->description,
-            'location_path' => $locationPath,
-            // This page can list sold items (the Include sold / Sold only
-            // filter), so it has to say which ones they are.
-            'is_sold' => $item->sold_date !== null,
-            'type' => [
-                'value' => $item->type->value,
-                'label' => $item->type->label(),
-                'icon' => $item->type->icon(),
-                'details' => $item->type->hasDetailFields(),
-            ],
-            'thumb_url' => $item->primaryImage?->thumbUrl(),
-            'icon' => $item->icon,
-            'children_count' => $item->children_count,
-            'tags' => $item->tags->map(fn (Tag $tag): array => [
-                'id' => $tag->id,
-                'name' => $tag->name,
-                'slug' => $tag->slug,
-                'color' => $tag->color,
-            ])->values(),
-        ];
     }
 }

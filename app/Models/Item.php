@@ -254,6 +254,28 @@ class Item extends Model
     }
 
     /**
+     * The primary image's thumbnail, resolved from whichever image relation the
+     * caller happened to eager-load — `primaryImage` on the pages that only
+     * need one, `images` on the ones rendering a carousel.
+     *
+     * Returns null when neither is loaded rather than fetching: under
+     * Model::shouldBeStrict() a lazy load here is a hard error, and a card
+     * without a thumbnail is the right fallback anyway.
+     */
+    public function thumbnailUrl(): ?string
+    {
+        if ($this->relationLoaded('primaryImage')) {
+            return $this->primaryImage?->thumbUrl();
+        }
+
+        if ($this->relationLoaded('images')) {
+            return ($this->images->firstWhere('is_primary', true) ?? $this->images->first())?->thumbUrl();
+        }
+
+        return null;
+    }
+
+    /**
      * @return Collection<int, self> Ordered root -> direct parent.
      */
     public function ancestors(): Collection

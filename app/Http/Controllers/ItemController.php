@@ -11,10 +11,10 @@ use App\Enums\SaleDisposition;
 use App\Http\Requests\Item\MoveItemRequest;
 use App\Http\Requests\Item\StoreItemRequest;
 use App\Http\Requests\Item\UpdateItemRequest;
+use App\Http\Resources\ItemDetailResource;
+use App\Http\Resources\ItemResource;
 use App\Models\CustomField;
-use App\Models\CustomFieldValue;
 use App\Models\Item;
-use App\Models\ItemImage;
 use App\Models\MaintenanceEntry;
 use App\Models\MaintenanceTask;
 use App\Models\PaperlessLink;
@@ -69,11 +69,11 @@ class ItemController extends Controller
         }
 
         return Inertia::render('items/Index', [
-            'parent' => $parentForView ? $this->presentItem($parentForView) : null,
+            'parent' => $parentForView ? ItemResource::make($parentForView)->resolve() : null,
             'breadcrumb' => $parent
-                ? $parent->ancestors()->push($parent)->map(fn (Item $i) => $this->presentItem($i))->values()
+                ? ItemResource::collection($parent->ancestors()->push($parent))->resolve()
                 : [],
-            'items' => $items->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withThumbs: true))->values(),
+            'items' => ItemResource::collection($items)->resolve(),
             // For the bulk-tag dialog. Sent unconditionally rather than
             // lazy-loaded — tags are small (typically <100 rows) and the
             // round-trip when entering Select mode would feel sluggish.
@@ -91,10 +91,10 @@ class ItemController extends Controller
         $parent = $parentId ? Item::findOrFail($parentId)->load('primaryImage') : null;
 
         return Inertia::render('items/Create', [
-            'parent' => $parent ? $this->presentItem($parent) : null,
+            'parent' => $parent ? ItemResource::make($parent)->resolve() : null,
             // Sold containers are not somewhere you can put anything: the new
             // item would vanish from the tree the moment it was saved.
-            'items' => Item::query()->owned()->with('primaryImage')->orderBy('name')->get()->map(fn (Item $i) => $this->presentItem($i))->values(),
+            'items' => ItemResource::collection(Item::query()->owned()->with('primaryImage')->orderBy('name')->get())->resolve(),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
@@ -111,7 +111,7 @@ class ItemController extends Controller
         unset($data['tags'], $data['images'], $data['custom_fields']);
 
         $item = $this->writer->create($data, $tagIds);
-        $this->syncCustomFields($item, $customFields);
+        $this->writer->syncCustomFields($item, $customFields);
 
         foreach ($imageFiles as $file) {
             $this->imageProcessor->store($item, $file);
@@ -152,12 +152,12 @@ class ItemController extends Controller
             ->all();
 
         return Inertia::render('items/Show', [
-            'item' => $this->presentItem($item, withTags: true, withImages: true, withDetails: true),
-            'breadcrumb' => $item->ancestors()->map(fn (Item $i) => $this->presentItem($i))->values(),
-            'children' => $children->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            'item' => ItemDetailResource::make($item)->resolve(),
+            'breadcrumb' => ItemResource::collection($item->ancestors())->resolve(),
+            'children' => ItemResource::collection($children)->resolve(),
             'includeSold' => $includeSold,
             'soldCount' => $item->children()->sold()->count(),
-            'relatedItems' => $relatedItems->map(fn (Item $i) => $this->presentItem($i, withChildrenCount: true, withTags: true, withThumbs: true))->values(),
+            'relatedItems' => ItemResource::collection($relatedItems)->resolve(),
             // Paperless-ngx documents the user linked this item to (#7).
             // Each entry is a click-through to the Paperless UI; the URL is
             // composed by the model from config('paperless.url'), so we
@@ -303,11 +303,14 @@ class ItemController extends Controller
     public function edit(Item $item): Response
     {
         $item->load(['tags', 'images', 'customFieldValues.field', 'paperlessLinks', 'homeAssistantLink']);
+        // The form asks what became of the contents when a container full of
+        // things is marked sold, so it needs the count. Counted here rather
+        // than left to the serialiser, which now reports only what the caller
+        // actually asked the database for.
+        $item->loadCount(['children' => fn ($query) => $query->owned()]);
 
         return Inertia::render('items/Edit', [
-            // children_count so the form can ask what became of the contents
-            // when a container full of things is marked sold.
-            'item' => $this->presentItem($item, withChildrenCount: true, withTags: true, withImages: true, withDetails: true),
+            'item' => ItemDetailResource::make($item)->resolve(),
             'tags' => Tag::query()->orderBy('name')->get(),
             'types' => $this->typeOptions(),
             'customFields' => $this->customFieldDefinitions(),
@@ -396,7 +399,7 @@ class ItemController extends Controller
                 ]);
             }
         }
-        $this->syncCustomFields($item, $customFields);
+        $this->writer->syncCustomFields($item, $customFields);
         // Re-index now that custom fields are attached.
         $item->searchable();
 
@@ -437,12 +440,7 @@ class ItemController extends Controller
     private function typeOptions(): array
     {
         return collect(ItemType::cases())
-            ->map(fn (ItemType $t) => [
-                'value' => $t->value,
-                'label' => $t->label(),
-                'icon' => $t->icon(),
-                'details' => $t->hasDetailFields(),
-            ])
+            ->map(fn (ItemType $type): array => $type->descriptor())
             ->values()
             ->all();
     }
@@ -470,45 +468,6 @@ class ItemController extends Controller
     }
 
     /**
-     * Upsert the submitted custom field values (keyed by definition id),
-     * removing any that were cleared. Only user-editable definitions are
-     * touched so import-managed system values are preserved.
-     *
-     * @param  array<int|string, mixed>  $values
-     */
-    private function syncCustomFields(Item $item, array $values): void
-    {
-        foreach (CustomField::query()->where('is_system', false)->get() as $field) {
-            $stored = $field->type->serialize($values[$field->id] ?? null);
-
-            if ($stored === null) {
-                $item->customFieldValues()->where('custom_field_id', $field->id)->delete();
-
-                continue;
-            }
-
-            $item->customFieldValues()->updateOrCreate(
-                ['custom_field_id' => $field->id],
-                ['value' => $stored],
-            );
-        }
-    }
-
-    /** The primary image's thumbnail, resolved from whichever image relation is loaded. */
-    private function primaryThumbUrl(Item $item): ?string
-    {
-        if ($item->relationLoaded('primaryImage')) {
-            return $item->primaryImage?->thumbUrl();
-        }
-
-        if ($item->relationLoaded('images')) {
-            return ($item->images->firstWhere('is_primary', true) ?? $item->images->first())?->thumbUrl();
-        }
-
-        return null;
-    }
-
-    /**
      * Tag ids the user may not detach from this item in the form — currently
      * just the auto-managed "Battery" tag while the item is battery-tracked.
      *
@@ -521,92 +480,5 @@ class ItemController extends Controller
         return $batteryTagId !== null && $item->batteryCycles()->exists()
             ? [$batteryTagId]
             : [];
-    }
-
-    private function presentItem(Item $item, bool $withChildrenCount = false, bool $withTags = false, bool $withImages = false, bool $withThumbs = false, bool $withDetails = false): array
-    {
-        $payload = [
-            'id' => $item->id,
-            'name' => $item->name,
-            'description' => $item->description,
-            'parent_id' => $item->parent_id,
-            // Sold items are hidden by default, so wherever one does appear —
-            // the archive filter, related items, a direct link — it has to say
-            // plainly that it is not yours any more.
-            'is_sold' => $item->sold_date !== null,
-            'type' => [
-                'value' => $item->type->value,
-                'label' => $item->type->label(),
-                'icon' => $item->type->icon(),
-                'details' => $item->type->hasDetailFields(),
-            ],
-            'thumb_url' => $this->primaryThumbUrl($item),
-            'icon' => $item->icon,
-        ];
-
-        if ($withChildrenCount) {
-            $payload['children_count'] = $item->children_count ?? $item->children()->owned()->count();
-        }
-
-        if ($withDetails) {
-            $payload['quantity'] = $item->quantity;
-            $payload['purchased_from'] = $item->purchased_from;
-            $payload['purchase_date'] = $item->purchase_date?->toDateString();
-            $payload['purchase_price'] = $item->purchase_price;
-            $payload['manufacturer'] = $item->manufacturer;
-            $payload['model_number'] = $item->model_number;
-            $payload['serial_number'] = $item->serial_number;
-            $payload['battery_type'] = $item->battery_type;
-            $payload['lifetime_warranty'] = $item->lifetime_warranty;
-            $payload['warranty_expires'] = $item->warranty_expires?->toDateString();
-            $payload['warranty_details'] = $item->warranty_details;
-            $payload['sold_to'] = $item->sold_to;
-            $payload['sold_price'] = $item->sold_price;
-            $payload['sold_date'] = $item->sold_date?->toDateString();
-            $payload['sold_notes'] = $item->sold_notes;
-        }
-
-        if ($withTags) {
-            $payload['tags'] = $item->tags->map(fn (Tag $t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'slug' => $t->slug,
-                'color' => $t->color,
-            ])->values();
-        }
-
-        if ($withImages) {
-            $payload['images'] = $item->images->map(fn (ItemImage $img) => [
-                'id' => $img->id,
-                'thumb_url' => $img->thumbUrl(),
-                'large_url' => $img->largeUrl(),
-                'original_url' => $img->originalUrl(),
-                'is_primary' => $img->is_primary,
-                'sort_order' => $img->sort_order,
-            ])->values();
-        }
-
-        // Lightweight list of thumbnail URLs (primary first) for the grid-card carousel.
-        if ($withThumbs && $item->relationLoaded('images')) {
-            $payload['image_thumbs'] = $item->images
-                ->sortByDesc('is_primary')
-                ->map(fn (ItemImage $img) => $img->thumbUrl())
-                ->values();
-        }
-
-        if ($withDetails && $item->relationLoaded('customFieldValues')) {
-            $payload['custom_fields'] = $item->customFieldValues
-                ->filter(fn (CustomFieldValue $v) => $v->field !== null && ! $v->field->is_system)
-                ->map(fn (CustomFieldValue $v) => [
-                    'custom_field_id' => $v->custom_field_id,
-                    'key' => $v->field->key,
-                    'name' => $v->field->name,
-                    'type' => $v->field->type->value,
-                    'value' => $v->field->type->cast($v->value),
-                ])
-                ->values();
-        }
-
-        return $payload;
     }
 }

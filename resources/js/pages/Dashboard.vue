@@ -15,14 +15,11 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ChevronRight, Lightbulb, Plus, Wrench } from '@lucide/vue';
 import { computed } from 'vue';
 
-interface RecentItem {
-    id: number;
-    name: string;
+// Served by the shared ItemResource, plus the relative timestamp this strip
+// shows and the parent it links back to.
+interface RecentItem extends ItemSummary {
     created_at_human: string | null;
-    type: ItemSummary['type'];
-    thumb_url: string | null;
-    icon: string | null;
-    parent: { id: number; name: string; type: ItemSummary['type'] } | null;
+    parent: ItemSummary | null;
 }
 
 interface DashboardTag extends TagSummary {

@@ -11,13 +11,13 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import itemBox from '@/routes/items/box';
-import type { ItemSummary } from '@/types';
+import type { ItemDetail } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import { PackageOpen } from '@lucide/vue';
 import { ref, watch } from 'vue';
 
 const props = defineProps<{
-    item: ItemSummary;
+    item: ItemDetail;
     // Tailwind class on the inline trigger button — lets the parent hide it
     // on a given breakpoint (e.g. `hidden md:inline-flex`) while still being
     // able to open the dialog programmatically via the exposed openDialog().

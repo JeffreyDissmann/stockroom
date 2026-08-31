@@ -7,7 +7,7 @@ import type {
     BreadcrumbItemType,
     CustomFieldDefinition,
     HomeAssistantLinkSummary,
-    ItemSummary,
+    ItemDetail,
     ItemTypeDescriptor,
     PaperlessLinkSummary,
     TagSummary,
@@ -17,7 +17,7 @@ import { X } from '@lucide/vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
-    item: ItemSummary;
+    item: ItemDetail;
     tags: TagSummary[];
     types: ItemTypeDescriptor[];
     customFields: CustomFieldDefinition[];

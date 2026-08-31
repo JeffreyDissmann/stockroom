@@ -16,6 +16,7 @@ import paperlessLinksRoutes from '@/routes/items/paperless-links';
 import type {
     CustomFieldDefinition,
     HomeAssistantLinkSummary,
+    ItemDetail,
     ItemSummary,
     ItemTypeDescriptor,
     ItemTypeValue,
@@ -33,7 +34,7 @@ type Mode = 'create' | 'edit';
 
 const props = defineProps<{
     mode: Mode;
-    item?: ItemSummary | null;
+    item?: ItemDetail | null;
     parent?: ItemSummary | null;
     items: ItemSummary[];
     tags: TagSummary[];

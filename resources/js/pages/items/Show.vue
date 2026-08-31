@@ -27,6 +27,7 @@ import type {
     BreadcrumbItemType,
     HomeAssistantLinkSummary,
     ItemImageSummary,
+    ItemDetail,
     ItemSummary,
     ItemViewMode,
     MaintenanceData,
@@ -39,7 +40,7 @@ import { Archive, CheckCircle2, ChevronRight, FileText, House, MoreVertical, Pac
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
-    item: ItemSummary;
+    item: ItemDetail;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
     includeSold: boolean;
