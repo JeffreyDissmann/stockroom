@@ -18,6 +18,7 @@ import { useBulkSelection } from '@/composables/useBulkSelection';
 import { useCurrency } from '@/composables/useCurrency';
 import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
+import EmptyState from '@/components/EmptyState.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { itemIconMap } from '@/lib/itemIcons';
 import itemRoutes from '@/routes/items';
@@ -542,9 +543,9 @@ async function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="children.length === 0" class="card card-pad text-center text-fg-muted">
+                    <EmptyState v-if="children.length === 0">
                         {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
-                    </div>
+                    </EmptyState>
 
                     <!-- `selectable` participates in the same bulk-select store as
                          Items/Index and Search — clicking a child in select mode
@@ -566,9 +567,9 @@ async function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="relatedItems.length === 0" class="card card-pad text-center text-13 text-fg-muted">
+                    <EmptyState v-if="relatedItems.length === 0">
                         {{ $t('items.related.empty') }}
-                    </div>
+                    </EmptyState>
 
                     <ItemCollection v-else :items="relatedItems" :view="relatedView" removable @remove="unlinkRelated" />
                 </section>

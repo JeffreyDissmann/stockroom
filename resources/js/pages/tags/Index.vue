@@ -3,6 +3,8 @@ import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
 import { confirm } from '@/composables/useConfirm';
 import { trans, transChoice } from '@/composables/useTranslations';
+import EmptyState from '@/components/EmptyState.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
 import householdPreferences from '@/routes/household/preferences';
@@ -92,10 +94,7 @@ async function destroyTag(tag: TagRow) {
         <Head :title="$t('tags.title')" />
 
         <div class="page">
-            <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('tags.title') }}</h2>
-            <p class="sub m-0 mb-5 text-13 text-fg-muted">
-                {{ $t('tags.subtitle') }}
-            </p>
+            <PageHeader :title="$t('tags.title')" :description="$t('tags.subtitle')" />
 
             <!-- Sticky error banner for delete rejections (e.g. the box-tag
                  guard). The CTA is a real Link to /household/preferences. -->
@@ -141,9 +140,9 @@ async function destroyTag(tag: TagRow) {
                 </div>
             </form>
 
-            <div v-if="tags.length === 0" class="card card-pad text-center text-fg-muted">
+            <EmptyState v-if="tags.length === 0">
                 {{ $t('tags.empty') }}
-            </div>
+            </EmptyState>
 
             <div v-else class="card">
                 <div v-for="(tag, i) in tags" :key="tag.id" :style="{ borderTop: i ? '1px solid var(--border)' : '' }">

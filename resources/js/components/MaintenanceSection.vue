@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EmptyState from '@/components/EmptyState.vue';
 import MaintenanceTaskDialog from '@/components/MaintenanceTaskDialog.vue';
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -70,9 +71,9 @@ async function deleteTask(task: MaintenanceTaskRow) {
 
         <p v-if="taskError" class="mnt-error" role="alert">{{ taskError }}</p>
 
-        <div v-if="tasks.length === 0" class="card card-pad text-center text-13 text-fg-muted">
+        <EmptyState v-if="tasks.length === 0">
             {{ $t('maintenance.empty') }}
-        </div>
+        </EmptyState>
 
         <ul v-else class="mnt-list">
             <li v-for="task in tasks" :key="task.id" class="mnt-row" data-test="maintenance-task-row">

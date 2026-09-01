@@ -5,6 +5,7 @@ import { useIsAdmin } from '@/composables/useIsAdmin';
 import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
+import SavedIndicator from '@/components/SavedIndicator.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import householdPreferences from '@/routes/household/preferences';
 import type { BreadcrumbItem, SharedData } from '@/types';
@@ -390,12 +391,12 @@ function runRelink(url: string) {
                         </div>
                     </div>
 
-                    <div>
+                    <div class="flex items-center gap-4">
                         <button type="submit" class="btn-primary" :disabled="form.processing" data-test="preferences-save">
                             <Save :size="14" />
                             {{ $t('common.save') }}
                         </button>
-                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-pos">{{ $t('common.saved') }}</span>
+                        <SavedIndicator :show="form.recentlySuccessful" />
                     </div>
                 </form>
             </div>

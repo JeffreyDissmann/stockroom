@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItemSuggestion from '@/components/ItemSuggestion.vue';
 import { trans } from '@/composables/useTranslations';
+import PageHeader from '@/components/PageHeader.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import proposalRoutes from '@/routes/proposals';
@@ -63,8 +64,7 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: trans('nav.proposals'), href
         <Head :title="$t('proposals.title')" />
 
         <div class="page">
-            <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('proposals.title') }}</h2>
-            <p class="m-0 mb-5 text-13 text-fg-muted">{{ $t('proposals.description') }}</p>
+            <PageHeader :title="$t('proposals.title')" :description="$t('proposals.description')" />
 
             <div v-if="aiEnabled" class="run-bar">
                 <button

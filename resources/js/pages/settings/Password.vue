@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import SavedIndicator from '@/components/SavedIndicator.vue';
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import password from '@/routes/password';
-import { TransitionRoot } from '@headlessui/vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -112,15 +112,7 @@ const updatePassword = () => {
                     <div class="flex items-center gap-4">
                         <Button :disabled="form.processing">{{ $t('settings.password.submit') }}</Button>
 
-                        <TransitionRoot
-                            :show="form.recentlySuccessful"
-                            enter="transition ease-in-out"
-                            enter-from="opacity-0"
-                            leave="transition ease-in-out"
-                            leave-to="opacity-0"
-                        >
-                            <p class="text-sm text-neutral-600">{{ $t('common.saved') }}</p>
-                        </TransitionRoot>
+                        <SavedIndicator :show="form.recentlySuccessful" />
                     </div>
                 </form>
             </div>

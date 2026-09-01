@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TransitionRoot } from '@headlessui/vue';
+import SavedIndicator from '@/components/SavedIndicator.vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 
 import DeleteUser from '@/components/DeleteUser.vue';
@@ -75,15 +75,7 @@ const submit = () => {
                     <div class="flex items-center gap-4">
                         <Button :disabled="form.processing">{{ $t('common.save') }}</Button>
 
-                        <TransitionRoot
-                            :show="form.recentlySuccessful"
-                            enter="transition ease-in-out"
-                            enter-from="opacity-0"
-                            leave="transition ease-in-out"
-                            leave-to="opacity-0"
-                        >
-                            <p class="text-sm text-neutral-600">{{ $t('common.saved') }}</p>
-                        </TransitionRoot>
+                        <SavedIndicator :show="form.recentlySuccessful" />
                     </div>
                 </form>
             </div>

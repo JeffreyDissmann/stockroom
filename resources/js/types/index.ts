@@ -187,6 +187,28 @@ export interface ItemDetail extends ItemSummary {
     custom_fields?: ItemCustomFieldValue[];
 }
 
+/** One entry in Laravel's paginator `links` array. */
+export interface PaginationLink {
+    url: string | null;
+    // Pre-rendered by Laravel and may contain entities (&laquo;), so it is
+    // bound with v-html.
+    label: string;
+    active: boolean;
+}
+
+/**
+ * A Laravel length-aware paginator as it arrives in props. `total`/`from`/`to`
+ * are always sent; they were previously declared only in Search.vue, which is
+ * why two copies of this type disagreed.
+ */
+export interface Paginated<T> {
+    data: T[];
+    links: PaginationLink[];
+    total: number;
+    from: number | null;
+    to: number | null;
+}
+
 export interface ActivityChange {
     field: string;
     from: string | null;

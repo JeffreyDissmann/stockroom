@@ -5,6 +5,7 @@ import ItemCollection from '@/components/ItemCollection.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
+import EmptyState from '@/components/EmptyState.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import itemRoutes from '@/routes/items';
 import type { BreadcrumbItemType, ItemSummary, ItemViewMode, TagSummary } from '@/types';
@@ -122,14 +123,14 @@ watch(
                 }}</span>
             </div>
 
-            <div v-if="filtered.length === 0" class="card card-pad text-center text-fg-muted">
-                <p class="m-0" v-if="items.length === 0">
+            <EmptyState v-if="filtered.length === 0">
+                <p v-if="items.length === 0" class="m-0">
                     {{ $t('items.index.empty') }}
                     <Link class="font-medium text-fg underline underline-offset-[3px]" :href="createHref">{{ $t('items.index.add_first') }}</Link
                     >.
                 </p>
-                <p class="m-0" v-else>{{ $t('items.index.no_match') }}</p>
-            </div>
+                <p v-else class="m-0">{{ $t('items.index.no_match') }}</p>
+            </EmptyState>
 
             <ItemCollection v-else :items="sorted" :view="view" selectable :sort="sortKey" :sort-dir="sortDir" @sort="onSort" />
 
