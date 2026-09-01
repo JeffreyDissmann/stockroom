@@ -1,4 +1,5 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../wayfinder'
+import customFields from './custom-fields'
 import backup from './backup'
 import importMethod from './import'
 import searchIndex from './search-index'
@@ -40,6 +41,7 @@ reset.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 })
 
 const household = {
+    customFields: Object.assign(customFields, customFields),
     backup: Object.assign(backup, backup),
     import: Object.assign(importMethod, importMethod),
     searchIndex: Object.assign(searchIndex, searchIndex),

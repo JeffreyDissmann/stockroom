@@ -4,26 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\CustomField;
 
-use App\Enums\CustomFieldType;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
-
-class UpdateCustomFieldRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @return array<string, array<int, mixed>>
-     */
-    public function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', new Enum(CustomFieldType::class)],
-            'searchable' => ['boolean'],
-        ];
-    }
-}
+/**
+ * Identical payload to store — a custom field has the same shape whether it is
+ * being created or renamed. Extends rather than restates it so the two cannot
+ * drift, the way UpdateMaintenanceTaskRequest already extends its store request.
+ */
+class UpdateCustomFieldRequest extends StoreCustomFieldRequest {}

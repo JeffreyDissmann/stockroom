@@ -10,7 +10,7 @@ import {
 import { useAssistant } from '@/composables/useAssistant';
 import { trans } from '@/composables/useTranslations';
 import { activity, dashboard, logout, maintenance, search } from '@/routes';
-import customFields from '@/routes/custom-fields';
+import customFields from '@/routes/household/custom-fields';
 import backup from '@/routes/household/backup';
 import members from '@/routes/household/members';
 import householdPreferences from '@/routes/household/preferences';
@@ -47,7 +47,7 @@ const { open: openAssistant } = useAssistant();
 const tabs = [
     { label: trans('nav.dashboard'), href: dashboard().url, icon: LayoutGrid, matches: (u: string) => u.startsWith('/dashboard') },
     {
-        label: trans('nav.items'),
+        label: trans('nav.inventory'),
         href: items.index().url,
         icon: Boxes,
         matches: (u: string) => u === '/items' || (u.startsWith('/items') && !u.includes('/create')),

@@ -25,10 +25,18 @@ class BatteryReading extends Model
         'recorded_at',
     ];
 
-    protected $casts = [
-        'percent' => 'integer',
-        'recorded_at' => 'datetime',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'percent' => 'integer',
+            'recorded_at' => 'datetime',
+        ];
+    }
 
     public function cycle(): BelongsTo
     {

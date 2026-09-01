@@ -19,12 +19,20 @@ class Setting extends Model
 {
     protected $fillable = ['key', 'value'];
 
-    protected $casts = [
-        // Laravel's array cast json_encode's on write and json_decode's on
-        // read — scalars round-trip naturally (an int 5 stores as '5' and
-        // decodes back to 5), so no wrap-in-array trick is needed.
-        'value' => 'array',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            // Laravel's array cast json_encode's on write and json_decode's on
+            // read — scalars round-trip naturally (an int 5 stores as '5' and
+            // decodes back to 5), so no wrap-in-array trick is needed.
+            'value' => 'array',
+        ];
+    }
 
     /**
      * Look up a setting by key, returning the decoded value or $default.

@@ -52,16 +52,24 @@ class Item extends Model
         'sold_notes',
     ];
 
-    protected $casts = [
-        'type' => ItemType::class,
-        'quantity' => 'int',
-        'purchase_date' => 'date',
-        'purchase_price' => 'decimal:2',
-        'lifetime_warranty' => 'bool',
-        'warranty_expires' => 'date',
-        'sold_price' => 'decimal:2',
-        'sold_date' => 'date',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => ItemType::class,
+            'quantity' => 'int',
+            'purchase_date' => 'date',
+            'purchase_price' => 'decimal:2',
+            'lifetime_warranty' => 'bool',
+            'warranty_expires' => 'date',
+            'sold_price' => 'decimal:2',
+            'sold_date' => 'date',
+        ];
+    }
 
     protected static function booted(): void
     {

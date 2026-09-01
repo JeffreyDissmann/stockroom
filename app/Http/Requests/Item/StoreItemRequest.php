@@ -7,9 +7,9 @@ namespace App\Http\Requests\Item;
 use App\Enums\ItemType;
 use App\Http\Requests\Item\Concerns\HasCustomFieldRules;
 use App\Http\Requests\Item\Concerns\HasItemDetailRules;
+use App\Support\ImageUploadRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 class StoreItemRequest extends FormRequest
 {
@@ -27,18 +27,12 @@ class StoreItemRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'icon' => ['nullable', 'string', 'max:40'],
-            'type' => ['required', new Enum(ItemType::class)],
+            'type' => ['required', Rule::enum(ItemType::class)],
             'parent_id' => ['nullable', 'integer', Rule::exists('items', 'id')],
             'tags' => ['array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
             'images' => ['array', 'max:24'],
-            'images.*' => [
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp,heic',
-                'max:10240',
-                'dimensions:min_width=64,min_height=64',
-            ],
+            'images.*' => ImageUploadRules::perFile(),
             ...$this->detailRules(),
             ...$this->customFieldRules(),
         ];

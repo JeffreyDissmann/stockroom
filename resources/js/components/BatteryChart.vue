@@ -12,6 +12,8 @@ import {
     type ChartData,
     type ChartOptions,
 } from 'chart.js';
+import type { SharedData } from '@/types';
+import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Line } from 'vue-chartjs';
 
@@ -73,7 +75,9 @@ const chartData = computed<ChartData<'line'>>(() => {
     return { datasets } as ChartData<'line'>;
 });
 
-const dateFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
+// The user's locale preference, not the browser's — every other date in the
+// app follows page.props.locale (see useDateFormat).
+const dateFmt = computed(() => new Intl.DateTimeFormat(usePage<SharedData>().props.locale, { month: 'short', day: 'numeric' }));
 
 const chartOptions = computed<ChartOptions<'line'>>(() => ({
     responsive: true,
@@ -83,7 +87,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
         x: {
             type: 'linear',
             ticks: {
-                callback: (value) => dateFmt.format(new Date(Number(value))),
+                callback: (value) => dateFmt.value.format(new Date(Number(value))),
                 maxRotation: 0,
                 autoSkip: true,
                 color: '#94a3b8',
@@ -101,7 +105,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
         legend: { labels: { color: '#94a3b8', boxWidth: 12 } },
         tooltip: {
             callbacks: {
-                title: (items) => dateFmt.format(new Date(Number(items[0]?.parsed.x))),
+                title: (items) => dateFmt.value.format(new Date(Number(items[0]?.parsed.x))),
                 label: (item) => `${item.dataset.label}: ${item.parsed.y}%`,
             },
         },

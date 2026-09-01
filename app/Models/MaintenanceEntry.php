@@ -29,10 +29,18 @@ class MaintenanceEntry extends Model
         'cost',
     ];
 
-    protected $casts = [
-        'completed_at' => 'date',
-        'cost' => 'decimal:2',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'completed_at' => 'date',
+            'cost' => 'decimal:2',
+        ];
+    }
 
     public function item(): BelongsTo
     {

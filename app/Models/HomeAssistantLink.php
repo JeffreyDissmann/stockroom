@@ -32,9 +32,17 @@ class HomeAssistantLink extends Model
         'instance_id',
     ];
 
-    protected $casts = [
-        'item_id' => 'integer',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'item_id' => 'integer',
+        ];
+    }
 
     public function item(): BelongsTo
     {

@@ -28,14 +28,22 @@ class ItemImage extends Model
         'analyzed_at',
     ];
 
-    protected $casts = [
-        'is_primary' => 'bool',
-        'analyzed_at' => 'datetime',
-        'sort_order' => 'int',
-        'width_original' => 'int',
-        'height_original' => 'int',
-        'size_bytes_original' => 'int',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'bool',
+            'analyzed_at' => 'datetime',
+            'sort_order' => 'int',
+            'width_original' => 'int',
+            'height_original' => 'int',
+            'size_bytes_original' => 'int',
+        ];
+    }
 
     protected static function booted(): void
     {

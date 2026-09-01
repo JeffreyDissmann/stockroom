@@ -30,11 +30,19 @@ class BatteryCycle extends Model
         'forecast',
     ];
 
-    protected $casts = [
-        'installed_at' => 'datetime',
-        'removed_at' => 'datetime',
-        'forecast' => 'array',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'installed_at' => 'datetime',
+            'removed_at' => 'datetime',
+            'forecast' => 'array',
+        ];
+    }
 
     public function item(): BelongsTo
     {

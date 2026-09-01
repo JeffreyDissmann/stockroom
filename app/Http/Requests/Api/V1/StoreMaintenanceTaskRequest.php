@@ -8,7 +8,6 @@ use App\Enums\MaintenanceIntervalUnit;
 use App\Enums\MaintenanceScheduleType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 /**
  * Create a maintenance schedule on an item via the API (e.g. Home Assistant
@@ -40,7 +39,7 @@ class StoreMaintenanceTaskRequest extends FormRequest
             'reminder_lead_days' => ['nullable', 'integer', 'min:0', 'max:365'],
 
             'interval_value' => ['required_if:schedule_type,interval', 'nullable', 'integer', 'min:1', 'max:999'],
-            'interval_unit' => ['required_if:schedule_type,interval', 'nullable', new Enum(MaintenanceIntervalUnit::class)],
+            'interval_unit' => ['required_if:schedule_type,interval', 'nullable', Rule::enum(MaintenanceIntervalUnit::class)],
 
             'next_due_at' => ['required_if:schedule_type,one_off', 'nullable', 'date'],
         ];

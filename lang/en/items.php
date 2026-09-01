@@ -12,6 +12,7 @@ return [
     'edit_breadcrumb' => 'Edit',
     'edit_title' => 'Edit :name',
     'inside' => 'Inside',
+    'inside_count' => ':count inside|:count inside',
 
     'index' => [
         'search' => 'Search :count item|Search :count items',
@@ -208,6 +209,7 @@ return [
     ],
 
     'images' => [
+        'dot_label' => 'Image :number',
         'label' => 'Images',
         'drop' => 'Drop images here or click to pick',
         'formats' => 'JPG / PNG / WebP / HEIC, up to 10 MB each',

@@ -8,7 +8,6 @@ use App\Enums\ItemType;
 use App\Http\Requests\Item\Concerns\HasItemDetailRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 /**
  * Partial (PATCH) update of an item. `name`/`type` use `sometimes` so a
@@ -33,7 +32,7 @@ class UpdateItemRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'icon' => ['nullable', 'string', 'max:40'],
-            'type' => ['sometimes', 'required', new Enum(ItemType::class)],
+            'type' => ['sometimes', 'required', Rule::enum(ItemType::class)],
             'parent_id' => ['nullable', 'integer', Rule::exists('items', 'id')],
             'tags' => ['array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],

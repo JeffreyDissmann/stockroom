@@ -264,9 +264,9 @@ occasional resync if you're running both side-by-side.
 | `PAPERLESS_URL`               | —                    | Base URL of your Paperless-ngx instance; blank disables the integration end-to-end.                               |
 | `PAPERLESS_TOKEN`             | —                    | Personal API token from Paperless's user menu.                                                                    |
 | `PAPERLESS_WEBHOOK_SECRET`    | auto                 | Seeded by `paperless:install`; sent as `X-Stockroom-Secret`. Rotate with `--force-secret`.                        |
-| `PAPERLESS_TRIGGER_TAG`       | `add to stockbox`    | Tagging a document with this hands it to Stockroom.                                                               |
-| `PAPERLESS_LINKED_TAG`        | `stockbox`           | Applied to a document once it has been processed.                                                                 |
-| `PAPERLESS_LINK_CUSTOM_FIELD` | `stockroom_item_ids` | Paperless custom field holding the linked item IDs.                                                               |
+| `PAPERLESS_TRIGGER_TAG`       | `Add to Stockroom`   | Tagging a document with this hands it to Stockroom.                                                               |
+| `PAPERLESS_LINKED_TAG`        | `Stockroom`          | Applied to a document once it has been processed.                                                                 |
+| `PAPERLESS_LINK_CUSTOM_FIELD` | `Stockroom URL`      | Paperless custom field holding the linked item IDs.                                                               |
 
 Standard Laravel variables (`APP_*`, `LOG_*`, `MAIL_*`, `SESSION_*`, `REDIS_*`,
 `AWS_*`) behave as they do in any Laravel app and are not repeated here — note
