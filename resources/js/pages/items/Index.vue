@@ -67,12 +67,12 @@ const sorted = computed(() => {
 const pageTitle = computed(() => props.parent?.name ?? trans('items.inventory'));
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
-    const base: BreadcrumbItemType[] = [{ title: trans('items.inventory'), href: '/items' }];
-    for (const item of props.breadcrumb) base.push({ title: item.name, href: `/items/${item.id}` });
+    const base: BreadcrumbItemType[] = [{ title: trans('items.inventory'), href: itemRoutes.index().url }];
+    for (const item of props.breadcrumb) base.push({ title: item.name, href: itemRoutes.show(item.id).url });
     return base;
 });
 
-const createHref = computed(() => (props.parent ? `/items/create?parent=${props.parent.id}` : '/items/create'));
+const createHref = computed(() => (props.parent ? itemRoutes.create({ query: { parent: props.parent.id } }).url : itemRoutes.create().url));
 
 watch(
     () => props.parent?.id,

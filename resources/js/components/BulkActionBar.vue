@@ -18,6 +18,7 @@ import BulkTagDialog from '@/components/BulkTagDialog.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
+import itemRoutes from '@/routes/items';
 import type { SharedData, TagSummary } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { ArrowLeftRight, Tag, Trash2, X } from '@lucide/vue';
@@ -57,7 +58,7 @@ const count = computed(() => bulk.count.value);
 async function confirmDelete() {
     if (!(await confirm({ message: trans('items.bulk.delete_confirm', { count: count.value }), confirmLabel: trans('common.delete') }))) return;
     router.post(
-        '/items/bulk',
+        itemRoutes.bulk().url,
         { action: 'delete', ids: bulk.ids.value },
         {
             preserveScroll: true,
@@ -68,7 +69,7 @@ async function confirmDelete() {
 
 function applyMove(parentId: number | null) {
     router.post(
-        '/items/bulk',
+        itemRoutes.bulk().url,
         { action: 'move', ids: bulk.ids.value, parent_id: parentId },
         {
             preserveScroll: true,
@@ -82,7 +83,7 @@ function applyMove(parentId: number | null) {
 
 function applyTag(direction: 'attach' | 'detach', tagId: number) {
     router.post(
-        '/items/bulk',
+        itemRoutes.bulk().url,
         { action: direction === 'attach' ? 'attach-tag' : 'detach-tag', ids: bulk.ids.value, tag_id: tagId },
         {
             preserveScroll: true,
@@ -107,7 +108,7 @@ function performUndo() {
             return;
         }
         const [idStr, parentId] = entries[idx++];
-        router.patch(`/items/${idStr}/move`, { parent_id: parentId }, { preserveScroll: true, onFinish: next });
+        router.patch(itemRoutes.move(Number(idStr)).url, { parent_id: parentId }, { preserveScroll: true, onFinish: next });
     };
     next();
 }

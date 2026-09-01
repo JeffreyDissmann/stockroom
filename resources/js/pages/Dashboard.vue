@@ -214,7 +214,7 @@ const valueLabel = computed(() =>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="r in recent" :key="r.id" class="row-clickable" @click="$inertia.visit(`/items/${r.id}`)">
+                            <tr v-for="r in recent" :key="r.id" class="row-clickable" @click="$inertia.visit(itemRoutes.show(r.id).url)">
                                 <td>
                                     <div class="row-name">
                                         <span class="row-thumb"

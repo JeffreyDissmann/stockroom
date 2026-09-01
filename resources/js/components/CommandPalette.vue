@@ -44,7 +44,7 @@ watch(query, (q) => {
     debounce = window.setTimeout(async () => {
         const mine = ++seq;
         try {
-            const res = await fetch(`/search?q=${encodeURIComponent(term)}`, { headers: { Accept: 'application/json' } });
+            const res = await fetch(search({ query: { q: term } }).url, { headers: { Accept: 'application/json' } });
             const data = await res.json();
             if (mine === seq) {
                 results.value = data.results ?? [];
