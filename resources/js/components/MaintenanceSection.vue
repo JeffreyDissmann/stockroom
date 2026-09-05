@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import EmptyState from '@/components/EmptyState.vue';
 import MaintenanceTaskDialog from '@/components/MaintenanceTaskDialog.vue';
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import maintenanceTaskRoutes from '@/routes/items/maintenance-tasks';
 import type { ItemSummary, MaintenanceTaskRow, SharedData } from '@/types';
@@ -51,8 +53,8 @@ function skipTask(task: MaintenanceTaskRow) {
     router.post(maintenanceTaskRoutes.skip([props.item.id, task.id]).url, {}, { preserveScroll: true });
 }
 
-function deleteTask(task: MaintenanceTaskRow) {
-    if (!confirm(trans('maintenance.delete_task_confirm', { title: task.title }))) return;
+async function deleteTask(task: MaintenanceTaskRow) {
+    if (!(await confirm({ message: trans('maintenance.delete_task_confirm', { title: task.title }), confirmLabel: trans('common.delete') }))) return;
     router.delete(maintenanceTaskRoutes.destroy([props.item.id, task.id]).url, { preserveScroll: true });
 }
 </script>
@@ -69,9 +71,9 @@ function deleteTask(task: MaintenanceTaskRow) {
 
         <p v-if="taskError" class="mnt-error" role="alert">{{ taskError }}</p>
 
-        <div v-if="tasks.length === 0" class="card card-pad text-center text-13 text-fg-muted">
+        <EmptyState v-if="tasks.length === 0">
             {{ $t('maintenance.empty') }}
-        </div>
+        </EmptyState>
 
         <ul v-else class="mnt-list">
             <li v-for="task in tasks" :key="task.id" class="mnt-row" data-test="maintenance-task-row">

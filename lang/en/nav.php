@@ -5,7 +5,6 @@ declare(strict_types=1);
 return [
     'dashboard' => 'Dashboard',
     'inventory' => 'Inventory',
-    'items' => 'Items',
     'search' => 'Search',
     'tags' => 'Tags',
     'activity' => 'Activity',

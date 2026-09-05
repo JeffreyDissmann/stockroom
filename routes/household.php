@@ -16,7 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::redirect('household', 'household/custom-fields');
 
     // Read-only views — any authenticated user may look at the household settings.
-    Route::get('household/custom-fields', [CustomFieldController::class, 'index'])->name('custom-fields.index');
+    Route::get('household/custom-fields', [CustomFieldController::class, 'index'])->name('household.custom-fields.index');
     Route::get('household/backup', [BackupController::class, 'index'])->name('household.backup.index');
     // /household/import used to host the HomeBox flow; it now lives on the
     // Backup & Import page. Redirect for any stale bookmarks. Must be a
@@ -41,9 +41,9 @@ Route::middleware('auth')->group(function () {
 
     // Mutations / household tools — admins only.
     Route::middleware('can:admin')->group(function () {
-        Route::post('household/custom-fields', [CustomFieldController::class, 'store'])->name('custom-fields.store');
-        Route::put('household/custom-fields/{customField}', [CustomFieldController::class, 'update'])->name('custom-fields.update');
-        Route::delete('household/custom-fields/{customField}', [CustomFieldController::class, 'destroy'])->name('custom-fields.destroy');
+        Route::post('household/custom-fields', [CustomFieldController::class, 'store'])->name('household.custom-fields.store');
+        Route::put('household/custom-fields/{customField}', [CustomFieldController::class, 'update'])->name('household.custom-fields.update');
+        Route::delete('household/custom-fields/{customField}', [CustomFieldController::class, 'destroy'])->name('household.custom-fields.destroy');
 
         Route::get('household/backup/export', [BackupController::class, 'export'])->name('household.backup.export');
         Route::post('household/backup/import', [BackupController::class, 'import'])->name('household.backup.import');

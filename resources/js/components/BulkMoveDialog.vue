@@ -6,6 +6,7 @@
  * targets are always rooms or containers.
  */
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import itemRoutes from '@/routes/items';
 import { trans } from '@/composables/useTranslations';
 import { router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
@@ -43,7 +44,7 @@ async function fetchTargets() {
         // Piggy-back on the existing items.move-targets endpoint scoped
         // to one selected item — server already filters to rooms +
         // containers and excludes the item + its descendants.
-        const url = `/items/${props.excludingId}/move-targets?q=${encodeURIComponent(query.value)}`;
+        const url = itemRoutes.moveTargets(props.excludingId, { query: { q: query.value } }).url;
         const response = await fetch(url, {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',

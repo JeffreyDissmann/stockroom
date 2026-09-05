@@ -6,7 +6,7 @@ namespace App\Http\Requests\CustomField;
 
 use App\Enums\CustomFieldType;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rule;
 
 class StoreCustomFieldRequest extends FormRequest
 {
@@ -22,7 +22,7 @@ class StoreCustomFieldRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'type' => ['required', new Enum(CustomFieldType::class)],
+            'type' => ['required', Rule::enum(CustomFieldType::class)],
             'searchable' => ['boolean'],
         ];
     }

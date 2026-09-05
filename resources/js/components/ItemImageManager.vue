@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import SearchImageDialog from '@/components/SearchImageDialog.vue';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import itemImages from '@/routes/items/images';
 import type { ItemImageSummary, SharedData } from '@/types';
@@ -119,9 +120,9 @@ function makePrimary(image: ItemImageSummary) {
     router.patch(itemImages.update({ item: props.itemId, image: image.id }).url, { is_primary: true }, { preserveScroll: true });
 }
 
-function destroyImage(image: ItemImageSummary) {
+async function destroyImage(image: ItemImageSummary) {
     if (!props.itemId) return;
-    if (!confirm(trans('items.images.delete_confirm'))) return;
+    if (!(await confirm({ message: trans('items.images.delete_confirm'), confirmLabel: trans('common.delete') }))) return;
     router.delete(itemImages.destroy({ item: props.itemId, image: image.id }).url, { preserveScroll: true });
 }
 

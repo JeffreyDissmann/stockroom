@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans, transChoice } from '@/composables/useTranslations';
+import EmptyState from '@/components/EmptyState.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
 import householdPreferences from '@/routes/household/preferences';
@@ -73,8 +76,9 @@ function submitEdit() {
 // preference is most useful as a real link to /household/preferences.
 const deleteError = ref<string | null>(null);
 
-function destroyTag(tag: TagRow) {
-    if (!confirm(trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }))) return;
+async function destroyTag(tag: TagRow) {
+    if (!(await confirm({ message: trans('tags.delete_confirm', { name: tag.name, count: tag.items_count }), confirmLabel: trans('common.delete') })))
+        return;
     router.delete(tagRoutes.destroy(tag.id).url, {
         preserveScroll: true,
         onSuccess: () => (deleteError.value = null),
@@ -90,10 +94,7 @@ function destroyTag(tag: TagRow) {
         <Head :title="$t('tags.title')" />
 
         <div class="page">
-            <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('tags.title') }}</h2>
-            <p class="sub m-0 mb-5 text-13 text-fg-muted">
-                {{ $t('tags.subtitle') }}
-            </p>
+            <PageHeader :title="$t('tags.title')" :description="$t('tags.subtitle')" />
 
             <!-- Sticky error banner for delete rejections (e.g. the box-tag
                  guard). The CTA is a real Link to /household/preferences. -->
@@ -139,9 +140,9 @@ function destroyTag(tag: TagRow) {
                 </div>
             </form>
 
-            <div v-if="tags.length === 0" class="card card-pad text-center text-fg-muted">
+            <EmptyState v-if="tags.length === 0">
                 {{ $t('tags.empty') }}
-            </div>
+            </EmptyState>
 
             <div v-else class="card">
                 <div v-for="(tag, i) in tags" :key="tag.id" :style="{ borderTop: i ? '1px solid var(--border)' : '' }">
@@ -188,7 +189,13 @@ function destroyTag(tag: TagRow) {
                             <button class="btn-ghost" type="button" @click="startEdit(tag)">
                                 <Pencil :size="14" />
                             </button>
-                            <button v-if="!isProtected(tag)" class="btn-ghost btn-danger" type="button" @click="destroyTag(tag)">
+                            <button
+                                v-if="!isProtected(tag)"
+                                class="btn-ghost btn-danger"
+                                type="button"
+                                data-test="tag-delete"
+                                @click="destroyTag(tag)"
+                            >
                                 <Trash2 :size="14" />
                             </button>
                             <span v-else class="px-1 text-fg-subtle" :title="$t('tags.protected_hint')">

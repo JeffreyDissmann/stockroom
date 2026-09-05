@@ -2,8 +2,10 @@
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { useIsAdmin } from '@/composables/useIsAdmin';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
+import SavedIndicator from '@/components/SavedIndicator.vue';
 import HouseholdLayout from '@/layouts/household/Layout.vue';
 import householdPreferences from '@/routes/household/preferences';
 import type { BreadcrumbItem, SharedData } from '@/types';
@@ -154,8 +156,8 @@ const relinkDoneKey = computed(() =>
     props.relinkStatus?.mode === 'metadata' ? 'household.preferences.paperless_metadata_done' : 'household.preferences.paperless_relink_done',
 );
 
-function relinkAllPaperless() {
-    if (!confirm(trans('household.preferences.paperless_relink_confirm'))) {
+async function relinkAllPaperless() {
+    if (!(await confirm({ message: trans('household.preferences.paperless_relink_confirm'), destructive: false }))) {
         return;
     }
     runRelink(householdPreferences.paperless.relinkAll().url);
@@ -389,12 +391,12 @@ function runRelink(url: string) {
                         </div>
                     </div>
 
-                    <div>
+                    <div class="flex items-center gap-4">
                         <button type="submit" class="btn-primary" :disabled="form.processing" data-test="preferences-save">
                             <Save :size="14" />
                             {{ $t('common.save') }}
                         </button>
-                        <span v-if="form.recentlySuccessful" class="ml-3 text-sm text-pos">{{ $t('common.saved') }}</span>
+                        <SavedIndicator :show="form.recentlySuccessful" />
                     </div>
                 </form>
             </div>

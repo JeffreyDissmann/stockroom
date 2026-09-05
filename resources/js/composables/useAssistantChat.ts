@@ -1,4 +1,5 @@
 import { trans } from '@/composables/useTranslations';
+import assistant from '@/routes/assistant';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -58,7 +59,7 @@ export function useAssistantChat(options: { onMessagesChanged?: () => void } = {
         loaded = true;
         if (localStorage.getItem(FRESH_THREAD_KEY) === '1') return;
         try {
-            const res = await fetch('/assistant/conversation', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+            const res = await fetch(assistant.conversation().url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
             if (res.ok) {
                 const data = await res.json();
                 conversationId.value = data.conversation_id ?? null;
@@ -110,7 +111,7 @@ export function useAssistantChat(options: { onMessagesChanged?: () => void } = {
         const timeout = window.setTimeout(() => controller.abort(), attachment ? 240_000 : 130_000);
 
         try {
-            const res = await fetch('/assistant/messages', {
+            const res = await fetch(assistant.messages().url, {
                 method: 'POST',
                 headers,
                 credentials: 'same-origin',

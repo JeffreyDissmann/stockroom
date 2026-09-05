@@ -4,6 +4,9 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAssistant } from '@/composables/useAssistant';
 import { useCommandPalette } from '@/composables/useCommandPalette';
+import { dashboard, home, search } from '@/routes';
+import itemRoutes from '@/routes/items';
+import tagRoutes from '@/routes/tags';
 import { trans } from '@/composables/useTranslations';
 import { maintenance } from '@/routes';
 import proposalRoutes from '@/routes/proposals';
@@ -23,10 +26,10 @@ interface NavLink {
 }
 
 const primary: NavLink[] = [
-    { label: trans('nav.dashboard'), href: '/dashboard', icon: LayoutGrid, matches: (u) => u.startsWith('/dashboard') },
-    { label: trans('nav.inventory'), href: '/items', icon: Boxes, matches: (u) => u.startsWith('/items') },
-    { label: trans('nav.search'), href: '/search', icon: Search, matches: (u) => u.startsWith('/search') },
-    { label: trans('nav.tags'), href: '/tags', icon: TagIcon, matches: (u) => u.startsWith('/tags') },
+    { label: trans('nav.dashboard'), href: dashboard().url, icon: LayoutGrid, matches: (u) => u.startsWith('/dashboard') },
+    { label: trans('nav.inventory'), href: itemRoutes.index().url, icon: Boxes, matches: (u) => u.startsWith('/items') },
+    { label: trans('nav.search'), href: search().url, icon: Search, matches: (u) => u.startsWith('/search') },
+    { label: trans('nav.tags'), href: tagRoutes.index().url, icon: TagIcon, matches: (u) => u.startsWith('/tags') },
 ];
 
 // Activity and Household live in the avatar menu instead. The bar had eight
@@ -54,7 +57,7 @@ function initials(name: string): string {
 
 <template>
     <header class="topnav">
-        <Link href="/" class="topnav-logo">
+        <Link :href="home().url" class="topnav-logo">
             <AppLogoIcon class-name="size-3.5" />
         </Link>
         <!-- Wordmark drops first when the row gets tight (the logo already

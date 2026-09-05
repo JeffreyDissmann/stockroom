@@ -11,7 +11,6 @@ use App\Http\Requests\Item\Concerns\HasItemDetailRules;
 use App\Models\Item;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 class UpdateItemRequest extends FormRequest
 {
@@ -29,7 +28,7 @@ class UpdateItemRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'icon' => ['nullable', 'string', 'max:40'],
-            'type' => ['required', new Enum(ItemType::class)],
+            'type' => ['required', Rule::enum(ItemType::class)],
             'tags' => ['array'],
             'tags.*' => ['integer', Rule::exists('tags', 'id')],
             ...$this->detailRules(),

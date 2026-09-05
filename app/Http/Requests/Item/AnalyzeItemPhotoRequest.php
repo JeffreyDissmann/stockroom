@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Item;
 
+use App\Support\ImageUploadRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AnalyzeItemPhotoRequest extends FormRequest
@@ -20,14 +21,7 @@ class AnalyzeItemPhotoRequest extends FormRequest
     {
         // Mirrors StoreItemImagesRequest's per-file rules: one photo to analyse.
         return [
-            'photo' => [
-                'required',
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp,heic',
-                'max:10240',
-                'dimensions:min_width=64,min_height=64',
-            ],
+            'photo' => ['required', ...ImageUploadRules::perFile()],
         ];
     }
 }

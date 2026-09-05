@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\ItemType;
+use App\Models\Invitation;
 use App\Models\Item;
 use App\Models\Tag;
 use App\Models\User;
@@ -82,6 +83,45 @@ class AdminAccessTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('household/Members')
                 ->where('auth.user.is_admin', false)
+            );
+    }
+
+    /**
+     * A pending invite's `url` is a working registration link — anyone holding
+     * it can create a household account. Members.vue hides the invitations
+     * section from non-admins, but that is a template guard: the payload still
+     * has to be withheld, or every token is one devtools panel away.
+     */
+    public function test_members_page_withholds_invite_links_from_non_admins(): void
+    {
+        Invitation::create([
+            'token' => Invitation::generateToken(),
+            'created_by' => User::factory()->admin()->create()->id,
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->get('/household/members')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('invitations', 0));
+    }
+
+    public function test_members_page_still_gives_admins_the_invite_links(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        Invitation::create([
+            'token' => Invitation::generateToken(),
+            'created_by' => $admin->id,
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/household/members')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('invitations', 1)
+                ->has('invitations.0.url')
             );
     }
 

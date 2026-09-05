@@ -4,15 +4,13 @@ import { search } from '@/routes';
 import items from '@/routes/items';
 import { router } from '@inertiajs/vue3';
 import { Search } from '@lucide/vue';
+import type { ItemSummary } from '@/types';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
-interface Result {
-    id: number;
-    name: string;
-    type: { value: string; label: string };
-    path: string;
-    thumb_url: string | null;
-}
+// The palette is served by SearchController::suggestions, which now shapes its
+// rows with the shared ItemResource — so this is a narrowed view of ItemSummary
+// rather than a separate contract.
+type Result = Pick<ItemSummary, 'id' | 'name' | 'type' | 'thumb_url' | 'location_path'>;
 
 const { isOpen, open, close, toggle } = useCommandPalette();
 const query = ref('');
@@ -46,7 +44,7 @@ watch(query, (q) => {
     debounce = window.setTimeout(async () => {
         const mine = ++seq;
         try {
-            const res = await fetch(`/search?q=${encodeURIComponent(term)}`, { headers: { Accept: 'application/json' } });
+            const res = await fetch(search({ query: { q: term } }).url, { headers: { Accept: 'application/json' } });
             const data = await res.json();
             if (mine === seq) {
                 results.value = data.results ?? [];
@@ -119,7 +117,7 @@ defineExpose({ open });
                     </span>
                     <span class="cmdk-text">
                         <span class="cmdk-name">{{ result.name }}</span>
-                        <span class="cmdk-path">{{ result.path || $t('common.top_level') }}</span>
+                        <span class="cmdk-path">{{ result.location_path || $t('common.top_level') }}</span>
                     </span>
                     <span class="cmdk-type">{{ result.type.label }}</span>
                 </button>

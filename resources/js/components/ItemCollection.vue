@@ -217,7 +217,7 @@ const ariaSort = (key: string): 'ascending' | 'descending' | 'none' =>
                     </div>
                     <div class="meta">
                         <span>{{ item.type.label }}</span>
-                        <span v-if="(item.children_count ?? 0) > 0" class="mono">{{ item.children_count }} inside</span>
+                        <span v-if="(item.children_count ?? 0) > 0" class="mono">{{ $tChoice('items.inside_count', item.children_count ?? 0) }}</span>
                     </div>
                     <div v-if="item.tags?.length" class="mt-2 flex flex-wrap gap-1">
                         <TagBadge v-for="tag in item.tags" :key="tag.id" :tag="tag" />

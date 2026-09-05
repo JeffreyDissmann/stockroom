@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItemForm from '@/components/ItemForm.vue';
 import { trans } from '@/composables/useTranslations';
+import itemRoutes from '@/routes/items';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItemType, CustomFieldDefinition, ItemSummary, ItemTypeDescriptor, TagSummary } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -17,13 +18,13 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
-    const base: BreadcrumbItemType[] = [{ title: trans('items.inventory'), href: '/items' }];
-    if (props.parent) base.push({ title: props.parent.name, href: `/items/${props.parent.id}` });
-    base.push({ title: trans('items.new_item'), href: '/items/create' });
+    const base: BreadcrumbItemType[] = [{ title: trans('items.inventory'), href: itemRoutes.index().url }];
+    if (props.parent) base.push({ title: props.parent.name, href: itemRoutes.show(props.parent.id).url });
+    base.push({ title: trans('items.new_item'), href: itemRoutes.create().url });
     return base;
 });
 
-const cancelHref = computed(() => (props.parent ? `/items/${props.parent.id}` : '/items'));
+const cancelHref = computed(() => (props.parent ? itemRoutes.show(props.parent.id).url : itemRoutes.index().url));
 </script>
 
 <template>

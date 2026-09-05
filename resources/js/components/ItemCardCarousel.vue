@@ -50,7 +50,7 @@ useSwipe(el, {
                 type="button"
                 class="cc-dot"
                 :class="{ 'is-active': i === index }"
-                :aria-label="`Image ${i + 1}`"
+                :aria-label="$t('items.images.dot_label', { number: i + 1 })"
                 @click="select(i, $event)"
             />
         </div>

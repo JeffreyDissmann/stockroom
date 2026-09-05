@@ -2,6 +2,7 @@
 import AdHocEntryDialog from '@/components/AdHocEntryDialog.vue';
 import { useCurrency } from '@/composables/useCurrency';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { confirm } from '@/composables/useConfirm';
 import { trans } from '@/composables/useTranslations';
 import maintenanceEntryRoutes from '@/routes/items/maintenance-entries';
 import type { ItemSummary, MaintenanceEntryRow } from '@/types';
@@ -21,8 +22,8 @@ const props = defineProps<{
 const { format: fmtMoney } = useCurrency();
 const { formatDate: fmtDate } = useDateFormat();
 
-function deleteEntry(entry: MaintenanceEntryRow) {
-    if (!confirm(trans('maintenance.delete_entry_confirm'))) return;
+async function deleteEntry(entry: MaintenanceEntryRow) {
+    if (!(await confirm({ message: trans('maintenance.delete_entry_confirm'), confirmLabel: trans('common.delete') }))) return;
     router.delete(maintenanceEntryRoutes.destroy([props.item.id, entry.id]).url, { preserveScroll: true });
 }
 </script>

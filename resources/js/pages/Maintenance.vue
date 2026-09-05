@@ -2,6 +2,8 @@
 import MarkMaintenanceDoneDialog from '@/components/MarkMaintenanceDoneDialog.vue';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { trans } from '@/composables/useTranslations';
+import EmptyState from '@/components/EmptyState.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { maintenance } from '@/routes';
 import itemRoutes from '@/routes/items';
@@ -48,10 +50,7 @@ function openMarkDone(task: GlobalTaskRow) {
         <Head :title="$t('maintenance.page.title')" />
 
         <div class="page">
-            <h2 class="m-0 mb-1 text-22 font-semibold tracking-display">{{ $t('maintenance.page.title') }}</h2>
-            <p class="sub m-0 mb-5 text-13 text-fg-muted">
-                {{ $t('maintenance.page.subtitle') }}
-            </p>
+            <PageHeader :title="$t('maintenance.page.title')" :description="$t('maintenance.page.subtitle')" />
 
             <div class="mb-4 flex flex-wrap gap-1.5">
                 <Link
@@ -66,9 +65,9 @@ function openMarkDone(task: GlobalTaskRow) {
                 </Link>
             </div>
 
-            <div v-if="tasks.length === 0" class="card card-pad text-center text-13 text-fg-muted">
+            <EmptyState v-if="tasks.length === 0">
                 {{ $t('maintenance.page.empty') }}
-            </div>
+            </EmptyState>
 
             <ul v-else class="mnt-list">
                 <li v-for="task in tasks" :key="task.id" class="mnt-row" data-test="maintenance-global-row">

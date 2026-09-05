@@ -16,7 +16,10 @@ import TagBadge from '@/components/TagBadge.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { useCurrency } from '@/composables/useCurrency';
+import { confirm } from '@/composables/useConfirm';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { trans } from '@/composables/useTranslations';
+import EmptyState from '@/components/EmptyState.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { itemIconMap } from '@/lib/itemIcons';
 import itemRoutes from '@/routes/items';
@@ -27,6 +30,7 @@ import type {
     BreadcrumbItemType,
     HomeAssistantLinkSummary,
     ItemImageSummary,
+    ItemDetail,
     ItemSummary,
     ItemViewMode,
     MaintenanceData,
@@ -39,7 +43,7 @@ import { Archive, CheckCircle2, ChevronRight, FileText, House, MoreVertical, Pac
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
-    item: ItemSummary;
+    item: ItemDetail;
     breadcrumb: ItemSummary[];
     children: ItemSummary[];
     includeSold: boolean;
@@ -59,7 +63,7 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs = computed<BreadcrumbItemType[]>(() => {
-    const base: BreadcrumbItemType[] = [{ title: 'Inventory', href: itemRoutes.index().url }];
+    const base: BreadcrumbItemType[] = [{ title: trans('items.inventory'), href: itemRoutes.index().url }];
     for (const item of props.breadcrumb) base.push({ title: item.name, href: itemRoutes.show(item.id).url });
     base.push({ title: props.item.name, href: itemRoutes.show(props.item.id).url });
     return base;
@@ -112,6 +116,7 @@ const initials = computed(() => {
 });
 
 const { format: fmtMoney } = useCurrency();
+const { formatDate: fmtDate } = useDateFormat();
 
 interface DetailRow {
     label: string;
@@ -139,11 +144,11 @@ const detailRows = computed<DetailRow[]>(() => {
     if (i.model_number) rows.push({ label: trans('items.show.labels.model'), value: i.model_number, field: 'model_number' });
     if (i.serial_number) rows.push({ label: trans('items.show.labels.serial'), value: i.serial_number, mono: true, field: 'serial_number' });
     if (i.purchased_from) rows.push({ label: trans('items.show.labels.purchased_from'), value: i.purchased_from });
-    if (i.purchase_date) rows.push({ label: trans('items.show.labels.purchased'), value: i.purchase_date });
+    if (i.purchase_date) rows.push({ label: trans('items.show.labels.purchased'), value: fmtDate(i.purchase_date) });
     const paid = fmtMoney(i.purchase_price);
     if (paid) rows.push({ label: trans('items.show.labels.paid'), value: paid, mono: true });
     if (i.lifetime_warranty) rows.push({ label: trans('items.show.labels.warranty'), value: trans('items.show.labels.lifetime') });
-    else if (i.warranty_expires) rows.push({ label: trans('items.show.labels.warranty_until'), value: i.warranty_expires });
+    else if (i.warranty_expires) rows.push({ label: trans('items.show.labels.warranty_until'), value: fmtDate(i.warranty_expires) });
     return rows;
 });
 
@@ -188,7 +193,7 @@ const soldRows = computed<DetailRow[]>(() => {
     if (i.sold_to) rows.push({ label: trans('items.show.labels.sold_to'), value: i.sold_to });
     const price = fmtMoney(i.sold_price);
     if (price) rows.push({ label: trans('items.show.labels.sold_for'), value: price, mono: true });
-    if (i.sold_date) rows.push({ label: trans('items.show.labels.sold_on'), value: i.sold_date });
+    if (i.sold_date) rows.push({ label: trans('items.show.labels.sold_on'), value: fmtDate(i.sold_date) });
     return rows;
 });
 
@@ -197,8 +202,8 @@ const relatedView = ref<ItemViewMode>('grid');
 
 // "Related items" section actions. Unlink uses Inertia router so the page
 // refreshes the relatedItems prop on success — no manual list pruning here.
-function unlinkRelated(related: ItemSummary) {
-    if (!confirm(trans('items.related.unlink_confirm', { name: related.name }))) return;
+async function unlinkRelated(related: ItemSummary) {
+    if (!(await confirm({ message: trans('items.related.unlink_confirm', { name: related.name }), confirmLabel: trans('common.remove') }))) return;
     router.delete(relatedItemsRoutes.destroy([props.item.id, related.id]).url, { preserveScroll: true });
 }
 
@@ -209,8 +214,8 @@ const hasConnections = computed(() => hasPaperlessLinks.value || props.homeAssis
 
 const customFields = computed(() => (props.item.custom_fields ?? []).filter((f) => f.value !== null && f.value !== ''));
 
-function destroyItem() {
-    if (!confirm(trans('items.show.delete_confirm', { name: props.item.name }))) return;
+async function destroyItem() {
+    if (!(await confirm({ message: trans('items.show.delete_confirm', { name: props.item.name }), confirmLabel: trans('common.delete') }))) return;
     router.delete(itemRoutes.destroy(props.item.id).url);
 }
 </script>
@@ -239,7 +244,7 @@ function destroyItem() {
                  hide. The `!` adds !important which wins regardless of
                  stylesheet order. -->
             <CreateBoxDialog ref="createBoxDialog" :item="item" trigger-class="!hidden xl:!inline-flex" />
-            <button class="btn-pill btn-danger !hidden xl:!inline-flex" type="button" @click="destroyItem">
+            <button class="btn-pill btn-danger !hidden xl:!inline-flex" type="button" data-test="item-delete" @click="destroyItem">
                 <Trash2 :size="14" />
                 {{ $t('common.delete') }}
             </button>
@@ -540,9 +545,9 @@ function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="children.length === 0" class="card card-pad text-center text-fg-muted">
+                    <EmptyState v-if="children.length === 0">
                         {{ $t('items.show.empty_contents', { type: item.type.label.toLowerCase() }) }}
-                    </div>
+                    </EmptyState>
 
                     <!-- `selectable` participates in the same bulk-select store as
                          Items/Index and Search — clicking a child in select mode
@@ -564,9 +569,9 @@ function destroyItem() {
                         </div>
                     </div>
 
-                    <div v-if="relatedItems.length === 0" class="card card-pad text-center text-13 text-fg-muted">
+                    <EmptyState v-if="relatedItems.length === 0">
                         {{ $t('items.related.empty') }}
-                    </div>
+                    </EmptyState>
 
                     <ItemCollection v-else :items="relatedItems" :view="relatedView" removable @remove="unlinkRelated" />
                 </section>

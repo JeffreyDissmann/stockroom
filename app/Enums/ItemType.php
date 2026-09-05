@@ -32,4 +32,22 @@ enum ItemType: string
     {
         return $this !== self::Room;
     }
+
+    /**
+     * Everything a UI surface needs to render this type. Composed here because
+     * six controllers used to build the same four keys by hand, and they had
+     * already drifted — the command palette shipped `{value, label}` while the
+     * item cards expected an icon too.
+     *
+     * @return array{value: string, label: string, icon: string, details: bool}
+     */
+    public function descriptor(): array
+    {
+        return [
+            'value' => $this->value,
+            'label' => $this->label(),
+            'icon' => $this->icon(),
+            'details' => $this->hasDetailFields(),
+        ];
+    }
 }

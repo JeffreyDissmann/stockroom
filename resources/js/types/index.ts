@@ -28,6 +28,19 @@ export interface BackupResult {
     images: number;
 }
 
+/**
+ * Outcome of a bulk operation, flashed by BulkController. `previous` maps
+ * each moved item to the parent it came from, which is what the Undo toast
+ * in BulkActionBar replays.
+ */
+export interface BulkResult {
+    action: 'delete' | 'move' | 'attach-tag' | 'detach-tag';
+    count: number;
+    parent_id?: number | null;
+    previous?: Record<number, number | null>;
+    tag_id?: number;
+}
+
 // Extends Inertia's PageProps (an `[key: string]: unknown` index signature) so
 // `usePage<SharedData>()` type-checks. Inertia v3 constrains that generic to
 // PageProps; without this every one of the ~23 call sites reports "Type
@@ -40,7 +53,9 @@ export interface SharedData extends PageProps {
     flash: {
         backup: BackupResult | null;
         box_created_for: string | null;
+        bulk_result: BulkResult | null;
         invitation_mail: 'sent' | 'failed' | null;
+        paperless_relink_count: number | null;
         sale_contents: { disposition: 'sold' | 'kept'; count: number } | null;
     };
     locale: string;
@@ -116,41 +131,82 @@ export interface ImageSearchResult {
     source_url: string;
 }
 
+/**
+ * An item as every card surface receives it, served by App\Http\Resources\
+ * ItemResource. The optional fields are exactly the ones the server emits only
+ * when the matching relation was eager-loaded — they are not "sometimes
+ * forgotten", they are "this page did not ask for them".
+ */
 export interface ItemSummary {
     id: number;
     name: string;
     description: string | null;
     parent_id: number | null;
+    // Sold items are hidden by default, so wherever one does appear it has to
+    // be tellable from what you still own.
+    is_sold: boolean;
     type: ItemTypeDescriptor;
-    thumb_url?: string | null;
-    icon?: string | null;
-    image_thumbs?: string[];
+    icon: string | null;
+    thumb_url: string | null;
+    // Present when the caller counted children; owned children only.
     children_count?: number;
     tags?: TagSummary[];
+    // Card-carousel thumbnails, primary first. Present when `images` was loaded.
+    image_thumbs?: string[];
+    // "Garage / Toolbox" — set by the surfaces that resolve ancestors in a batch.
+    location_path?: string;
+    // Loaded only by the dashboard's "recently added" strip.
+    parent?: ItemSummary | null;
+}
+
+/**
+ * The item's own page (Show / Edit), served by ItemDetailResource: everything a
+ * card gets plus the acquisition, warranty and sale block.
+ *
+ * Kept separate from ItemSummary so a list page cannot quietly read a field it
+ * was never sent — the previous single type marked all 25 fields optional,
+ * which made every one of them a guess.
+ */
+export interface ItemDetail extends ItemSummary {
+    quantity: number;
+    purchased_from: string | null;
+    purchase_date: string | null;
+    purchase_price: string | null;
+    manufacturer: string | null;
+    model_number: string | null;
+    serial_number: string | null;
+    battery_type: string | null;
+    lifetime_warranty: boolean;
+    warranty_expires: string | null;
+    warranty_details: string | null;
+    sold_to: string | null;
+    sold_price: string | null;
+    sold_date: string | null;
+    sold_notes: string | null;
     images?: ItemImageSummary[];
-    // Location/room breadcrumb ("Garage / Toolbox"), set on search results.
-    location_path?: string | null;
-    // Detail fields (present on show/edit payloads via withDetails).
-    quantity?: number;
-    purchased_from?: string | null;
-    purchase_date?: string | null;
-    purchase_price?: string | null;
-    manufacturer?: string | null;
-    model_number?: string | null;
-    serial_number?: string | null;
-    battery_type?: string | null;
-    lifetime_warranty?: boolean;
-    warranty_expires?: string | null;
-    warranty_details?: string | null;
-    sold_to?: string | null;
-    sold_price?: string | null;
-    sold_date?: string | null;
-    // Server-computed from sold_date. Sold items are hidden by default, so
-    // wherever one does appear it has to be tellable from what you still own.
-    is_sold?: boolean;
-    sold_notes?: string | null;
-    // Filled custom field values (present on show/edit payloads).
     custom_fields?: ItemCustomFieldValue[];
+}
+
+/** One entry in Laravel's paginator `links` array. */
+export interface PaginationLink {
+    url: string | null;
+    // Pre-rendered by Laravel and may contain entities (&laquo;), so it is
+    // bound with v-html.
+    label: string;
+    active: boolean;
+}
+
+/**
+ * A Laravel length-aware paginator as it arrives in props. `total`/`from`/`to`
+ * are always sent; they were previously declared only in Search.vue, which is
+ * why two copies of this type disagreed.
+ */
+export interface Paginated<T> {
+    data: T[];
+    links: PaginationLink[];
+    total: number;
+    from: number | null;
+    to: number | null;
 }
 
 export interface ActivityChange {

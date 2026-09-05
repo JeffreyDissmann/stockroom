@@ -2,6 +2,7 @@
 import AssistantPanel from '@/components/AssistantPanel.vue';
 import BottomTabs from '@/components/BottomTabs.vue';
 import CommandPalette from '@/components/CommandPalette.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Topbar from '@/components/Topbar.vue';
 import TopNav from '@/components/TopNav.vue';
 import { useAssistant } from '@/composables/useAssistant';
@@ -94,6 +95,7 @@ withDefaults(
             <BottomTabs />
         </main>
         <CommandPalette />
+        <ConfirmDialog />
         <AssistantPanel v-if="aiEnabled" />
         <button
             v-if="showAssistantFab"

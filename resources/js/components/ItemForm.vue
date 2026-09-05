@@ -9,6 +9,7 @@ import ItemThumbnail from '@/components/ItemThumbnail.vue';
 import ItemTypeIcon from '@/components/ItemTypeIcon.vue';
 import LinkPaperlessDocumentDialog from '@/components/LinkPaperlessDocumentDialog.vue';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { confirm } from '@/composables/useConfirm';
 import { trans, transChoice } from '@/composables/useTranslations';
 import itemRoutes from '@/routes/items';
 import homeAssistantLinkRoutes from '@/routes/items/home-assistant-link';
@@ -16,6 +17,7 @@ import paperlessLinksRoutes from '@/routes/items/paperless-links';
 import type {
     CustomFieldDefinition,
     HomeAssistantLinkSummary,
+    ItemDetail,
     ItemSummary,
     ItemTypeDescriptor,
     ItemTypeValue,
@@ -33,7 +35,7 @@ type Mode = 'create' | 'edit';
 
 const props = defineProps<{
     mode: Mode;
-    item?: ItemSummary | null;
+    item?: ItemDetail | null;
     parent?: ItemSummary | null;
     items: ItemSummary[];
     tags: TagSummary[];
@@ -292,9 +294,9 @@ function toggleTag(id: number) {
 // stockroom_item_ids custom field. Edit-page only; Show is read-only.
 // preserveScroll keeps the user in place when the page refreshes the
 // paperlessLinks prop.
-function unlinkPaperless(documentId: number) {
+async function unlinkPaperless(documentId: number) {
     if (!props.item) return;
-    if (!confirm(trans('items.paperless.unlink_confirm'))) return;
+    if (!(await confirm({ message: trans('items.paperless.unlink_confirm'), confirmLabel: trans('common.remove') }))) return;
 
     router.delete(paperlessLinksRoutes.destroy([props.item.id, documentId]).url, {
         preserveScroll: true,
@@ -393,9 +395,9 @@ function dismissProposal(key: DocumentField) {
 
 // Remove the Home Assistant backlink. Edit-page only; Show is read-only. The
 // HA integration re-links on its next sync if the device still points here.
-function unlinkHomeAssistant() {
+async function unlinkHomeAssistant() {
     if (!props.item) return;
-    if (!confirm(trans('items.home_assistant.unlink_confirm'))) return;
+    if (!(await confirm({ message: trans('items.home_assistant.unlink_confirm'), confirmLabel: trans('common.remove') }))) return;
 
     router.delete(homeAssistantLinkRoutes.destroy(props.item.id).url, {
         preserveScroll: true,

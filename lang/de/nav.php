@@ -5,7 +5,6 @@ declare(strict_types=1);
 return [
     'dashboard' => 'Übersicht',
     'inventory' => 'Inventar',
-    'items' => 'Gegenstände',
     'search' => 'Suche',
     'tags' => 'Schlagwörter',
     'activity' => 'Aktivität',
@@ -14,7 +13,7 @@ return [
     'household' => 'Haushalt',
     'settings' => 'Einstellungen',
     'log_out' => 'Abmelden',
-    'add_item' => 'Hinzufügen',
+    'add_item' => 'Gegenstand hinzufügen',
     'primary' => 'Hauptnavigation',
     'assistant' => 'Assistent',
 ];

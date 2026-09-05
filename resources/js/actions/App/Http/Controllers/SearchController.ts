@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:21
+* @see app/Http/Controllers/SearchController.php:22
 * @route '/search'
 */
 const SearchController = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ SearchController.definition = {
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:21
+* @see app/Http/Controllers/SearchController.php:22
 * @route '/search'
 */
 SearchController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ SearchController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:21
+* @see app/Http/Controllers/SearchController.php:22
 * @route '/search'
 */
 SearchController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ SearchController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => 
 
 /**
 * @see \App\Http\Controllers\SearchController::__invoke
-* @see app/Http/Controllers/SearchController.php:21
+* @see app/Http/Controllers/SearchController.php:22
 * @route '/search'
 */
 SearchController.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

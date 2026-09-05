@@ -1,25 +1,20 @@
 <script setup lang="ts">
 import BulkActionBar from '@/components/BulkActionBar.vue';
 import BulkSelectToggle from '@/components/BulkSelectToggle.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import ItemCollection from '@/components/ItemCollection.vue';
+import Pagination from '@/components/Pagination.vue';
 import ItemViewToggle from '@/components/ItemViewToggle.vue';
 import TagFilter from '@/components/TagFilter.vue';
 import { useBulkSelection } from '@/composables/useBulkSelection';
 import { trans } from '@/composables/useTranslations';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { search } from '@/routes';
-import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, SharedData, TagSummary } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import type { BreadcrumbItemType, ItemSummary, ItemTypeValue, ItemViewMode, Paginated, SharedData, TagSummary } from '@/types';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { FileText, Search as SearchIcon, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
-
-interface Paginated<T> {
-    data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
-    total: number;
-    from: number | null;
-    to: number | null;
-}
 
 const props = defineProps<{
     query: string;
@@ -101,6 +96,8 @@ function clearFilters() {
         <Head :title="$t('nav.search')" />
 
         <div class="page">
+            <PageHeader :title="$t('nav.search')" />
+
             <form class="filterbar searchbar mb-3.5 p-0" @submit.prevent>
                 <div class="search flex-1">
                     <SearchIcon :size="14" />
@@ -203,10 +200,10 @@ function clearFilters() {
                 </div>
             </div>
 
-            <div v-if="items.data.length === 0" class="card card-pad text-center text-fg-muted">
-                <p class="m-0" v-if="query === '' && filters.type === null && filters.tags.length === 0">{{ $t('search.empty_prompt') }}</p>
-                <p class="m-0" v-else>{{ $t('search.no_match') }}</p>
-            </div>
+            <EmptyState v-if="items.data.length === 0">
+                <p v-if="query === '' && filters.type === null && filters.tags.length === 0" class="m-0">{{ $t('search.empty_prompt') }}</p>
+                <p v-else class="m-0">{{ $t('search.no_match') }}</p>
+            </EmptyState>
 
             <template v-else>
                 <ItemCollection
@@ -219,18 +216,7 @@ function clearFilters() {
                     @sort="onSort"
                 />
 
-                <nav v-if="items.links.length > 3" class="mt-6 flex flex-wrap justify-center gap-1">
-                    <component
-                        :is="link.url ? Link : 'span'"
-                        v-for="(link, i) in items.links"
-                        :key="i"
-                        :href="link.url ?? undefined"
-                        :preserve-scroll="true"
-                        :class="['chip', link.active ? 'active' : '', !link.url ? 'pointer-events-none opacity-40' : '']"
-                    >
-                        <span v-html="link.label" />
-                    </component>
-                </nav>
+                <Pagination :links="items.links" />
             </template>
         </div>
 

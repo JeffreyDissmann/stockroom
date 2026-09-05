@@ -43,15 +43,23 @@ class MaintenanceTask extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'schedule_type' => MaintenanceScheduleType::class,
-        'interval_value' => 'int',
-        'interval_unit' => MaintenanceIntervalUnit::class,
-        'next_due_at' => 'date',
-        'last_completed_at' => 'date',
-        'reminder_lead_days' => 'int',
-        'is_active' => 'bool',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'schedule_type' => MaintenanceScheduleType::class,
+            'interval_value' => 'int',
+            'interval_unit' => MaintenanceIntervalUnit::class,
+            'next_due_at' => 'date',
+            'last_completed_at' => 'date',
+            'reminder_lead_days' => 'int',
+            'is_active' => 'bool',
+        ];
+    }
 
     public function item(): BelongsTo
     {

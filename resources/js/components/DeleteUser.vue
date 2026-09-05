@@ -82,8 +82,8 @@ const closeModal = () => {
                                 <Button variant="secondary" @click="closeModal"> {{ $t('common.cancel') }} </Button>
                             </DialogClose>
 
-                            <Button variant="destructive" :disabled="form.processing">
-                                <button type="submit">{{ $t('settings.delete.button') }}</button>
+                            <Button type="submit" variant="destructive" :disabled="form.processing">
+                                {{ $t('settings.delete.button') }}
                             </Button>
                         </DialogFooter>
                     </form>

@@ -3,10 +3,20 @@
 declare(strict_types=1);
 
 return [
+    /*
+     | First-boot admin seed, used by DatabaseSeeder.
+     |
+     | STOCKROOM_ADMIN_* is the canonical name — it is what the README, the
+     | Docker env file, docker/entrypoint.sh and `stockroom:install` all use.
+     | This file used to read a second set of names (ADMIN_*) that nothing else
+     | knew about, so seeding a Docker-configured install silently fell through
+     | to the defaults below and created admin@stockroom.local / password. The
+     | bare names are still honoured so existing .env files keep working.
+     */
     'admin' => [
-        'name' => env('ADMIN_NAME', 'Admin'),
-        'email' => env('ADMIN_EMAIL', 'admin@stockroom.local'),
-        'password' => env('ADMIN_PASSWORD', 'password'),
+        'name' => env('STOCKROOM_ADMIN_NAME', env('ADMIN_NAME', 'Admin')),
+        'email' => env('STOCKROOM_ADMIN_EMAIL', env('ADMIN_EMAIL', 'admin@stockroom.local')),
+        'password' => env('STOCKROOM_ADMIN_PASSWORD', env('ADMIN_PASSWORD', 'password')),
     ],
 
     /*

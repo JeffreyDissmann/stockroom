@@ -13,6 +13,7 @@ use App\Models\Item;
 use App\Models\User;
 use App\Services\ItemImageProcessor;
 use App\Services\Items\PendingItemImage;
+use App\Support\ImageUploadRules;
 use ArrayAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class AssistantController extends Controller
         $validated = $request->validate([
             'message' => ['required_without:image', 'nullable', 'string', 'max:2000'],
             'conversation_id' => ['nullable', 'string'],
-            'image' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,heic', 'max:10240', 'dimensions:min_width=64,min_height=64'],
+            'image' => ['nullable', ...ImageUploadRules::perFile()],
             // Id of the item whose page the chat was opened from (ambient context).
             'context_item_id' => ['nullable', 'integer'],
         ]);

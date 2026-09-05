@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\AssistantController::messages
-* @see app/Http/Controllers/AssistantController.php:41
+* @see app/Http/Controllers/AssistantController.php:42
 * @route '/assistant/messages'
 */
 export const messages = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ messages.definition = {
 
 /**
 * @see \App\Http\Controllers\AssistantController::messages
-* @see app/Http/Controllers/AssistantController.php:41
+* @see app/Http/Controllers/AssistantController.php:42
 * @route '/assistant/messages'
 */
 messages.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ messages.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\AssistantController::messages
-* @see app/Http/Controllers/AssistantController.php:41
+* @see app/Http/Controllers/AssistantController.php:42
 * @route '/assistant/messages'
 */
 messages.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ messages.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:199
+* @see app/Http/Controllers/AssistantController.php:200
 * @route '/assistant/conversation'
 */
 export const conversation = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -50,7 +50,7 @@ conversation.definition = {
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:199
+* @see app/Http/Controllers/AssistantController.php:200
 * @route '/assistant/conversation'
 */
 conversation.url = (options?: RouteQueryOptions) => {
@@ -59,7 +59,7 @@ conversation.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:199
+* @see app/Http/Controllers/AssistantController.php:200
 * @route '/assistant/conversation'
 */
 conversation.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -69,7 +69,7 @@ conversation.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\AssistantController::conversation
-* @see app/Http/Controllers/AssistantController.php:199
+* @see app/Http/Controllers/AssistantController.php:200
 * @route '/assistant/conversation'
 */
 conversation.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

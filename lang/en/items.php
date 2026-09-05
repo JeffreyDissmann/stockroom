@@ -12,6 +12,7 @@ return [
     'edit_breadcrumb' => 'Edit',
     'edit_title' => 'Edit :name',
     'inside' => 'Inside',
+    'inside_count' => ':count inside|:count inside',
 
     'index' => [
         'search' => 'Search :count item|Search :count items',
@@ -208,6 +209,7 @@ return [
     ],
 
     'images' => [
+        'dot_label' => 'Image :number',
         'label' => 'Images',
         'drop' => 'Drop images here or click to pick',
         'formats' => 'JPG / PNG / WebP / HEIC, up to 10 MB each',
@@ -234,7 +236,6 @@ return [
         'move' => 'Move',
         'move_title' => 'Move selected items',
         'move_description' => 'Move :count item into a room or container.|Move :count items into a room or container.',
-        'move_confirm' => 'Move :count item to the selected location?|Move :count items to the selected location?',
         'moved_count' => 'Moved :count item.|Moved :count items.',
         'undo' => 'Undo',
         'attach_tag' => 'Add tag',

@@ -12,6 +12,7 @@ return [
     'edit_breadcrumb' => 'Bearbeiten',
     'edit_title' => ':name bearbeiten',
     'inside' => 'In',
+    'inside_count' => ':count enthalten|:count enthalten',
 
     'index' => [
         'search' => ':count Gegenstand durchsuchen|:count Gegenstände durchsuchen',
@@ -208,6 +209,7 @@ return [
     ],
 
     'images' => [
+        'dot_label' => 'Bild :number',
         'label' => 'Bilder',
         'drop' => 'Bilder hierher ziehen oder zum Auswählen klicken',
         'formats' => 'JPG / PNG / WebP / HEIC, je bis zu 10 MB',
@@ -234,7 +236,6 @@ return [
         'move' => 'Verschieben',
         'move_title' => 'Ausgewählte Gegenstände verschieben',
         'move_description' => ':count Gegenstand in einen Raum oder Behälter verschieben.|:count Gegenstände in einen Raum oder Behälter verschieben.',
-        'move_confirm' => ':count Gegenstand an den gewählten Ort verschieben?|:count Gegenstände an den gewählten Ort verschieben?',
         'moved_count' => ':count Gegenstand verschoben.|:count Gegenstände verschoben.',
         'undo' => 'Rückgängig',
         'attach_tag' => 'Schlagwort hinzufügen',

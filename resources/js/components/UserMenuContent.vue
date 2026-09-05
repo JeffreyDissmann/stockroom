@@ -3,7 +3,7 @@ import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useAppVersion } from '@/composables/useAppVersion';
 import { activity, logout } from '@/routes';
-import customFields from '@/routes/custom-fields';
+import customFields from '@/routes/household/custom-fields';
 import profile from '@/routes/profile';
 import type { User } from '@/types';
 import { Link } from '@inertiajs/vue3';

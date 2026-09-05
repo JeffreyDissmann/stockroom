@@ -6,6 +6,7 @@ namespace App\Services\Items;
 
 use App\Enums\ItemType;
 use App\Enums\SaleDisposition;
+use App\Models\CustomField;
 use App\Models\Item;
 
 /**
@@ -139,6 +140,31 @@ class ItemWriter
         $descendants->searchable();
 
         return $descendants->count();
+    }
+
+    /**
+     * Upsert the submitted custom field values (keyed by definition id),
+     * removing any that were cleared. Only user-editable definitions are
+     * touched so import-managed system values are preserved.
+     *
+     * @param  array<int|string, mixed>  $values
+     */
+    public function syncCustomFields(Item $item, array $values): void
+    {
+        foreach (CustomField::query()->where('is_system', false)->get() as $field) {
+            $stored = $field->type->serialize($values[$field->id] ?? null);
+
+            if ($stored === null) {
+                $item->customFieldValues()->where('custom_field_id', $field->id)->delete();
+
+                continue;
+            }
+
+            $item->customFieldValues()->updateOrCreate(
+                ['custom_field_id' => $field->id],
+                ['value' => $stored],
+            );
+        }
     }
 
     /**
