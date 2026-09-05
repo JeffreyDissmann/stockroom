@@ -7,6 +7,83 @@ and this project uses [CalVer](https://calver.org/) versioning (`YYYY.MM.PATCH`)
 
 ## [Unreleased]
 
+## [2026.09.01] — 2026-09-05
+
+### Fixed
+
+- **Sold items say so in search.** The search page is the one place that
+  deliberately lists what you have sold, and it was the one place that did not
+  mark it: choosing "Sold only" produced a list where every row read as though
+  you still owned it.
+- **A box holds the same number of things wherever you look at it.** Search
+  counted a container's sold contents while the inventory list left them out, so
+  the same card reported "12 inside" on one page and "9 inside" on the other.
+- **Undo works after moving several items at once.** The six-second Undo offer
+  had never once appeared: the result of the move never reached the page that
+  was waiting for it. The same fault left the Paperless relink tool with nothing
+  to say when it finished.
+- **Pending invitation links are admin-only.** The invite section was hidden
+  from ordinary members, but the links themselves — each one enough to create an
+  account — were still being sent to the browser, where anyone could read them.
+- **A fresh install no longer mis-configures Paperless.** The example
+  environment file still carried the tag names from before the rename, so a new
+  install told Paperless to watch for tags that Stockroom no longer uses. The
+  Docker example had no Paperless settings at all, leaving the documented setup
+  impossible to follow.
+- **The Docker admin account is the one you asked for.** The first-boot seed
+  read a different set of variable names than the ones documented and shipped,
+  so it quietly fell back to `admin@stockroom.local` with the password
+  `password`. The example environment file no longer fills those settings in
+  either, so a new install is never handed a password that is written down in
+  the repository.
+- **German is German throughout.** The item page's own breadcrumb, the "N
+  inside" count on every card, the image-carousel labels and both page-number
+  bars were still English.
+- **Dates on an item page match the rest of the app.** Purchase, warranty and
+  sale dates printed as `2026-09-05` while the maintenance rows directly beneath
+  them read `5.9.2026`. The battery chart followed the browser's language rather
+  than your own setting.
+- Deleting your account could be submitted twice, because the button stayed
+  clickable while the first attempt was still in flight.
+
+### Changed
+
+- **Confirmations are part of the app now.** Fifteen destructive actions — up to
+  and including wiping the entire inventory — asked with a bare browser alert,
+  while deleting your own account had a proper dialog. They all share that
+  dialog now: it follows the theme, and it can be tested, which none of those
+  fifteen could be.
+- **Moving items in bulk no longer stops to ask.** Moving is reversible, it
+  already offers Undo, and moving a single item asks nothing.
+- **The inventory has one name.** The desktop bar called it "Inventory" and the
+  mobile tab called it "Items", for the same destination whose own page said
+  "Inventory".
+- **Search has a title.** It was the only page that opened straight into its
+  filter bar with nothing naming it.
+- Paging through the activity log keeps your place, the way search already did,
+  instead of throwing you back to the top.
+- The inventory list shows an item's tags, which a container's contents already
+  did through the very same card.
+- "Saved." is readable in the dark theme.
+
+### Internal
+
+- **An item is described in one place instead of eight.** Three controllers held
+  their own copy of how to shape an item for the front end, and the copies had
+  drifted apart — which is where the sold-badge and count bugs came from. One
+  resource now decides, and what a page asks the database for decides what it
+  receives. The Home Assistant API keeps its own, so the UI can change without
+  moving that contract.
+- Repeated markup became shared components: the page heading, the empty-state
+  card, the page-number bar and the "Saved." note.
+- Every link and request goes through the generated route helpers, so a renamed
+  route breaks the build instead of a page.
+- The rules for uploading a photo lived in four places; raising the size limit
+  meant four edits and nothing failed if you made three.
+- One syntax for enum validation, one form of `casts()` across every model, and
+  the custom-field routes named like the twenty siblings they sit beside.
+- Added the missing index on the sold date, which nearly every screen filters on.
+
 ## [2026.08.05] — 2026-08-30
 
 ### Changed
@@ -770,6 +847,7 @@ First public release.
   tree; CI guards against drift.
 
 [Unreleased]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.05...HEAD
+[2026.09.01]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.05...2026.09.01
 [2026.08.05]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.04...2026.08.05
 [2026.08.04]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.03...2026.08.04
 [2026.08.03]: https://github.com/JeffreyDissmann/stockroom/compare/2026.08.02...2026.08.03
